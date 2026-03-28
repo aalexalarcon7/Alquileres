@@ -2603,7 +2603,6 @@
         setLoginMessage(String(e?.message || e), 'error');
       }
     }
-    
 
     async function sendPasswordReset(){
       setLoginMessage('');
@@ -2740,7 +2739,7 @@ function globalSearch(){
       $('viewInicio').innerHTML = `
         <div class="card">
           <h2 style="margin:0;">Inicio</h2>
-          <div class="muted">Resumen general</div>
+          <div class="muted">Resumen general .</div>
         </div>
 
         <div class="card">
@@ -4828,20 +4827,37 @@ function globalSearch(){
 
     window.addEventListener('scroll', () => { if (currentRoute === 'config') updateConfigNavState(); }, { passive:true });
 
-    // ocultar splash ====
+    // splash: mostrar solo la primera vez por pestaña/sesión ====
+    const SPLASH_SESSION_KEY = 'saladita_splash_seen';
     let splashDone = false;
 
+    function removeSplashImmediately() {
+      const el = document.getElementById("splash");
+      if (el) el.remove();
+      splashDone = true;
+    }
+
     function hideSplash() {
-    if (splashDone) return;
-   splashDone = true;
+      if (splashDone) return;
+      splashDone = true;
 
-   const el = document.getElementById("splash");
-    if (!el) return;
+      const el = document.getElementById("splash");
+      if (!el) return;
 
-  el.classList.add("hide");
-  // lo removemos del DOM después del fade
-  setTimeout(() => el.remove(), 450);
-}
+      try {
+        sessionStorage.setItem(SPLASH_SESSION_KEY, '1');
+      } catch (_) {}
+
+      el.classList.add("hide");
+      // lo removemos del DOM después del fade
+      setTimeout(() => el.remove(), 450);
+    }
+
+    try {
+      if (sessionStorage.getItem(SPLASH_SESSION_KEY) === '1') {
+        removeSplashImmediately();
+      }
+    } catch (_) {}
 
     async function init(){
       loadNavState();
