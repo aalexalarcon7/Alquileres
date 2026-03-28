@@ -1315,6 +1315,269 @@
     }
   </style>
 
+
+  <style id="responsiveTabletMobile">
+    /* ===== Tablet & Mobile responsiveness ===== */
+    .hide-mobile{display:inherit}
+    .mobile-only{display:none !important}
+
+    @media (max-width: 1024px){
+      .main{padding:16px 14px 24px}
+      .top{top:10px;padding:12px;border-radius:20px}
+      .kpis,
+      .config-meta,
+      .settings-overview,
+      .field-grid,
+      .field-grid.cols-3,
+      .settings-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .split,
+      .settings-workspace{grid-template-columns:1fr}
+      .config-rail{border-right:none;border-bottom:1px solid var(--border)}
+      .config-content{padding:20px}
+      .config-panel-surface{border-radius:20px}
+      .modal{width:min(760px,100%)}
+      table{min-width:860px}
+    }
+
+    @media (max-width: 820px){
+      .shell,
+      body.nav-collapsed .shell{grid-template-columns:1fr}
+      .nav-trigger{display:inline-flex}
+      .sidebar{
+        position:fixed;
+        left:12px;
+        top:12px;
+        bottom:12px;
+        width:min(88vw,340px);
+        max-width:340px;
+        height:auto;
+        border-radius:26px;
+        transform:translateX(calc(-100% - 18px));
+        transition:transform .28s ease;
+        z-index:90;
+      }
+      body.nav-open .sidebar{transform:translateX(0)}
+      body.nav-open .nav-overlay{opacity:1;pointer-events:auto}
+      .top{
+        position:sticky;
+        top:8px;
+        gap:10px;
+      }
+      .top-left,
+      .top-actions{
+        width:100%;
+      }
+      .top-actions{
+        justify-content:stretch;
+      }
+      .top-actions .btn{
+        width:100%;
+      }
+      .search input{
+        width:100%;
+        height:48px;
+      }
+      .config-tabs{
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+      .config-actions{
+        width:100%;
+        justify-content:stretch;
+      }
+      .config-actions .btn{
+        flex:1 1 calc(50% - 6px);
+      }
+      .section-head,
+      .config-panel-head,
+      .settings-toolbar,
+      .settings-lead,
+      .switch-row{
+        gap:12px;
+      }
+      .modalBack{
+        align-items:flex-end;
+        padding:0;
+      }
+      .modal{
+        width:100%;
+        max-width:none;
+        max-height:90dvh;
+        overflow:auto;
+        border-radius:24px 24px 0 0;
+        padding:18px 16px 20px;
+      }
+    }
+
+    @media (max-width: 640px){
+      .main{padding:12px 10px 18px}
+      .card{padding:14px;border-radius:18px}
+      .top{padding:10px;border-radius:18px}
+      .top-left{gap:10px}
+      .search input{
+        font-size:16px;
+        padding-inline:14px;
+      }
+
+      .row{
+        flex-direction:column;
+        align-items:stretch;
+      }
+      .row > *{
+        width:100% !important;
+        min-width:0 !important;
+      }
+
+      .btn{
+        width:100%;
+        justify-content:center;
+      }
+      .icon-btn{
+        flex:0 0 44px;
+      }
+
+      .kpis,
+      .config-meta,
+      .settings-overview,
+      .field-grid,
+      .field-grid.cols-3,
+      .settings-grid,
+      .check-grid{
+        grid-template-columns:1fr;
+      }
+
+      .config-tabs{
+        grid-template-columns:1fr;
+      }
+
+      .settings-nav{
+        padding:12px 14px;
+      }
+      .settings-nav button,
+      .config-tab,
+      .choice-pill{
+        min-height:46px;
+      }
+
+      .tableWrap{
+        margin-inline:-2px;
+        border-radius:16px;
+      }
+      table{
+        min-width:720px;
+      }
+      th,td{
+        padding:10px 12px;
+        font-size:12.5px;
+      }
+
+      body.logged-out #loginCard{
+        padding:16px;
+      }
+      body.logged-out #loginCard .loginShell,
+      body.logged-out #loginCard .loginPanel{
+        width:100%;
+      }
+      body.logged-out #loginCard .loginPanel{
+        padding:20px;
+        border-radius:24px;
+      }
+      body.logged-out #loginCard .loginHeader{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:14px;
+        margin-bottom:18px;
+      }
+      body.logged-out #loginCard .loginPanel h2{
+        font-size:28px;
+      }
+      body.logged-out #loginCard .loginForm{
+        grid-template-columns:1fr;
+        gap:12px;
+      }
+      body.logged-out #loginCard .loginMetaRow{
+        align-items:flex-start;
+        flex-direction:column;
+      }
+      body.logged-out #loginCard .loginActionsRow,
+      body.logged-out #loginCard .loginAuxRow{
+        flex-direction:column;
+        align-items:stretch;
+      }
+      body.logged-out #loginCard .loginActionsRow .btn,
+      body.logged-out #loginCard .loginAuxRow .btn,
+      body.logged-out #loginCard .loginPrimaryBtn,
+      body.logged-out #loginCard .loginOAuthBtn{
+        width:100%;
+        min-width:0;
+      }
+
+      .sidebar{
+        left:10px;
+        right:10px;
+        width:auto;
+        max-width:none;
+        top:10px;
+        bottom:10px;
+      }
+      .sb-item{
+        min-height:50px;
+      }
+      .sb-footer .btn{
+        min-height:48px;
+      }
+
+      #viewActivos .row[style*="justify-content:space-between"],
+      #viewDocumentos .row[style*="justify-content:space-between"],
+      #viewInformes .row[style*="justify-content:space-between"]{
+        align-items:flex-start;
+      }
+
+      .config-title h2,
+      .config-panel-head h3{
+        font-size:24px;
+      }
+      .kpi .value,
+      .config-stat .value{
+        font-size:20px;
+      }
+    }
+
+    @media (max-width: 420px){
+      .main{padding:10px 8px 16px}
+      .top{padding:8px}
+      .nav-trigger,
+      .icon-btn{
+        width:42px;
+        height:42px;
+        border-radius:13px;
+      }
+      .search input{
+        height:46px;
+        border-radius:16px;
+      }
+      .card{
+        padding:12px;
+        border-radius:16px;
+      }
+      .sidebar{
+        border-radius:22px;
+      }
+      table{
+        min-width:660px;
+      }
+      body.logged-out #loginCard .loginPanel{
+        padding:18px;
+        border-radius:22px;
+      }
+      body.logged-out #loginCard .loginBrandMark{
+        width:52px;
+        height:52px;
+        border-radius:16px;
+      }
+    }
+  </style>
+
 </head>
 <body>
 <!-- SPLASH -->
