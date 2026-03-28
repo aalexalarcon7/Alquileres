@@ -1914,7 +1914,6 @@
             </div>
 
             <div class="row" style="margin-top:12px;">
-              <input id="q" placeholder="Buscar (L001, P045, nombre…)" style="width:320px" oninput="renderUnidades()">
               <select id="filtro" onchange="renderUnidades()">
                 <option value="TODOS">Todos</option>
                 <option value="ATRASADOS">Atrasados</option>
@@ -2677,7 +2676,6 @@ function globalSearch(){
       const q = ($('globalSearch').value || '').trim();
 
       if (route === 'activos'){
-        if ($('q')) $('q').value = q;
         renderUnidades();
         return;
       }
@@ -2685,7 +2683,6 @@ function globalSearch(){
       if (!q) return;
 
       setRoute('activos');
-      if ($('q')) $('q').value = q;
       renderUnidades();
     }
 
@@ -2694,7 +2691,11 @@ function globalSearch(){
       return `<span class="badge b-ok">AL DÍA</span>`;
     }
 
-    function clearFilters(){ $('q').value=''; $('filtro').value='TODOS'; renderUnidades(); }
+    function clearFilters(){
+      if ($('globalSearch')) $('globalSearch').value = '';
+      $('filtro').value='TODOS';
+      renderUnidades();
+    }
 
     async function refreshAll(){
       await refreshUnidades();
@@ -2834,7 +2835,7 @@ function globalSearch(){
     }
 
     function renderUnidades(){
-      const q = ($('q').value || '').trim().toLowerCase();
+      const q = ($('globalSearch')?.value || '').trim().toLowerCase();
       const filtro = $('filtro').value;
       let rows = unidades;
 
