@@ -1,0 +1,6 @@
+node_modules/
+supabase-web/.env
+supabase-web/.env.*
+supabase-web/env.import
+supabase-web/.env.import
+.vscode/
