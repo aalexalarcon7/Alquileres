@@ -1579,6 +1579,52 @@
   </style>
 
 
+  <style id="detailInfoStyles">
+    .detail-info-section{margin:0 0 18px}
+    .detail-info-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+      margin-top:14px;
+    }
+    .detail-info-item{
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:14px 16px;
+      background:rgba(255,255,255,.68);
+      box-shadow:0 8px 24px rgba(15,23,42,.06);
+      min-height:84px;
+    }
+    [data-theme="dark"] .detail-info-item{
+      background:linear-gradient(180deg, rgba(15,23,36,.92), rgba(10,17,28,.98));
+      box-shadow:0 12px 26px rgba(0,0,0,.22);
+    }
+    .detail-info-label{
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--muted);
+      margin-bottom:8px;
+    }
+    .detail-info-value{
+      font-size:16px;
+      font-weight:900;
+      line-height:1.3;
+      word-break:break-word;
+    }
+    .detail-info-value.small{font-size:14px;font-weight:800}
+
+    @media (max-width: 1100px){
+      .detail-info-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+    }
+
+    @media (max-width: 420px){
+      .detail-info-grid{grid-template-columns:1fr;}
+      .detail-info-item{min-height:auto;}
+    }
+  </style>
+
   <style id="mobilePolishFix">
     .desktop-table{display:block}
     .mobile-top-list,
@@ -1908,6 +1954,23 @@
             </div>
 
             <div class="hr"></div>
+
+            <div class="detail-info-section">
+              <div class="row" style="justify-content:space-between;align-items:end;">
+                <div>
+                  <h3 style="margin:0;">Datos del activo</h3>
+                  <div class="muted">Información principal de la unidad, contrato e inquilino.</div>
+                </div>
+              </div>
+              <div class="detail-info-grid" id="detalleInfoGrid"></div>
+            </div>
+
+            <div class="row" style="justify-content:space-between;align-items:end;">
+              <div>
+                <h3 style="margin:0;">Cuotas y deuda</h3>
+                <div class="muted">Seguimiento de vencimientos, pagos y saldo pendiente.</div>
+              </div>
+            </div>
 
             <div class="tableWrap">
               <table>
@@ -2652,7 +2715,7 @@ function globalSearch(){
       $('viewInicio').innerHTML = `
         <div class="card">
           <h2 style="margin:0;">Inicio</h2>
-          <div class="muted">Resumen general.</div>
+          <div class="muted">Resumen general .</div>
         </div>
 
         <div class="card">
@@ -2816,6 +2879,43 @@ function globalSearch(){
       });
     }
 
+    function renderDetalleInfo(r, cuotasRows=[]){
+      const grid = $('detalleInfoGrid');
+      if (!grid) return;
+
+      const contrato = contratosActivos.find(c => String(c.id) === String(r.contrato_id)) || {};
+      const inq = contrato.inquilinos || {};
+      const pendientes = (cuotasRows || []).filter(x => Number(x.saldo || 0) > 0);
+      const proximo = pendientes
+        .map(x => String(x.vencimiento || '').slice(0,10))
+        .filter(Boolean)
+        .sort()[0] || '—';
+      const saldoPendiente = pendientes.reduce((acc, x) => acc + Number(x.saldo || 0), 0);
+      const estado = Number(r.deuda_atrasada || 0) > 0 ? 'Atrasado' : (Number(r.deuda_total || 0) > 0 ? 'Con saldo' : 'Al día');
+
+      const items = [
+        { label:'Código', value:r.local_codigo || '—' },
+        { label:'Contrato', value:r.contrato_id || '—' },
+        { label:'Inquilino', value:r.inquilino_nombre || inq.nombre || '—' },
+        { label:'Documento', value:inq.documento || '—', small:true },
+        { label:'Teléfono', value:inq.telefono || '—', small:true },
+        { label:'Email', value:inq.email || '—', small:true },
+        { label:'Estado actual', value:estado },
+        { label:'Próximo vencimiento', value:proximo },
+        { label:'Meses adeudados', value:String(Number(r.meses_adeudados || 0)) },
+        { label:'Saldo pendiente', value:fmtARS.format(saldoPendiente) },
+        { label:'Deuda atrasada', value:fmtARS.format(Number(r.deuda_atrasada || 0)) },
+        { label:'Cuotas con deuda', value:String(pendientes.length) },
+      ];
+
+      grid.innerHTML = items.map(item => `
+        <article class="detail-info-item">
+          <div class="detail-info-label">${item.label}</div>
+          <div class="detail-info-value${item.small ? ' small' : ''}">${item.value}</div>
+        </article>
+      `).join('');
+    }
+
     async function loadDetalle(r){
       $('detalleMsg').textContent = '';
       $('detalleMeta').textContent = `Contrato: ${r.contrato_id} | Código: ${r.local_codigo} | Inquilino: ${r.inquilino_nombre}`;
@@ -2828,6 +2928,8 @@ function globalSearch(){
         .order('vencimiento', { ascending:true });
 
       if (error){ $('detalleMsg').textContent = error.message; return; }
+
+      renderDetalleInfo(r, data || []);
 
       const tb = $('detalleBody');
       tb.innerHTML = '';
