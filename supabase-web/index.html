@@ -215,6 +215,15 @@
     th,td{padding:12px;border-bottom:1px solid var(--border);font-size:13px}
     th{color:var(--muted);text-align:left;background:var(--table-head-bg)}
     td.right{text-align:right} td.center{text-align:center}
+
+    /* Centrado visual de tablas en Inicio y Activos */
+    #viewInicio .desktop-table th,
+    #viewInicio .desktop-table td,
+    #viewActivos .desktop-table th,
+    #viewActivos .desktop-table td{
+      text-align:center !important;
+      vertical-align:middle;
+    }
     tr:hover td{background:var(--hover)}
 
     .hr{height:1px;background:var(--border);margin:14px 0}
@@ -2731,7 +2740,7 @@ function globalSearch(){
       $('viewInicio').innerHTML = `
         <div class="card">
           <h2 style="margin:0;">Inicio</h2>
-          <div class="muted">Resumen general .</div>
+          <div class="muted">Resumen general</div>
         </div>
 
         <div class="card">
