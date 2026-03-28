@@ -2868,7 +2868,6 @@ function globalSearch(){
           <td class="center">
             <button class="btn primary" onclick='openPagoModal(${escaped})'>Cobrar</button>
             <button class="btn" onclick="openActiveDetailByContrato('${r.contrato_id}')">Detalle</button>
-            <button class="btn" onclick="openActiveEditByContrato('${r.contrato_id}')">Editar</button>
           </td>
         `;
         tb.appendChild(tr);
@@ -2903,7 +2902,6 @@ function globalSearch(){
             <div class="mobile-actions">
               <button class="btn primary" onclick='openPagoModal(${escaped})'>Cobrar</button>
               <button class="btn" onclick="openActiveDetailByContrato('${r.contrato_id}')">Detalle</button>
-              <button class="btn" onclick="openActiveEditByContrato('${r.contrato_id}')">Editar</button>
             </div>
           `;
           mobileList.appendChild(card);
