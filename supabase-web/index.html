@@ -1956,11 +1956,12 @@
             <div class="hr"></div>
 
             <div class="detail-info-section">
-              <div class="row" style="justify-content:space-between;align-items:end;">
+              <div class="row" style="justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;">
                 <div>
                   <h3 style="margin:0;">Datos del activo</h3>
                   <div class="muted">Información principal de la unidad, contrato e inquilino.</div>
                 </div>
+                <button class="btn" onclick="openActivoModal()">Editar activo</button>
               </div>
               <div class="detail-info-grid" id="detalleInfoGrid"></div>
             </div>
@@ -2089,6 +2090,37 @@
 
       <div class="row" style="margin-top:12px;justify-content:flex-end;">
         <button class="btn primary" onclick="saveInqModal()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR ACTIVO -->
+  <div class="modalBack" id="modalActivoBack">
+    <div class="modal">
+      <div class="row" style="justify-content:space-between;align-items:flex-start;gap:12px;">
+        <div>
+          <h3 style="margin:0;" id="activoModalTitle">Editar activo</h3>
+          <div class="muted" id="activoModalMeta">Actualizá los datos principales de la unidad y del inquilino.</div>
+        </div>
+        <button class="btn" onclick="closeActivoModal()">Cerrar</button>
+      </div>
+      <div class="toast" id="activoModalMsg"></div>
+
+      <div class="row" style="margin-top:12px;">
+        <input id="actCodigo" placeholder="Código / unidad" style="width:180px;">
+        <input id="actContrato" placeholder="Contrato" style="width:180px;" disabled>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <input id="actNombre" placeholder="Nombre del inquilino" style="width:100%;">
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <input id="actDoc" placeholder="Documento" style="width:180px;">
+        <input id="actTel" placeholder="Teléfono" style="width:180px;">
+        <input id="actEmail" placeholder="Email" style="width:240px;">
+      </div>
+
+      <div class="row" style="margin-top:12px;justify-content:flex-end;">
+        <button class="btn primary" onclick="saveActivoModal()">Guardar cambios</button>
       </div>
     </div>
   </div>
@@ -2715,7 +2747,7 @@ function globalSearch(){
       $('viewInicio').innerHTML = `
         <div class="card">
           <h2 style="margin:0;">Inicio</h2>
-          <div class="muted">Resumen general.</div>
+          <div class="muted">Resumen general .</div>
         </div>
 
         <div class="card">
@@ -2793,6 +2825,14 @@ function globalSearch(){
       openDetalle(unidad);
     }
 
+    function openActiveEditByContrato(contratoId){
+      const unidad = unidades.find(x => String(x.contrato_id) === String(contratoId));
+      if (!unidad) return alert('No hay datos para este activo.');
+      selected = unidad;
+      setRoute('activos');
+      openActivoModal();
+    }
+
     function renderUnidades(){
       const q = ($('q').value || '').trim().toLowerCase();
       const filtro = $('filtro').value;
@@ -2828,6 +2868,7 @@ function globalSearch(){
           <td class="center">
             <button class="btn primary" onclick='openPagoModal(${escaped})'>Cobrar</button>
             <button class="btn" onclick="openActiveDetailByContrato('${r.contrato_id}')">Detalle</button>
+            <button class="btn" onclick="openActiveEditByContrato('${r.contrato_id}')">Editar</button>
           </td>
         `;
         tb.appendChild(tr);
@@ -2862,6 +2903,7 @@ function globalSearch(){
             <div class="mobile-actions">
               <button class="btn primary" onclick='openPagoModal(${escaped})'>Cobrar</button>
               <button class="btn" onclick="openActiveDetailByContrato('${r.contrato_id}')">Detalle</button>
+              <button class="btn" onclick="openActiveEditByContrato('${r.contrato_id}')">Editar</button>
             </div>
           `;
           mobileList.appendChild(card);
@@ -3043,7 +3085,104 @@ function globalSearch(){
       }
     }
 
-        // ===== Inquilinos (lista + detalle) =====
+        let activoEditContrato = null;
+
+    function getContratoActivoRow(contratoId){
+      return contratosActivos.find(c => String(c.id) === String(contratoId)) || null;
+    }
+
+    function openActivoModal(){
+      if (!selected?.contrato_id) {
+        alert('Primero abrí el detalle de un activo.');
+        return;
+      }
+
+      const contrato = getContratoActivoRow(selected.contrato_id);
+      const inq = contrato?.inquilinos || {};
+      activoEditContrato = contrato;
+
+      $('activoModalMsg').textContent = '';
+      $('activoModalTitle').textContent = 'Editar activo';
+      $('activoModalMeta').textContent = `${selected.local_codigo || '—'} · Contrato ${selected.contrato_id || '—'}`;
+      $('actCodigo').value = contrato?.locales?.codigo || selected.local_codigo || '';
+      $('actContrato').value = selected.contrato_id || '';
+      $('actNombre').value = selected.inquilino_nombre || inq.nombre || '';
+      $('actDoc').value = inq.documento || '';
+      $('actTel').value = inq.telefono || '';
+      $('actEmail').value = inq.email || '';
+      $('modalActivoBack').style.display = 'flex';
+    }
+
+    function closeActivoModal(){
+      $('modalActivoBack').style.display = 'none';
+      activoEditContrato = null;
+    }
+
+    async function saveActivoModal(){
+      const msg = $('activoModalMsg');
+      msg.textContent = '';
+
+      if (!selected?.contrato_id) {
+        msg.textContent = 'No hay un activo seleccionado.';
+        return;
+      }
+
+      const codigo = ($('actCodigo').value || '').trim();
+      const nombre = ($('actNombre').value || '').trim();
+      const documento = ($('actDoc').value || '').trim() || null;
+      const telefono = ($('actTel').value || '').trim() || null;
+      const email = ($('actEmail').value || '').trim() || null;
+
+      if (!codigo) {
+        msg.textContent = 'El código de la unidad es obligatorio.';
+        return;
+      }
+      if (!nombre) {
+        msg.textContent = 'El nombre del inquilino es obligatorio.';
+        return;
+      }
+
+      const contrato = activoEditContrato || getContratoActivoRow(selected.contrato_id);
+      if (!contrato) {
+        msg.textContent = 'No se encontró el contrato activo.';
+        return;
+      }
+
+      const tasks = [];
+
+      if (contrato?.locales?.id) {
+        tasks.push(sb.from('locales').update({ codigo }).eq('id', contrato.locales.id));
+      }
+
+      if (contrato?.inquilinos?.id) {
+        tasks.push(sb.from('inquilinos').update({ nombre, documento, telefono, email }).eq('id', contrato.inquilinos.id));
+      }
+
+      if (!tasks.length) {
+        msg.textContent = 'No encontré registros editables para este activo.';
+        return;
+      }
+
+      msg.textContent = 'Guardando cambios...';
+      const results = await Promise.all(tasks);
+      const failed = results.find(r => r?.error);
+      if (failed?.error) {
+        msg.textContent = failed.error.message;
+        return;
+      }
+
+      msg.textContent = 'Activo actualizado ✅';
+      closeActivoModal();
+      const currentId = selected.contrato_id;
+      await refreshAll();
+      const refreshed = unidades.find(x => String(x.contrato_id) === String(currentId));
+      if (refreshed) {
+        selected = refreshed;
+        openDetalle(refreshed);
+      }
+    }
+
+    // ===== Inquilinos (lista + detalle) =====
     let contratosActivos = [];          // contratos activos con locales + inquilinos
     let inqCache = [];                  // resumen por inquilino
     let selectedInqId = null;
@@ -3052,7 +3191,7 @@ function globalSearch(){
     async function refreshContratosActivos(){
       const { data, error } = await sb
         .from('contratos')
-        .select('id, inquilino_id, locales(codigo), inquilinos(id,nombre,telefono,email,documento)')
+        .select('id, inquilino_id, locales(id,codigo), inquilinos(id,nombre,telefono,email,documento)')
         .eq('estado','ACTIVO');
 
       if (error){
