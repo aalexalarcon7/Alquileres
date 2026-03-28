@@ -1578,6 +1578,164 @@
     }
   </style>
 
+
+  <style id="mobilePolishFix">
+    .desktop-table{display:block}
+    .mobile-top-list,
+    .mobile-unit-list{display:none}
+    .mobile-stack{
+      display:grid;
+      gap:12px;
+      margin-top:14px;
+    }
+    .mobile-data-card{
+      background:var(--row-bg);
+      border:1px solid var(--border);
+      border-radius:22px;
+      padding:16px;
+      box-shadow:0 10px 26px rgba(15,23,42,.08);
+    }
+    [data-theme="dark"] .mobile-data-card{
+      background:linear-gradient(180deg, rgba(15,23,36,.94), rgba(11,18,30,.98));
+      box-shadow:0 12px 28px rgba(0,0,0,.28);
+    }
+    .mobile-card-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:12px;
+    }
+    .mobile-code{
+      display:inline-flex;
+      align-items:center;
+      min-height:38px;
+      padding:0 14px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:var(--secondary-btn-bg);
+      font-weight:800;
+      letter-spacing:.02em;
+    }
+    .mobile-tenant{
+      font-size:17px;
+      font-weight:800;
+      line-height:1.25;
+      margin:0 0 10px;
+    }
+    .mobile-meta-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:10px;
+      margin-bottom:14px;
+    }
+    .mobile-meta{
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:12px;
+      background:rgba(255,255,255,.55);
+    }
+    [data-theme="dark"] .mobile-meta{
+      background:rgba(255,255,255,.035);
+    }
+    .mobile-meta .label{
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      opacity:.68;
+      margin-bottom:6px;
+    }
+    .mobile-meta .value{
+      font-size:15px;
+      font-weight:800;
+      line-height:1.2;
+    }
+    .mobile-actions{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:10px;
+    }
+    .mobile-actions .btn{
+      width:100%;
+    }
+
+    @media (max-width: 900px){
+      .top{
+        display:grid;
+        grid-template-columns:auto 1fr auto;
+        gap:10px;
+        align-items:center;
+      }
+      .top-left{
+        display:contents;
+      }
+      .nav-trigger{
+        grid-column:1;
+        grid-row:1;
+      }
+      .search{
+        grid-column:2;
+        grid-row:1;
+      }
+      .top-actions{
+        grid-column:3;
+        grid-row:1;
+        width:auto;
+      }
+      .top-actions .btn{
+        width:auto;
+        min-width:116px;
+      }
+      .desktop-table{display:none !important}
+      .mobile-top-list,
+      .mobile-unit-list{
+        display:grid;
+        grid-template-columns:repeat(auto-fit, minmax(270px, 1fr));
+        gap:12px;
+        margin-top:14px;
+      }
+    }
+
+    @media (max-width: 640px){
+      .top{
+        grid-template-columns:auto 1fr;
+        padding:12px;
+      }
+      .nav-trigger{
+        grid-column:1;
+        grid-row:1;
+      }
+      .search{
+        grid-column:2;
+        grid-row:1;
+      }
+      .top-actions{
+        grid-column:1 / -1;
+        grid-row:2;
+        width:100%;
+      }
+      .top-actions .btn{
+        width:100%;
+        min-width:0;
+      }
+      .search input{
+        height:52px;
+      }
+      .mobile-meta-grid,
+      .mobile-actions{
+        grid-template-columns:1fr;
+      }
+      .mobile-data-card{
+        padding:14px;
+        border-radius:20px;
+      }
+      .mobile-tenant{
+        font-size:16px;
+      }
+    }
+  </style>
+
 </head>
 <body>
 <!-- SPLASH -->
@@ -1719,7 +1877,9 @@
               <button class="btn" onclick="clearFilters()">Limpiar</button>
             </div>
 
-            <div class="tableWrap" style="margin-top:12px;">
+            <div class="mobile-unit-list" id="unitsMobileList"></div>
+
+            <div class="tableWrap desktop-table" style="margin-top:12px;">
               <table>
                 <thead>
                   <tr>
@@ -2506,7 +2666,7 @@ function globalSearch(){
 
         <div class="card">
           <h3 style="margin-top:0;">Top atrasados</h3>
-          <div class="tableWrap">
+          <div class="tableWrap desktop-table">
             <table>
               <thead><tr><th>Código</th><th>Inquilino</th><th class="right">Deuda</th><th class="right">Atrasada</th><th class="center">Acción</th></tr></thead>
               <tbody>
@@ -2521,6 +2681,30 @@ function globalSearch(){
                 `).join('')}
               </tbody>
             </table>
+          </div>
+          <div class="mobile-top-list">
+            ${top.map(r=>`
+              <article class="mobile-data-card">
+                <div class="mobile-card-top">
+                  <span class="mobile-code">${r.local_codigo}</span>
+                  ${badgeEstado(r)}
+                </div>
+                <div class="mobile-tenant">${r.inquilino_nombre}</div>
+                <div class="mobile-meta-grid">
+                  <div class="mobile-meta">
+                    <div class="label">Deuda total</div>
+                    <div class="value">${fmtARS.format(Number(r.deuda_total||0))}</div>
+                  </div>
+                  <div class="mobile-meta">
+                    <div class="label">Atrasada</div>
+                    <div class="value">${fmtARS.format(Number(r.deuda_atrasada||0))}</div>
+                  </div>
+                </div>
+                <div class="mobile-actions">
+                  <button class="btn primary" onclick="openDetalleFromInicio('${r.contrato_id}')">Ver detalle</button>
+                </div>
+              </article>
+            `).join('')}
           </div>
           <div class="muted">${top.length ? '' : 'No hay atrasados 🎉'}</div>
         </div>
@@ -2564,9 +2748,12 @@ function globalSearch(){
       $('unitsCount').textContent = `${rows.length} resultados`;
 
       const tb = $('tbodyUnits');
+      const mobileList = $('unitsMobileList');
       tb.innerHTML = '';
+      if (mobileList) mobileList.innerHTML = '';
 
       rows.forEach(r => {
+        const escaped = JSON.stringify(r).replace(/'/g,"&#39;");
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><b>${r.local_codigo}</b></td>
@@ -2576,11 +2763,46 @@ function globalSearch(){
           <td class="center">${Number(r.meses_adeudados||0)}</td>
           <td class="center">${badgeEstado(r)}</td>
           <td class="center">
-            <button class="btn primary" onclick='openPagoModal(${JSON.stringify(r).replace(/'/g,"&#39;")})'>Cobrar</button>
+            <button class="btn primary" onclick='openPagoModal(${escaped})'>Cobrar</button>
             <button class="btn" onclick="openActiveDetailByContrato('${r.contrato_id}')">Detalle</button>
           </td>
         `;
         tb.appendChild(tr);
+
+        if (mobileList){
+          const card = document.createElement('article');
+          card.className = 'mobile-data-card';
+          card.innerHTML = `
+            <div class="mobile-card-top">
+              <span class="mobile-code">${r.local_codigo}</span>
+              ${badgeEstado(r)}
+            </div>
+            <div class="mobile-tenant">${r.inquilino_nombre}</div>
+            <div class="mobile-meta-grid">
+              <div class="mobile-meta">
+                <div class="label">Deuda</div>
+                <div class="value">${fmtARS.format(Number(r.deuda_total||0))}</div>
+              </div>
+              <div class="mobile-meta">
+                <div class="label">Atrasada</div>
+                <div class="value">${fmtARS.format(Number(r.deuda_atrasada||0))}</div>
+              </div>
+              <div class="mobile-meta">
+                <div class="label">Meses</div>
+                <div class="value">${Number(r.meses_adeudados||0)}</div>
+              </div>
+              <div class="mobile-meta">
+                <div class="label">Estado</div>
+                <div class="value">${Number(r.deuda_atrasada||0) > 0 ? 'Atrasado' : 'Al día'}</div>
+              </div>
+            </div>
+            <div class="mobile-actions">
+              <button class="btn primary" onclick='openPagoModal(${escaped})'>Cobrar</button>
+              <button class="btn" onclick="openActiveDetailByContrato('${r.contrato_id}')">Detalle</button>
+            </div>
+          `;
+          mobileList.appendChild(card);
+        }
       });
     }
 
