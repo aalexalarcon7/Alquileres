@@ -4,8 +4,6 @@
   <meta charset="utf-8"/>
   <title>Gestión de Alquileres</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <link rel="shortcut icon" href="./logosaladitaweb.png" />
-<link rel="apple-touch-icon" href="./logosaladitaweb.png" />
   <script>
     (function () {
       try {
@@ -1845,7 +1843,7 @@
               <div>
                 <div class="loginEyebrow">Acceso seguro</div>
                 <h2 id="loginTitle">Login</h2>
-                <p class="loginLead"></p>
+                <p class="loginLead">Ingresá para administrar alquileres, pagos, documentos e informes desde un solo lugar.</p>
               </div>
             </div>
 
@@ -1870,10 +1868,6 @@
 
             <div class="loginActionsRow">
               <button class="btn primary loginPrimaryBtn" onclick="login()">Entrar</button>
-              <button class="btn loginOAuthBtn" type="button" onclick="signInWithGoogle()">
-                <span class="loginOAuthIcon">G</span>
-                <span>Continuar con Google</span>
-              </button>
             </div>
 
             <div class="loginAuxCard" id="forgotBox" hidden>
@@ -2600,19 +2594,6 @@
         setLoginMessage(String(e?.message || e), 'error');
       }
     }
-
-    async function signInWithGoogle(){
-      setLoginMessage('');
-      try{
-        const redirectTo = `${window.location.origin}${window.location.pathname}`;
-        const { error } = await sb.auth.signInWithOAuth({
-          provider:'google',
-          options:{ redirectTo }
-        });
-        if (error) throw error;
-      } catch (e){
-        setLoginMessage('No se pudo iniciar con Google. Revisá que el proveedor esté habilitado en Supabase Auth.', 'error');
-      }
     }
 
     async function sendPasswordReset(){
@@ -2750,7 +2731,7 @@ function globalSearch(){
       $('viewInicio').innerHTML = `
         <div class="card">
           <h2 style="margin:0;">Inicio</h2>
-          <div class="muted">Resumen general.</div>
+          <div class="muted">Resumen general .</div>
         </div>
 
         <div class="card">
