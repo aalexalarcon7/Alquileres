@@ -1,0 +1,4189 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Gestión de Alquileres</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <script>
+    (function () {
+      try {
+        const saved = localStorage.getItem('ga_theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = saved || (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+    <style>
+    :root{
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --card-2:#f8fafc;
+      --muted:#64748b;
+      --text:#0f172a;
+      --border:rgba(15,23,42,.12);
+      --border-strong:rgba(15,23,42,.20);
+      --ok:#16a34a;
+      --warn:#d97706;
+      --bad:#dc2626;
+      --info:#2563eb;
+      --shadow:0 14px 38px rgba(15,23,42,.08);
+      --r:16px;
+      --sidebar-bg:#ffffff;
+      --input-bg:#ffffff;
+      --table-head-bg:#f8fafc;
+      --hover:#f1f5f9;
+      --overlay:rgba(15,23,42,.42);
+      --logo-bg:rgba(37,99,235,.12);
+      --logo-fg:#1d4ed8;
+      --brand-accent-a:rgba(37,99,235,.12);
+      --brand-accent-b:rgba(22,163,74,.10);
+      --surface-soft:rgba(15,23,42,.03);
+      --surface-strong:rgba(15,23,42,.05);
+      --info-soft:rgba(37,99,235,.10);
+      --info-border:rgba(37,99,235,.24);
+      --ok-soft:rgba(22,163,74,.12);
+      --ok-border:rgba(22,163,74,.24);
+      --warn-soft:rgba(217,119,6,.12);
+      --warn-border:rgba(217,119,6,.24);
+      --bad-soft:rgba(220,38,38,.10);
+      --bad-border:rgba(220,38,38,.24);
+    }
+
+    [data-theme="dark"]{
+      --bg:#0b0f17;
+      --card:#121a27;
+      --card-2:#0f1724;
+      --muted:#9aa4b2;
+      --text:#e8eef7;
+      --border:rgba(255,255,255,.10);
+      --border-strong:rgba(255,255,255,.18);
+      --ok:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --info:#60a5fa;
+      --shadow:0 14px 38px rgba(0,0,0,.35);
+      --sidebar-bg:#0f1724;
+      --input-bg:rgba(0,0,0,.22);
+      --table-head-bg:rgba(255,255,255,.02);
+      --hover:rgba(255,255,255,.03);
+      --overlay:rgba(0,0,0,.65);
+      --logo-bg:rgba(96,165,250,.18);
+      --logo-fg:#e8eef7;
+      --brand-accent-a:rgba(96,165,250,.18);
+      --brand-accent-b:rgba(34,197,94,.12);
+      --surface-soft:rgba(255,255,255,.03);
+      --surface-strong:rgba(0,0,0,.12);
+      --info-soft:rgba(96,165,250,.18);
+      --info-border:rgba(96,165,250,.35);
+      --ok-soft:rgba(34,197,94,.16);
+      --ok-border:rgba(34,197,94,.35);
+      --warn-soft:rgba(245,158,11,.14);
+      --warn-border:rgba(245,158,11,.35);
+      --bad-soft:rgba(239,68,68,.14);
+      --bad-border:rgba(239,68,68,.35);
+    }
+
+    *{box-sizing:border-box}
+    html{background:var(--bg)}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      transition:background-color .25s ease,color .25s ease;
+    }
+    .muted{color:var(--muted);font-size:13px}
+
+    .shell{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+    .sidebar{
+      background:var(--sidebar-bg);
+      border-right:1px solid var(--border);
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      transition:background-color .25s ease,border-color .25s ease;
+    }
+    .sb-brand{display:flex;gap:10px;align-items:center}
+    .sb-logo{
+      width:40px;
+      height:40px;
+      border-radius:14px;
+      background:var(--logo-bg);
+      color:var(--logo-fg);
+      border:1px solid var(--border);
+      display:grid;
+      place-items:center;
+      font-weight:900;
+    }
+    .sb-title{font-weight:900}
+    .sb-subtitle{color:var(--muted);font-size:12px}
+
+    .sb-nav{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+    .sb-item{
+      width:100%;
+      text-align:left;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:var(--surface-soft);
+      color:var(--text);
+      cursor:pointer;
+      font-weight:800;
+      transition:background-color .2s ease,border-color .2s ease,transform .15s ease;
+    }
+    .sb-item:hover{background:var(--hover)}
+    .sb-item:active{transform:translateY(1px)}
+    .sb-item.active{background:var(--info-soft);border-color:var(--info-border)}
+    .sb-footer{margin-top:auto}
+
+    .main{padding:18px}
+    .top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}
+    .search input{
+      width:min(560px,70vw);
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:var(--input-bg);
+      color:var(--text);
+    }
+
+    .btn{
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:var(--surface-soft);
+      color:var(--text);
+      cursor:pointer;
+      font-weight:800;
+      transition:background-color .2s ease,border-color .2s ease,transform .15s ease,color .2s ease;
+    }
+    .btn:hover{background:var(--hover)}
+    .btn:active{transform:translateY(1px)}
+    .btn.primary{background:var(--ok-soft);border-color:var(--ok-border)}
+    .btn.danger{background:var(--bad-soft);border-color:var(--bad-border)}
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--r);
+      box-shadow:var(--shadow);
+      padding:16px;
+      margin-bottom:14px;
+      transition:background-color .25s ease,border-color .25s ease,box-shadow .25s ease;
+    }
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    input,select{
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:var(--input-bg);
+      color:var(--text);
+      transition:background-color .25s ease,border-color .25s ease,color .25s ease;
+    }
+    input::placeholder{color:var(--muted)}
+
+    .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    @media (max-width: 1100px){.kpis{grid-template-columns:1fr}}
+    .kpi{
+      padding:14px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:var(--card-2);
+    }
+    .kpi .label{color:var(--muted);font-weight:900;font-size:12px}
+    .kpi .value{font-size:22px;font-weight:950;margin-top:6px}
+
+    .badge{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:950;
+      border:1px solid var(--border);
+    }
+    .b-ok{background:var(--ok-soft);border-color:var(--ok-border)}
+    .b-warn{background:var(--warn-soft);border-color:var(--warn-border)}
+    .b-bad{background:var(--bad-soft);border-color:var(--bad-border)}
+    .b-info{background:var(--info-soft);border-color:var(--info-border)}
+
+    .tableWrap{overflow:auto;border:1px solid var(--border);border-radius:14px}
+    table{width:100%;border-collapse:collapse;min-width:980px}
+    th,td{padding:12px;border-bottom:1px solid var(--border);font-size:13px}
+    th{color:var(--muted);text-align:left;background:var(--table-head-bg)}
+    td.right{text-align:right} td.center{text-align:center}
+    tr:hover td{background:var(--hover)}
+
+    .hr{height:1px;background:var(--border);margin:14px 0}
+    textarea{
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:var(--input-bg);
+      color:var(--text);
+      font:inherit;
+      resize:vertical;
+      min-height:110px;
+      transition:background-color .25s ease,border-color .25s ease,color .25s ease;
+    }
+    .settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .settings-grid .card{margin-bottom:0}
+    .section-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}
+    .setting-field{display:flex;flex-direction:column;gap:6px;min-width:220px;flex:1}
+    .setting-field label{font-size:12px;color:var(--muted);font-weight:800}
+    .switch-row{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:14px 16px;border:1px solid var(--border);background:var(--card-2);border-radius:18px}
+    .check-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .check-item{display:flex;gap:10px;align-items:center;padding:12px 14px;border:1px solid var(--border);background:var(--card-2);border-radius:16px;font-weight:700}
+    .check-item input{margin:0}
+    .mini-note{font-size:12px;color:var(--muted)}
+    .config-summary{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+
+    .settings-shell{display:grid;gap:14px}
+    .settings-toolbar{display:flex;justify-content:space-between;gap:14px;align-items:flex-end;flex-wrap:wrap}
+    .settings-main{padding:0;overflow:hidden}
+    .settings-nav{position:sticky;top:86px;z-index:2;display:flex;gap:10px;flex-wrap:wrap;padding:18px 20px;border-bottom:1px solid var(--border);background:linear-gradient(180deg, rgba(255,255,255,.88), rgba(255,255,255,.74));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+    [data-theme="dark"] .settings-nav{background:linear-gradient(180deg, rgba(18,26,39,.92), rgba(15,23,36,.80))}
+    .settings-nav button{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.56);font-weight:800;color:var(--text);cursor:pointer;transition:transform .18s ease,border-color .18s ease,background-color .18s ease,box-shadow .18s ease}
+    .settings-nav button:hover{transform:translateY(-1px);border-color:var(--border-strong)}
+    .settings-nav button.active{background:linear-gradient(180deg, #111827, #0f172a);border-color:rgba(15,23,42,.55);color:#fff;box-shadow:0 16px 30px rgba(15,23,42,.14)}
+    [data-theme="dark"] .settings-nav button{background:rgba(255,255,255,.05)}
+    [data-theme="dark"] .settings-nav button.active{background:linear-gradient(180deg, #f8fafc, #dce6f2);color:#0f172a;border-color:rgba(255,255,255,.18)}
+    .settings-body{padding:20px}
+    .settings-block{padding:18px 0 4px}
+    .settings-block:first-child{padding-top:0}
+    .settings-divider{height:1px;background:linear-gradient(90deg, transparent, var(--border), transparent);margin:4px 0 10px}
+    .settings-lead{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap}
+    .settings-lead h3{margin:0;font-size:24px;letter-spacing:-.02em}
+    .field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .field-grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .choice-group{display:flex;gap:10px;flex-wrap:wrap}
+    .choice-pill{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--border);background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.72));box-shadow:inset 0 1px 0 rgba(255,255,255,.7), 0 10px 24px rgba(15,23,42,.04);font-weight:800;color:var(--text);cursor:pointer;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background-color .18s ease}
+    .choice-pill:hover{transform:translateY(-1px);border-color:var(--border-strong)}
+    .choice-pill.active{background:linear-gradient(180deg, rgba(17,24,39,.98), rgba(15,23,42,.96));border-color:rgba(15,23,42,.58);box-shadow:0 16px 32px rgba(15,23,42,.16);color:#fff}
+    [data-theme="dark"] .choice-pill{background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 12px 24px rgba(0,0,0,.16)}
+    [data-theme="dark"] .choice-pill.active{background:linear-gradient(180deg, #f8fafc, #dce6f2);color:#0f172a;border-color:rgba(255,255,255,.18);box-shadow:0 18px 34px rgba(0,0,0,.26)}
+    .settings-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
+    .settings-overview .kpi{padding:14px 16px}
+    .settings-hidden{display:none !important}
+
+    .config-header{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap}
+    .config-title h2{margin:0;font-size:32px;letter-spacing:-.03em}
+    .config-title .muted{max-width:760px;margin-top:8px}
+    .config-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .config-meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}
+    .config-stat{padding:16px 18px;border:1px solid var(--border);border-radius:20px;background:linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.44));box-shadow:inset 0 1px 0 rgba(255,255,255,.75)}
+    .config-stat .eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:900;margin-bottom:8px}
+    .config-stat .value{font-size:24px;font-weight:900;letter-spacing:-.02em}
+    .config-stat .sub{margin-top:6px;font-size:12px;color:var(--muted)}
+    [data-theme="dark"] .config-stat{background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025));box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+
+    .settings-workspace{display:grid;grid-template-columns:280px 1fr;gap:0;padding:0;overflow:hidden}
+    .config-rail{padding:18px;border-right:1px solid var(--border);background:linear-gradient(180deg, rgba(255,255,255,.40), rgba(255,255,255,.18))}
+    [data-theme="dark"] .config-rail{background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015))}
+    .config-rail-head{padding:6px 6px 18px}
+    .config-rail-head .eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);font-weight:900;margin-bottom:8px}
+    .config-rail-head h3{margin:0 0 6px 0;font-size:18px}
+    .config-rail-head p{margin:0;font-size:13px;color:var(--muted);line-height:1.45}
+    .config-tabs{display:flex;flex-direction:column;gap:10px}
+    .config-tab{width:100%;text-align:left;padding:14px 16px;border-radius:18px;border:1px solid var(--border);background:linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.42));color:var(--text);cursor:pointer;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background-color .18s ease;box-shadow:0 10px 22px rgba(15,23,42,.04), inset 0 1px 0 rgba(255,255,255,.72)}
+    .config-tab:hover{transform:translateY(-1px);border-color:var(--border-strong)}
+    .config-tab.active{background:linear-gradient(180deg, #111827, #0f172a);color:#fff;border-color:rgba(15,23,42,.58);box-shadow:0 18px 34px rgba(15,23,42,.18)}
+    .config-tab strong{display:block;font-size:15px}
+    .config-tab span{display:block;margin-top:6px;font-size:12px;line-height:1.35;opacity:.82;font-weight:600}
+    [data-theme="dark"] .config-tab{background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025));box-shadow:0 12px 24px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.04)}
+    [data-theme="dark"] .config-tab.active{background:linear-gradient(180deg, #f8fafc, #dce6f2);color:#0f172a;border-color:rgba(255,255,255,.20);box-shadow:0 18px 34px rgba(0,0,0,.28)}
+
+    .config-content{padding:24px}
+    .config-panel{display:none;animation:configFade .18s ease}
+    .config-panel.active{display:block}
+    @keyframes configFade{from{opacity:.5;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+    .config-panel-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-bottom:18px}
+    .config-panel-head h3{margin:0;font-size:26px;letter-spacing:-.03em}
+    .config-panel-head p{margin:8px 0 0 0;color:var(--muted);max-width:780px;line-height:1.5}
+    .config-panel-surface{padding:18px;border:1px solid var(--border);border-radius:22px;background:linear-gradient(180deg, rgba(255,255,255,.40), rgba(255,255,255,.18));margin-bottom:14px}
+    [data-theme="dark"] .config-panel-surface{background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015))}
+    .config-stack{display:grid;gap:14px}
+    .config-inline-badges{display:flex;gap:8px;flex-wrap:wrap}
+    body.route-config .search{display:none}
+
+    body.compact .card{padding:12px}
+    body.compact th,body.compact td{padding:9px 10px}
+    body.compact .btn,body.compact input,body.compact select,body.compact textarea{padding:8px 10px}
+    @media (max-width: 1100px){.settings-grid,.field-grid,.field-grid.cols-3,.settings-overview,.config-meta{grid-template-columns:1fr}.check-grid{grid-template-columns:1fr}.settings-nav{top:72px}.settings-workspace{grid-template-columns:1fr}.config-rail{border-right:none;border-bottom:1px solid var(--border)}.config-tabs{display:grid;grid-template-columns:1fr 1fr}}
+    @media (max-width: 720px){.settings-nav{padding:14px}.settings-body{padding:16px}.config-actions{width:100%;justify-content:stretch}.config-actions .btn{flex:1 1 calc(50% - 6px)}.config-tabs{grid-template-columns:1fr}.config-content{padding:16px}.config-title h2{font-size:28px}}
+
+    /* Modal */
+    .modalBack{
+      position:fixed;
+      inset:0;
+      background:var(--overlay);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:9999
+    }
+    .modal{
+      width:min(560px,100%);
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:16px
+    }
+    .toast{margin-top:10px;font-size:13px;color:var(--muted)}
+
+    /* Inquilinos layout */
+    .split{display:grid;grid-template-columns:1fr 420px;gap:12px;align-items:start}
+    @media (max-width: 1100px){.split{grid-template-columns:1fr}}
+    .linkBtn{background:none;border:none;color:var(--text);font-weight:900;cursor:pointer;padding:0}
+    .linkBtn:hover{text-decoration:underline}
+
+    /* SPLASH */
+    .splash{
+      position:fixed;
+      inset:0;
+      z-index:99999;
+      display:grid;
+      place-items:center;
+      background:
+        radial-gradient(1200px 600px at 30% 20%, var(--brand-accent-a), transparent 60%),
+        radial-gradient(900px 500px at 70% 80%, var(--brand-accent-b), transparent 55%),
+        var(--bg);
+      transition:opacity .35s ease,transform .35s ease;
+      opacity:1;
+      transform:translateY(0);
+    }
+
+    .splash.hide{
+      opacity:0;
+      transform:translateY(-6px);
+      pointer-events:none;
+    }
+
+    .splash-card{
+      text-align:center;
+      padding:22px 22px;
+      border-radius:18px;
+      border:1px solid var(--border);
+      background:var(--card);
+      box-shadow:var(--shadow);
+    }
+
+    .splash-logo{
+      width:74px;
+      height:74px;
+      border-radius:22px;
+      display:grid;
+      place-items:center;
+      font-weight:900;
+      font-size:28px;
+      margin:0 auto 12px auto;
+      background:var(--logo-bg);
+      border:1px solid var(--border);
+    }
+
+    .splash-logo-img{
+      width:92px;
+      height:92px;
+      object-fit:contain;
+      margin:0 auto 10px auto;
+      display:block;
+    }
+
+    .splash-title{
+      font-size:18px;
+      font-weight:900;
+      color:var(--text);
+    }
+
+    .splash-sub{
+      margin-top:6px;
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .splash{transition:none}
+    }
+
+    /* ===== MODO SOLO LOGIN ===== */
+    body.logged-out .sidebar,
+    body.logged-out .top,
+    body.logged-out #app {
+      display:none !important;
+    }
+
+    body.logged-out .shell {
+      grid-template-columns:1fr !important;
+    }
+
+    body.logged-out .main {
+      padding:0 !important;
+    }
+
+    /* pantalla completa para login */
+    body.logged-out #loginCard {
+      position:fixed;
+      inset:0;
+      margin:0 !important;
+      border:none !important;
+      box-shadow:none !important;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:32px;
+      background:
+        radial-gradient(1200px 600px at 22% 18%, var(--brand-accent-a), transparent 58%),
+        radial-gradient(900px 500px at 76% 82%, var(--brand-accent-b), transparent 56%),
+        linear-gradient(180deg, color-mix(in srgb, var(--bg) 94%, black 6%), var(--bg));
+      z-index:120;
+    }
+
+    body.logged-out #loginCard .loginShell{
+      width:min(640px,100%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    body.logged-out #loginCard .loginPanel{
+      width:min(640px,100%);
+      border:1px solid var(--border);
+      background:color-mix(in srgb, var(--card) 92%, transparent);
+      border-radius:28px;
+      box-shadow:0 30px 80px rgba(15,23,42,.20);
+      padding:32px;
+      backdrop-filter:blur(18px);
+    }
+
+    body.logged-out #loginCard .loginHeader{
+      display:flex;
+      gap:18px;
+      align-items:flex-start;
+      margin-bottom:22px;
+    }
+
+    body.logged-out #loginCard .loginBrandMark{
+      width:58px;
+      height:58px;
+      border-radius:18px;
+      display:grid;
+      place-items:center;
+      font-weight:900;
+      letter-spacing:.04em;
+      color:#fff;
+      background:linear-gradient(135deg, var(--brand-strong), color-mix(in srgb, var(--brand-strong) 54%, #111827 46%));
+      box-shadow:0 18px 38px rgba(37,99,235,.24);
+      flex:0 0 58px;
+    }
+
+    body.logged-out #loginCard .loginEyebrow{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--muted);
+      margin-bottom:8px;
+      font-weight:800;
+    }
+
+    body.logged-out #loginCard .loginPanel h2{
+      margin:0;
+      font-size:34px;
+      line-height:1.04;
+      letter-spacing:-.03em;
+    }
+
+    body.logged-out #loginCard .loginLead{
+      margin:10px 0 0;
+      color:var(--muted);
+      max-width:480px;
+      font-size:14px;
+      line-height:1.55;
+    }
+
+    body.logged-out #loginCard .loginForm{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+      margin-top:10px;
+    }
+
+    body.logged-out #loginCard .field{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    body.logged-out #loginCard .field label{
+      font-size:12px;
+      font-weight:800;
+      color:var(--muted);
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+
+    body.logged-out #loginCard .field input,
+    body.logged-out #loginCard .loginAuxRow input{
+      width:100%;
+      min-width:0;
+      height:54px;
+      border-radius:16px;
+      border:1px solid var(--border);
+      background:color-mix(in srgb, var(--panel) 86%, transparent);
+      box-shadow:none;
+    }
+
+    body.logged-out #loginCard .loginMetaRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-top:16px;
+      flex-wrap:wrap;
+    }
+
+    body.logged-out #loginCard .rememberToggle{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      font-size:13px;
+      color:var(--muted);
+      cursor:pointer;
+      user-select:none;
+    }
+
+    body.logged-out #loginCard .rememberToggle input{
+      width:16px;
+      height:16px;
+      accent-color:var(--brand-strong);
+    }
+
+    body.logged-out #loginCard .textLinkBtn{
+      border:none;
+      background:transparent;
+      color:var(--brand-strong);
+      font-weight:700;
+      cursor:pointer;
+      padding:0;
+    }
+
+    body.logged-out #loginCard .loginActionsRow{
+      display:flex;
+      gap:12px;
+      margin-top:18px;
+      flex-wrap:wrap;
+    }
+
+    body.logged-out #loginCard .loginPrimaryBtn{
+      min-width:170px;
+      height:54px;
+      border-radius:16px;
+      font-size:15px;
+    }
+
+    body.logged-out #loginCard .loginOAuthBtn{
+      min-width:210px;
+      height:54px;
+      border-radius:16px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      background:color-mix(in srgb, var(--panel) 76%, transparent);
+      border:1px solid var(--border);
+    }
+
+    body.logged-out #loginCard .loginOAuthIcon{
+      width:28px;
+      height:28px;
+      border-radius:999px;
+      display:grid;
+      place-items:center;
+      font-weight:900;
+      background:#fff;
+      color:#111827;
+      box-shadow:inset 0 0 0 1px rgba(17,24,39,.08);
+    }
+
+    body.logged-out #loginCard .loginAuxCard{
+      margin-top:18px;
+      border:1px solid var(--border);
+      background:color-mix(in srgb, var(--panel) 82%, transparent);
+      border-radius:20px;
+      padding:16px;
+    }
+
+    body.logged-out #loginCard .loginAuxTitle{
+      font-weight:800;
+      margin-bottom:6px;
+    }
+
+    body.logged-out #loginCard .loginAuxRow{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      margin-top:14px;
+      flex-wrap:wrap;
+    }
+
+    body.logged-out #loginCard .loginAuxRow.stack{
+      align-items:stretch;
+      flex-direction:column;
+    }
+
+    body.logged-out #loginCard .loginAuxRow.stack .btn,
+    body.logged-out #loginCard .loginAuxRow .btn{
+      height:52px;
+      border-radius:16px;
+    }
+
+    body.logged-out #loginCard .loginHint{
+      margin-top:16px;
+      min-height:18px;
+    }
+  </style>
+  <style id="premiumUxOverride">
+    :root{
+      --sidebar-w:290px;
+      --sidebar-collapsed-w:96px;
+      --glass:rgba(255,255,255,.72);
+      --glass-dark:rgba(15,23,36,.72);
+      --card-solid:rgba(255,255,255,.88);
+      --card-solid-dark:rgba(15,23,36,.92);
+      --elevated-shadow:0 22px 55px rgba(15,23,42,.10);
+      --elevated-shadow-dark:0 24px 60px rgba(0,0,0,.42);
+    }
+
+    html{scroll-behavior:smooth}
+    body{
+      position:relative;
+      min-height:100vh;
+      background:
+        radial-gradient(1200px 700px at -10% -10%, var(--brand-accent-a), transparent 58%),
+        radial-gradient(900px 500px at 100% 0%, var(--brand-accent-b), transparent 52%),
+        linear-gradient(180deg, var(--bg), var(--bg));
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background:linear-gradient(180deg, rgba(255,255,255,.20), transparent 22%);
+      opacity:.55;
+      z-index:0;
+    }
+
+    [data-theme="dark"] body::before{background:linear-gradient(180deg, rgba(255,255,255,.04), transparent 20%);opacity:1}
+
+    .shell{
+      position:relative;
+      z-index:1;
+      grid-template-columns:var(--sidebar-w) 1fr;
+      transition:grid-template-columns .28s ease;
+    }
+
+    body.nav-collapsed .shell{grid-template-columns:var(--sidebar-collapsed-w) 1fr}
+
+    .nav-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(2,6,23,.42);
+      backdrop-filter:blur(4px);
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .25s ease;
+      z-index:89;
+    }
+
+    .sidebar{
+      position:sticky;
+      top:0;
+      height:100vh;
+      padding:18px 14px 16px;
+      gap:16px;
+      background:var(--glass);
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+      box-shadow:inset -1px 0 0 rgba(255,255,255,.30);
+    }
+
+    [data-theme="dark"] .sidebar{
+      background:var(--glass-dark);
+      box-shadow:inset -1px 0 0 rgba(255,255,255,.06);
+    }
+
+    .sidebar-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .sb-brand{min-width:0;flex:1}
+    .sb-brand-text{min-width:0}
+    .sb-title{font-size:20px;line-height:1.05;letter-spacing:-.02em}
+    .sb-subtitle{
+      margin-top:6px;
+      display:block;
+      max-width:100%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    .sb-logo{
+      width:48px;
+      height:48px;
+      border-radius:18px;
+      box-shadow:0 16px 30px rgba(37,99,235,.12);
+    }
+
+    .sidebar-card{
+      padding:14px;
+      border-radius:18px;
+      border:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(255,255,255,.65), rgba(255,255,255,.42));
+      box-shadow:0 14px 30px rgba(15,23,42,.06);
+    }
+
+    [data-theme="dark"] .sidebar-card{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      box-shadow:0 16px 36px rgba(0,0,0,.22);
+    }
+
+    .sidebar-eyebrow{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--muted);
+      font-weight:900;
+      margin-bottom:8px;
+    }
+
+    .sidebar-copy{font-size:13px;line-height:1.45;color:var(--text);opacity:.86}
+
+    .icon-btn{
+      width:44px;
+      height:44px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(255,255,255,.80), rgba(255,255,255,.52));
+      color:var(--text);
+      cursor:pointer;
+      font-size:18px;
+      font-weight:900;
+      box-shadow:0 10px 24px rgba(15,23,42,.08);
+      transition:transform .18s ease,border-color .18s ease,background-color .18s ease,box-shadow .18s ease;
+      flex:0 0 auto;
+    }
+
+    [data-theme="dark"] .icon-btn{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      box-shadow:0 12px 26px rgba(0,0,0,.24);
+    }
+
+    .icon-btn:hover{transform:translateY(-1px);border-color:var(--border-strong)}
+    .icon-btn:active{transform:translateY(1px)}
+
+    .sb-nav{gap:10px}
+
+    .sb-item{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-height:52px;
+      padding:12px 14px;
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(255,255,255,.56), rgba(255,255,255,.24));
+      box-shadow:0 10px 28px rgba(15,23,42,.03);
+      position:relative;
+      overflow:hidden;
+    }
+
+    [data-theme="dark"] .sb-item{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.025));
+      box-shadow:none;
+    }
+
+    .sb-item::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
+      opacity:0;
+      transform:translateX(-120%);
+      transition:transform .45s ease,opacity .3s ease;
+    }
+
+    .sb-item:hover::after{opacity:.55;transform:translateX(120%)}
+    .sb-item-icon{width:24px;display:grid;place-items:center;font-size:16px;flex:0 0 24px}
+    .sb-item-label{white-space:nowrap}
+
+    .sb-item.active{
+      background:linear-gradient(180deg, #111827, #0f172a);
+      border-color:rgba(15,23,42,.55);
+      color:#fff;
+      box-shadow:0 18px 34px rgba(15,23,42,.20);
+    }
+
+    [data-theme="dark"] .sb-item.active{
+      background:linear-gradient(180deg, #f8fafc, #dce6f2);
+      color:#0f172a;
+      border-color:rgba(255,255,255,.20);
+      box-shadow:0 18px 34px rgba(0,0,0,.30);
+    }
+
+    .sb-footer .btn{width:100%}
+
+    .main{padding:24px 24px 30px}
+
+    .top{
+      position:sticky;
+      top:14px;
+      z-index:20;
+      padding:14px 16px;
+      margin-bottom:18px;
+      border-radius:24px;
+      background:linear-gradient(180deg, rgba(255,255,255,.70), rgba(255,255,255,.54));
+      backdrop-filter:blur(20px);
+      -webkit-backdrop-filter:blur(20px);
+      border:1px solid var(--border);
+      box-shadow:var(--elevated-shadow);
+    }
+
+    [data-theme="dark"] .top{
+      background:linear-gradient(180deg, rgba(18,26,39,.84), rgba(15,23,36,.76));
+      box-shadow:var(--elevated-shadow-dark);
+    }
+
+    .top-left{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+    .top-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .nav-trigger{display:none}
+    .search{flex:1;min-width:0}
+    .search input{
+      width:100%;
+      height:52px;
+      padding:0 18px;
+      border-radius:18px;
+      font-size:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.74));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.75), 0 10px 22px rgba(15,23,42,.04);
+    }
+
+    [data-theme="dark"] .search input{
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 12px 24px rgba(0,0,0,.18);
+    }
+
+    .btn,
+    input,
+    select,
+    textarea{
+      font-size:14px;
+      line-height:1.25;
+    }
+
+    .btn{
+      min-height:46px;
+      padding:0 16px;
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.70));
+      box-shadow:0 14px 28px rgba(15,23,42,.06), inset 0 1px 0 rgba(255,255,255,.70);
+      border-color:rgba(15,23,42,.10);
+    }
+
+    [data-theme="dark"] .btn{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      box-shadow:0 16px 30px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.04);
+      border-color:rgba(255,255,255,.08);
+    }
+
+    .btn:hover{transform:translateY(-1px);border-color:var(--border-strong);box-shadow:0 16px 30px rgba(15,23,42,.10)}
+    [data-theme="dark"] .btn:hover{box-shadow:0 18px 34px rgba(0,0,0,.28)}
+
+    .btn.primary{
+      background:linear-gradient(180deg, #111827, #0f172a);
+      border-color:rgba(15,23,42,.60);
+      color:#fff;
+      box-shadow:0 18px 34px rgba(15,23,42,.18);
+    }
+
+    [data-theme="dark"] .btn.primary{
+      background:linear-gradient(180deg, #f8fafc, #dce6f2);
+      border-color:rgba(255,255,255,.18);
+      color:#0f172a;
+      box-shadow:0 20px 36px rgba(0,0,0,.30);
+    }
+
+    .btn.danger{
+      background:linear-gradient(180deg, rgba(220,38,38,.12), rgba(220,38,38,.08));
+      border-color:rgba(220,38,38,.22);
+      color:var(--text);
+    }
+
+    input,
+    select,
+    textarea{
+      min-height:46px;
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.76));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.82), 0 10px 22px rgba(15,23,42,.04);
+    }
+
+    [data-theme="dark"] input,
+    [data-theme="dark"] select,
+    [data-theme="dark"] textarea{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 12px 24px rgba(0,0,0,.16);
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus{
+      outline:none;
+      border-color:var(--info);
+      box-shadow:0 0 0 4px var(--info-soft), 0 12px 24px rgba(15,23,42,.08);
+    }
+
+    input::placeholder,
+    textarea::placeholder{color:var(--muted)}
+
+    input[type="checkbox"]{
+      min-height:auto;
+      width:18px;
+      height:18px;
+      padding:0;
+      border-radius:6px;
+      box-shadow:none;
+      accent-color:var(--info);
+    }
+
+    select{
+      appearance:none;
+      -webkit-appearance:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2364758b' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;
+      background-position:right 14px center;
+      padding-right:42px;
+    }
+
+    input[type="file"]{
+      min-height:52px;
+      padding:6px;
+      cursor:pointer;
+      overflow:hidden;
+    }
+
+    input[type="file"]::file-selector-button{
+      margin-right:14px;
+      padding:12px 16px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(241,245,249,.82));
+      color:var(--text);
+      font-weight:900;
+      cursor:pointer;
+      transition:transform .18s ease, border-color .18s ease, background-color .18s ease;
+    }
+
+    [data-theme="dark"] input[type="file"]::file-selector-button{
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+    }
+
+    input[type="file"]::file-selector-button:hover{transform:translateY(-1px);border-color:var(--border-strong)}
+
+    .card{
+      position:relative;
+      overflow:hidden;
+      padding:20px;
+      border-radius:24px;
+      background:linear-gradient(180deg, var(--card-solid), rgba(255,255,255,.82));
+      box-shadow:var(--elevated-shadow);
+    }
+
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background:linear-gradient(180deg, rgba(255,255,255,.18), transparent 34%);
+      opacity:.8;
+    }
+
+    [data-theme="dark"] .card{
+      background:linear-gradient(180deg, var(--card-solid-dark), rgba(15,23,36,.90));
+      box-shadow:var(--elevated-shadow-dark);
+    }
+
+    [data-theme="dark"] .card::before{background:linear-gradient(180deg, rgba(255,255,255,.05), transparent 28%)}
+
+    .kpi,
+    .switch-row,
+    .check-item{
+      border-radius:18px;
+      background:linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.42));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.75);
+    }
+
+    [data-theme="dark"] .kpi,
+    [data-theme="dark"] .switch-row,
+    [data-theme="dark"] .check-item{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.025));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    }
+
+    .badge{padding:7px 12px;border-radius:999px;letter-spacing:.02em}
+
+    .tableWrap{
+      border-radius:20px;
+      background:rgba(255,255,255,.28);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.36);
+    }
+
+    table{min-width:980px}
+    th,td{padding:15px 14px}
+    th{
+      position:sticky;
+      top:0;
+      z-index:1;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      font-size:11px;
+      font-weight:900;
+      background:rgba(248,250,252,.96);
+      backdrop-filter:blur(8px);
+    }
+
+    [data-theme="dark"] th{background:rgba(15,23,36,.96)}
+
+    tr:hover td{background:rgba(148,163,184,.08)}
+
+    .modalBack{backdrop-filter:blur(10px)}
+    .modal{
+      width:min(640px,100%);
+      border-radius:24px;
+      padding:20px;
+      background:linear-gradient(180deg, var(--card-solid), rgba(255,255,255,.84));
+    }
+
+    [data-theme="dark"] .modal{background:linear-gradient(180deg, var(--card-solid-dark), rgba(15,23,36,.94))}
+
+    body.nav-collapsed .sb-brand-text,
+    body.nav-collapsed .sidebar-card,
+    body.nav-collapsed .sb-item-label,
+    body.nav-collapsed .sb-footer .btn span{display:none}
+
+    body.nav-collapsed .sidebar-head{justify-content:center;flex-direction:column}
+    body.nav-collapsed .sb-brand{justify-content:center;flex:0}
+    body.nav-collapsed .sb-nav{align-items:center}
+    body.nav-collapsed .sb-item{justify-content:center;padding-inline:0;width:56px}
+    body.nav-collapsed .sb-footer{display:flex;justify-content:center}
+    body.nav-collapsed .sb-footer .btn{width:56px;padding:0}
+    body.nav-collapsed .sb-footer .btn::before{content:"↩";font-size:18px;line-height:1}
+    body.nav-collapsed .sidebar-toggle{display:inline-flex}
+
+    body.logged-out #loginCard .loginPanel{padding:28px;border-radius:28px}
+    body.logged-out #loginCard .loginForm{grid-template-columns:1fr 1fr;gap:14px}
+    body.logged-out #loginCard .field input, body.logged-out #loginCard .loginAuxRow input{height:52px}
+    body.logged-out #loginCard .loginActionsRow .btn{min-width:160px}
+
+    ::-webkit-scrollbar{height:10px;width:10px}
+    ::-webkit-scrollbar-thumb{background:rgba(100,116,139,.45);border-radius:999px}
+    ::-webkit-scrollbar-track{background:transparent}
+
+    @media (max-width:1100px){
+      .shell{grid-template-columns:1fr}
+      body.nav-collapsed .shell{grid-template-columns:1fr}
+      .nav-trigger{display:inline-flex}
+      .sidebar{
+        position:fixed;
+        left:14px;
+        top:14px;
+        bottom:14px;
+        height:auto;
+        width:min(86vw,320px);
+        border-radius:28px;
+        transform:translateX(calc(-100% - 20px));
+        transition:transform .28s ease;
+        z-index:90;
+        box-shadow:0 28px 55px rgba(2,6,23,.22);
+      }
+      body.nav-open .sidebar{transform:translateX(0)}
+      body.nav-open .nav-overlay{opacity:1;pointer-events:auto}
+      .main{padding:18px 16px 24px}
+      .top{top:10px;padding:12px 12px;border-radius:20px}
+    }
+
+    @media (max-width:720px){
+      .top{align-items:stretch}
+      .top-left,.top-actions{width:100%}
+      .top-actions{justify-content:flex-end}
+      .search input{height:48px}
+      .card{padding:16px;border-radius:20px}
+      th,td{padding:12px 10px}
+      body.logged-out #loginCard .loginPanel{padding:22px}
+    }
+  </style>
+
+
+  <style id="finalThemeAlignment">
+    :root{
+      --panel-bg:rgba(255,255,255,.88);
+      --panel-border:rgba(15,23,42,.10);
+      --input-surface:rgba(255,255,255,.94);
+      --top-surface:rgba(255,255,255,.78);
+      --row-bg:#ffffff;
+      --row-bg-alt:#f8fafc;
+      --row-hover:#eef4fb;
+      --secondary-btn-bg:rgba(255,255,255,.92);
+      --secondary-btn-hover:#ffffff;
+      --primary-btn-bg:#0f172a;
+      --primary-btn-fg:#ffffff;
+      --panel-shadow:0 18px 40px rgba(15,23,42,.08);
+    }
+
+    [data-theme="dark"]{
+      --panel-bg:rgba(15,23,36,.88);
+      --panel-border:rgba(255,255,255,.09);
+      --input-surface:rgba(11,18,30,.86);
+      --top-surface:rgba(12,18,30,.82);
+      --row-bg:rgba(17,25,39,.98);
+      --row-bg-alt:rgba(20,30,46,.98);
+      --row-hover:rgba(255,255,255,.055);
+      --secondary-btn-bg:rgba(255,255,255,.06);
+      --secondary-btn-hover:rgba(255,255,255,.10);
+      --primary-btn-bg:#e8eef7;
+      --primary-btn-fg:#0f172a;
+      --panel-shadow:0 22px 48px rgba(0,0,0,.32);
+    }
+
+    [data-theme="dark"] body{
+      background:
+        radial-gradient(1000px 540px at -8% -12%, rgba(96,165,250,.10), transparent 58%),
+        radial-gradient(820px 420px at 100% 0%, rgba(34,197,94,.06), transparent 52%),
+        linear-gradient(180deg, #08111d, #0b1220 40%, #0b1220);
+    }
+
+    [data-theme="light"] body{
+      background:
+        radial-gradient(1200px 700px at -10% -10%, rgba(37,99,235,.08), transparent 58%),
+        radial-gradient(900px 500px at 100% 0%, rgba(22,163,74,.05), transparent 52%),
+        linear-gradient(180deg, #f5f7fb, #f5f7fb);
+    }
+
+    .top{
+      background:var(--top-surface) !important;
+      border-color:var(--panel-border) !important;
+      box-shadow:var(--panel-shadow) !important;
+    }
+
+    .card,
+    .config-rail,
+    .config-panel-surface,
+    .config-stat,
+    .kpi,
+    .switch-row,
+    .check-item{
+      background:var(--panel-bg) !important;
+      border-color:var(--panel-border) !important;
+      box-shadow:var(--panel-shadow) !important;
+    }
+
+    .card::before,
+    .config-panel-surface::before,
+    .config-stat::before{
+      display:none !important;
+    }
+
+    .search input,
+    input,
+    select,
+    textarea{
+      background:var(--input-surface) !important;
+      border-color:var(--panel-border) !important;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.08) !important;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus{
+      box-shadow:0 0 0 4px var(--info-soft) !important;
+    }
+
+    .tableWrap{
+      background:var(--row-bg) !important;
+      border-color:var(--panel-border) !important;
+      box-shadow:none !important;
+    }
+
+    table{
+      border-collapse:separate !important;
+      border-spacing:0 !important;
+    }
+
+    th,
+    td{
+      border-bottom:1px solid var(--panel-border) !important;
+    }
+
+    th{
+      background:var(--card-2) !important;
+      color:var(--muted) !important;
+    }
+
+    [data-theme="dark"] th{
+      background:#101827 !important;
+      color:#93a2b8 !important;
+    }
+
+    tbody td{
+      background:var(--row-bg) !important;
+    }
+
+    tbody tr:nth-child(even) td{
+      background:var(--row-bg-alt) !important;
+    }
+
+    tbody tr:hover td{
+      background:var(--row-hover) !important;
+    }
+
+    th:first-child{border-top-left-radius:16px}
+    th:last-child{border-top-right-radius:16px}
+
+    .btn{
+      background:var(--secondary-btn-bg) !important;
+      color:var(--text) !important;
+      border-color:var(--panel-border) !important;
+      box-shadow:none !important;
+    }
+
+    .btn:hover{
+      background:var(--secondary-btn-hover) !important;
+      border-color:var(--border-strong) !important;
+      box-shadow:none !important;
+    }
+
+    .btn.primary{
+      background:var(--primary-btn-bg) !important;
+      color:var(--primary-btn-fg) !important;
+      border-color:transparent !important;
+    }
+
+    .btn.danger{
+      background:var(--bad-soft) !important;
+      border-color:var(--bad-border) !important;
+      color:var(--text) !important;
+    }
+
+    .badge{
+      backdrop-filter:none !important;
+      box-shadow:none !important;
+    }
+
+    #viewActivos > .card > .row:last-of-type,
+    #viewDocumentos > .card > .row:last-of-type,
+    #viewInformes > .card > .row:last-of-type{
+      margin-top:16px !important;
+      padding:12px !important;
+      border:1px solid var(--panel-border);
+      border-radius:18px;
+      background:var(--surface-soft);
+    }
+
+    [data-theme="dark"] #viewActivos > .card > .row:last-of-type,
+    [data-theme="dark"] #viewDocumentos > .card > .row:last-of-type,
+    [data-theme="dark"] #viewInformes > .card > .row:last-of-type{
+      background:rgba(255,255,255,.03);
+    }
+
+    .config-tab{
+      box-shadow:none !important;
+    }
+
+    .config-tab.active,
+    .sb-item.active{
+      box-shadow:none !important;
+    }
+  </style>
+
+</head>
+<body>
+<!-- SPLASH -->
+<div id="splash" class="splash">
+  <div class="splash-card">
+    <img src="logosaladita.png" class="splash-logo-img" alt="Logo">
+    <div class="splash-title" id="splashTitle">Gestión de Alquileres</div>
+    <div class="splash-sub">Cargando…</div>
+  </div>
+</div>
+
+  <div class="shell">
+    <div class="nav-overlay" id="navOverlay" onclick="closeSidebarIfMobile()"></div>
+    <aside class="sidebar" id="appSidebar">
+      <div class="sidebar-head">
+        <div class="sb-brand">
+          <div class="sb-logo" id="brandLogo">GA</div>
+          <div class="sb-brand-text">
+            <div class="sb-title" id="brandName">Gestión</div>
+            <div class="sb-subtitle" id="userInfo">—</div>
+          </div>
+        </div>
+        <button class="icon-btn sidebar-toggle" id="sidebarToggle" type="button" onclick="toggleSidebarNav()" aria-label="Replegar menú">
+          <span id="sidebarToggleIcon">⟨</span>
+        </button>
+      </div>
+      <nav class="sb-nav">
+        <button class="sb-item active" data-route="inicio" onclick="setRoute('inicio')"><span class="sb-item-icon">🏠</span><span class="sb-item-label">Inicio</span></button>
+        <button class="sb-item" data-route="activos" onclick="setRoute('activos')"><span class="sb-item-icon">🏢</span><span class="sb-item-label">Activos</span></button>
+        <button class="sb-item" data-route="documentos" onclick="setRoute('documentos')"><span class="sb-item-icon">📎</span><span class="sb-item-label">Documentos</span></button>
+        <button class="sb-item" data-route="informes" onclick="setRoute('informes')"><span class="sb-item-icon">📊</span><span class="sb-item-label">Informes</span></button>
+        <button class="sb-item" data-route="config" onclick="setRoute('config')"><span class="sb-item-icon">⚙️</span><span class="sb-item-label">Configuración</span></button>
+      </nav>
+
+      <div class="sb-footer">
+        <button class="btn danger" onclick="logout()"><span>Salir</span></button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="top">
+        <div class="top-left">
+          <button class="icon-btn nav-trigger" type="button" onclick="toggleSidebarNav()" aria-label="Abrir menú">☰</button>
+          <div class="search">
+            <input id="globalSearch" placeholder="Buscar unidad, código o inquilino..." oninput="globalSearch()" />
+          </div>
+        </div>
+        <div class="top-actions">
+<button class="btn" onclick="refreshAll()">Refrescar</button>
+        </div>
+      </header>
+
+      <!-- LOGIN -->
+      <section class="card" id="loginCard">
+        <div class="loginShell">
+          <div class="loginPanel">
+            <div class="loginHeader">
+              <div class="loginBrandMark">GD</div>
+              <div>
+                <div class="loginEyebrow">Acceso seguro</div>
+                <h2 id="loginTitle">Login</h2>
+                <p class="loginLead">Ingresá para administrar alquileres, pagos, documentos e informes desde un solo lugar.</p>
+              </div>
+            </div>
+
+            <div class="loginForm">
+              <div class="field">
+                <label for="email">Email</label>
+                <input id="email" type="email" autocomplete="email" placeholder="admin@correo.com">
+              </div>
+              <div class="field">
+                <label for="pass">Contraseña</label>
+                <input id="pass" type="password" autocomplete="current-password" placeholder="Tu contraseña">
+              </div>
+            </div>
+
+            <div class="loginMetaRow">
+              <label class="rememberToggle">
+                <input id="rememberMe" type="checkbox">
+                <span>Recordar este correo</span>
+              </label>
+              <button class="textLinkBtn" type="button" onclick="toggleForgotPassword(true)">¿Olvidaste tu contraseña?</button>
+            </div>
+
+            <div class="loginActionsRow">
+              <button class="btn primary loginPrimaryBtn" onclick="login()">Entrar</button>
+              <button class="btn loginOAuthBtn" type="button" onclick="signInWithGoogle()">
+                <span class="loginOAuthIcon">G</span>
+                <span>Continuar con Google</span>
+              </button>
+            </div>
+
+            <div class="loginAuxCard" id="forgotBox" hidden>
+              <div class="loginAuxTitle">Restablecer contraseña</div>
+              <div class="muted">Ingresá tu email y te mandamos un enlace para crear una contraseña nueva.</div>
+              <div class="loginAuxRow">
+                <input id="resetEmail" type="email" autocomplete="email" placeholder="admin@correo.com">
+                <button class="btn" type="button" onclick="sendPasswordReset()">Enviar enlace</button>
+              </div>
+            </div>
+
+            <div class="loginAuxCard" id="resetBox" hidden>
+              <div class="loginAuxTitle">Elegí una nueva contraseña</div>
+              <div class="muted">Estás en modo recuperación. Guardá una contraseña nueva para volver a entrar.</div>
+              <div class="loginAuxRow stack">
+                <input id="newPass" type="password" autocomplete="new-password" placeholder="Nueva contraseña">
+                <input id="confirmPass" type="password" autocomplete="new-password" placeholder="Confirmá la contraseña">
+                <button class="btn primary" type="button" onclick="updatePasswordFromRecovery()">Guardar nueva contraseña</button>
+              </div>
+            </div>
+
+            <div class="muted loginHint" id="lastLoginHint"></div>
+            <div class="muted" id="loginMsg"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- APP -->
+      <section id="app" style="display:none;">
+        <section id="viewInicio"></section>
+
+        <section id="viewActivos" style="display:none;">
+          <div class="card">
+            <div class="row" style="justify-content:space-between;">
+              <div>
+                <h2 style="margin:0;">Activos</h2>
+                <div class="muted">Listado de unidades. Cobrá, revisá deuda y abrí el detalle completo del activo.</div>
+              </div>
+              <span class="badge b-info" id="unitsCount">0 resultados</span>
+            </div>
+
+            <div class="row" style="margin-top:12px;">
+              <input id="q" placeholder="Buscar (L001, P045, nombre…)" style="width:320px" oninput="renderUnidades()">
+              <select id="filtro" onchange="renderUnidades()">
+                <option value="TODOS">Todos</option>
+                <option value="ATRASADOS">Atrasados</option>
+                <option value="AL_DIA">Al día</option>
+              </select>
+              <button class="btn" onclick="clearFilters()">Limpiar</button>
+            </div>
+
+            <div class="tableWrap" style="margin-top:12px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:120px;">Código</th>
+                    <th>Inquilino</th>
+                    <th class="right">Deuda</th>
+                    <th class="right">Atrasada</th>
+                    <th class="center">Meses</th>
+                    <th class="center">Estado</th>
+                    <th class="center" style="width:220px;">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyUnits"></tbody>
+              </table>
+            </div>
+            <div class="toast" id="unitsMsg"></div>
+          </div>
+
+          <div class="card" id="detalleCard" style="display:none;">
+            <div class="row" style="justify-content:space-between;">
+              <div>
+                <h2 style="margin:0;">Detalle del activo</h2>
+                <div class="muted" id="detalleMeta">Seleccioná un activo para ver cuotas, documentos y cobros.</div>
+              </div>
+              <span class="badge b-info" id="detalleBadge">—</span>
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="tableWrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Periodo</th>
+                    <th>Vencimiento</th>
+                    <th class="right">Total</th>
+                    <th class="right">Pagado</th>
+                    <th class="right">Saldo</th>
+                    <th class="center">Estado</th>
+                    <th class="center">Días atraso</th>
+                  </tr>
+                </thead>
+                <tbody id="detalleBody"></tbody>
+              </table>
+            </div>
+            <div class="toast" id="detalleMsg"></div>
+            <div class="hr"></div>
+
+            <div class="row" style="justify-content:space-between;align-items:end;">
+              <div>
+                <h3 style="margin:0;">Documentos</h3>
+                <div class="muted">Contrato, recibos y otros. Los recibos aparecen automáticamente al registrar pagos.</div>
+              </div>
+              <button class="btn" onclick="openDocumentosFromDetalle()">Abrir gestor</button>
+            </div>
+
+            <div class="row" style="margin-top:12px;">
+              <select id="detDocTipo" style="width:180px">
+                <option value="CONTRATO">CONTRATO</option>
+                <option value="RECIBO">RECIBO</option>
+                <option value="OTRO">OTRO</option>
+              </select>
+              <input id="detDocFile" type="file" style="width:420px" />
+              <button class="btn primary" onclick="uploadDocFromDetalle()">Subir</button>
+            </div>
+
+            <div class="tableWrap" style="margin-top:12px;">
+              <table style="min-width:1100px;">
+                <thead>
+                  <tr>
+                    <th>Tipo</th>
+                    <th>Número</th>
+                    <th>Detalle / Archivo</th>
+                    <th>Fecha</th>
+                    <th class="right">Importe</th>
+                    <th>Medio de pago</th>
+                    <th class="center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="detDocsBody"></tbody>
+              </table>
+            </div>
+            <div class="toast" id="detDocsMsg"></div>
+
+          </div>
+        </section>
+
+
+        <section id="viewDocumentos" style="display:none;"></section>
+        <section id="viewInformes" style="display:none;"></section>
+        <section id="viewConfig" style="display:none;"></section>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL COBRAR -->
+  <div class="modalBack" id="modalBack">
+    <div class="modal">
+      <div class="row" style="justify-content:space-between;">
+        <h3 style="margin:0;">Registrar pago</h3>
+        <button class="btn" onclick="closePagoModal()">Cerrar</button>
+      </div>
+      <div class="muted" id="modalMeta">—</div>
+
+      <div class="row" style="margin-top:12px;">
+        <input id="mFecha" type="date" style="width:160px">
+        <input id="mMonto" placeholder="Monto (ej: 70.000,50)" style="width:220px">
+        <select id="mMedio" style="width:160px">
+          <option>EFECTIVO</option>
+          <option>TRANSFERENCIA</option>
+          <option>MERCADOPAGO</option>
+        </select>
+        <button class="btn primary" onclick="registrarPagoModal()">Guardar</button>
+      </div>
+
+      
+      <div class="row" style="margin-top:10px;">
+        <input id="mRecibo" type="file" style="width:100%;" />
+      </div>
+      <div class="muted" style="margin-top:6px;">Opcional: adjuntar recibo al pago (PDF o imagen).</div>
+
+      <div class="toast" id="modalMsg"></div>
+    </div>
+  </div>
+
+
+  <!-- MODAL INQUILINO -->
+  <div class="modalBack" id="modalInqBack">
+    <div class="modal">
+      <div class="row" style="justify-content:space-between;">
+        <h3 style="margin:0;" id="inqModalTitle">Inquilino</h3>
+        <button class="btn" onclick="closeInqModal()">Cerrar</button>
+      </div>
+      <div class="toast" id="inqModalMsg"></div>
+
+      <div class="row" style="margin-top:12px;">
+        <input id="inqNombre" placeholder="Nombre (obligatorio)" style="width:100%;">
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <input id="inqTel" placeholder="Teléfono" style="width:180px;">
+        <input id="inqEmail" placeholder="Email" style="width:220px;">
+        <input id="inqDoc" placeholder="Documento" style="width:180px;">
+      </div>
+
+      <div class="row" style="margin-top:12px;justify-content:flex-end;">
+        <button class="btn primary" onclick="saveInqModal()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // ===== CONFIG  =====
+    const SUPABASE_URL = "https://tysniuynvrmsdiuwvdgp.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_wYk2cmyPFlMv4-KN6qcP6Q_-Tee4u-v";
+
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const LOGIN_REMEMBER_KEY = 'ga_login_email_v2';
+    let authRecoveryMode = false;
+
+    const $ = (id) => document.getElementById(id);
+    const fmtARS = new Intl.NumberFormat("es-AR", { style:"currency", currency:"ARS", maximumFractionDigits:2 });
+
+    let route = "inicio";
+    let user = null;
+    let unidades = [];      // v_deuda_por_contrato
+    let selected = null;    // fila seleccionada
+    let modalContrato = null;
+
+    const THEME_KEY = 'ga_theme';
+    const SETTINGS_KEY = 'ga_settings_v1';
+    const RECEIPT_NUMBER_MAP_KEY = 'ga_receipt_number_map_v1';
+    const NAV_COLLAPSE_KEY = 'ga_nav_collapsed_v1';
+    const ACCENT_PALETTES = {
+      azul: {
+        light:{ info:'#2563eb', infoSoft:'rgba(37,99,235,.10)', infoBorder:'rgba(37,99,235,.24)', logoBg:'rgba(37,99,235,.12)', logoFg:'#1d4ed8', brandA:'rgba(37,99,235,.12)', brandB:'rgba(22,163,74,.10)' },
+        dark:{ info:'#60a5fa', infoSoft:'rgba(96,165,250,.18)', infoBorder:'rgba(96,165,250,.35)', logoBg:'rgba(96,165,250,.18)', logoFg:'#e8eef7', brandA:'rgba(96,165,250,.18)', brandB:'rgba(34,197,94,.12)' }
+      },
+      verde: {
+        light:{ info:'#16a34a', infoSoft:'rgba(22,163,74,.12)', infoBorder:'rgba(22,163,74,.24)', logoBg:'rgba(22,163,74,.12)', logoFg:'#15803d', brandA:'rgba(22,163,74,.12)', brandB:'rgba(37,99,235,.08)' },
+        dark:{ info:'#4ade80', infoSoft:'rgba(74,222,128,.16)', infoBorder:'rgba(74,222,128,.30)', logoBg:'rgba(74,222,128,.16)', logoFg:'#e8eef7', brandA:'rgba(74,222,128,.16)', brandB:'rgba(96,165,250,.10)' }
+      },
+      violeta: {
+        light:{ info:'#7c3aed', infoSoft:'rgba(124,58,237,.12)', infoBorder:'rgba(124,58,237,.24)', logoBg:'rgba(124,58,237,.12)', logoFg:'#6d28d9', brandA:'rgba(124,58,237,.12)', brandB:'rgba(37,99,235,.08)' },
+        dark:{ info:'#a78bfa', infoSoft:'rgba(167,139,250,.18)', infoBorder:'rgba(167,139,250,.35)', logoBg:'rgba(167,139,250,.18)', logoFg:'#f5f3ff', brandA:'rgba(167,139,250,.18)', brandB:'rgba(96,165,250,.10)' }
+      },
+      gris: {
+        light:{ info:'#334155', infoSoft:'rgba(51,65,85,.10)', infoBorder:'rgba(51,65,85,.22)', logoBg:'rgba(15,23,42,.08)', logoFg:'#0f172a', brandA:'rgba(15,23,42,.08)', brandB:'rgba(100,116,139,.08)' },
+        dark:{ info:'#cbd5e1', infoSoft:'rgba(203,213,225,.10)', infoBorder:'rgba(203,213,225,.22)', logoBg:'rgba(203,213,225,.10)', logoFg:'#f8fafc', brandA:'rgba(203,213,225,.10)', brandB:'rgba(148,163,184,.08)' }
+      }
+    };
+
+    let appSettings = null;
+    let receiptNumberMap = {};
+    let navCollapsed = false;
+
+    function loadNavState(){
+      try { navCollapsed = localStorage.getItem(NAV_COLLAPSE_KEY) === '1'; } catch (e){ navCollapsed = false; }
+      applyNavState();
+    }
+
+    function saveNavState(){
+      try { localStorage.setItem(NAV_COLLAPSE_KEY, navCollapsed ? '1' : '0'); } catch (e){}
+    }
+
+    function applyNavState(){
+      const desktop = window.innerWidth > 1100;
+      document.body.classList.toggle('nav-collapsed', desktop && !!navCollapsed);
+      updateNavButtons();
+    }
+
+    function updateNavButtons(){
+      const collapsed = document.body.classList.contains('nav-collapsed');
+      const icon = $('sidebarToggleIcon');
+      const btn = $('sidebarToggle');
+      if (icon) icon.textContent = collapsed ? '⟩' : '⟨';
+      if (btn) btn.setAttribute('aria-label', collapsed ? 'Expandir menú' : 'Replegar menú');
+      document.querySelectorAll('.sb-item').forEach((item) => {
+        const label = item.querySelector('.sb-item-label');
+        item.title = collapsed && label ? label.textContent.trim() : '';
+      });
+    }
+
+    function toggleSidebarNav(){
+      if (window.innerWidth <= 1100){
+        document.body.classList.toggle('nav-open');
+        return;
+      }
+      navCollapsed = !navCollapsed;
+      saveNavState();
+      applyNavState();
+    }
+
+    function closeSidebarIfMobile(){
+      if (window.innerWidth <= 1100) document.body.classList.remove('nav-open');
+    }
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 1100) document.body.classList.remove('nav-open');
+      applyNavState();
+    });
+
+    function defaultSettings(){
+      return {
+        negocio: {
+          nombre: 'Gestión de Alquileres',
+          telefono: '',
+          email: '',
+          direccion: '',
+          cuit: '',
+          moneda: 'ARS'
+        },
+        pagos: {
+          reciboPrefijo: 'REC',
+          proximoRecibo: 1,
+          reciboDigitos: 6,
+          vencimientoDia: 10,
+          diasGracia: 0,
+          moraPct: 0,
+          medios: {
+            EFECTIVO: true,
+            TRANSFERENCIA: true,
+            MERCADOPAGO: true,
+            TARJETA: false,
+            OTRO: false
+          }
+        },
+        documentos: {
+          contratoPrefijo: 'CTR',
+          proximoContrato: 1,
+          exigeAdjuntoRecibo: false,
+          maxFileMB: 10,
+          observaciones: ''
+        },
+        apariencia: {
+          tema: document.documentElement.getAttribute('data-theme') || 'light',
+          acento: 'azul',
+          compacta: false
+        },
+        seguridad: {
+          confirmarEliminar: true
+        }
+      };
+    }
+
+    function asPositiveInt(value, fallback){
+      const n = parseInt(value, 10);
+      return Number.isFinite(n) && n > 0 ? n : fallback;
+    }
+
+    function asNonNegativeNumber(value, fallback){
+      const n = Number(value);
+      return Number.isFinite(n) && n >= 0 ? n : fallback;
+    }
+
+    function sanitizePrefix(value, fallback){
+      const s = String(value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+      return s || fallback;
+    }
+
+    function normalizeSettings(raw){
+      const def = defaultSettings();
+      const next = raw && typeof raw === 'object' ? raw : {};
+      const medios = { ...def.pagos.medios, ...(next.pagos?.medios || {}) };
+      if (!Object.values(medios).some(Boolean)) medios.EFECTIVO = true;
+      const tema = String(next.apariencia?.tema || def.apariencia.tema).toLowerCase() === 'dark' ? 'dark' : 'light';
+      const acento = ACCENT_PALETTES[String(next.apariencia?.acento || def.apariencia.acento)] ? String(next.apariencia?.acento || def.apariencia.acento) : def.apariencia.acento;
+      return {
+        negocio: {
+          nombre: String(next.negocio?.nombre || def.negocio.nombre),
+          telefono: String(next.negocio?.telefono || ''),
+          email: String(next.negocio?.email || ''),
+          direccion: String(next.negocio?.direccion || ''),
+          cuit: String(next.negocio?.cuit || ''),
+          moneda: String(next.negocio?.moneda || def.negocio.moneda).toUpperCase() || 'ARS'
+        },
+        pagos: {
+          reciboPrefijo: sanitizePrefix(next.pagos?.reciboPrefijo, def.pagos.reciboPrefijo),
+          proximoRecibo: asPositiveInt(next.pagos?.proximoRecibo, def.pagos.proximoRecibo),
+          reciboDigitos: asPositiveInt(next.pagos?.reciboDigitos, def.pagos.reciboDigitos),
+          vencimientoDia: Math.min(31, asPositiveInt(next.pagos?.vencimientoDia, def.pagos.vencimientoDia)),
+          diasGracia: Math.min(31, asNonNegativeNumber(next.pagos?.diasGracia, def.pagos.diasGracia)),
+          moraPct: asNonNegativeNumber(next.pagos?.moraPct, def.pagos.moraPct),
+          medios
+        },
+        documentos: {
+          contratoPrefijo: sanitizePrefix(next.documentos?.contratoPrefijo, def.documentos.contratoPrefijo),
+          proximoContrato: asPositiveInt(next.documentos?.proximoContrato, def.documentos.proximoContrato),
+          exigeAdjuntoRecibo: !!next.documentos?.exigeAdjuntoRecibo,
+          maxFileMB: Math.max(1, asPositiveInt(next.documentos?.maxFileMB, def.documentos.maxFileMB)),
+          observaciones: String(next.documentos?.observaciones || '')
+        },
+        apariencia: {
+          tema,
+          acento,
+          compacta: !!next.apariencia?.compacta
+        },
+        seguridad: {
+          confirmarEliminar: next.seguridad?.confirmarEliminar !== false
+        }
+      };
+    }
+
+    function loadAppSettings(){
+      try {
+        appSettings = normalizeSettings(JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'));
+      } catch (e){
+        appSettings = normalizeSettings({});
+      }
+      return appSettings;
+    }
+
+    function persistAppSettings(){
+      if (!appSettings) return;
+      try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(appSettings)); } catch (e){}
+    }
+
+    function loadReceiptNumberMap(){
+      try {
+        receiptNumberMap = JSON.parse(localStorage.getItem(RECEIPT_NUMBER_MAP_KEY) || '{}') || {};
+      } catch (e){
+        receiptNumberMap = {};
+      }
+    }
+
+    function saveReceiptNumberMap(){
+      try { localStorage.setItem(RECEIPT_NUMBER_MAP_KEY, JSON.stringify(receiptNumberMap)); } catch (e){}
+    }
+
+    function enabledPaymentMethods(){
+      const methods = Object.entries(appSettings?.pagos?.medios || {}).filter(([,enabled]) => !!enabled).map(([name]) => name);
+      return methods.length ? methods : ['EFECTIVO'];
+    }
+
+    function populatePaymentMethodSelect(selectId, selectedValue){
+      const el = $(selectId);
+      if (!el) return;
+      const methods = enabledPaymentMethods();
+      const current = selectedValue || el.value || methods[0];
+      el.innerHTML = methods.map(method => `<option value="${method}">${method}</option>`).join('');
+      el.value = methods.includes(current) ? current : methods[0];
+    }
+
+    function applyAccentPalette(accentName){
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      const palette = ACCENT_PALETTES[accentName] || ACCENT_PALETTES.azul;
+      const tone = palette[theme];
+      const root = document.documentElement.style;
+      root.setProperty('--info', tone.info);
+      root.setProperty('--info-soft', tone.infoSoft);
+      root.setProperty('--info-border', tone.infoBorder);
+      root.setProperty('--logo-bg', tone.logoBg);
+      root.setProperty('--logo-fg', tone.logoFg);
+      root.setProperty('--brand-accent-a', tone.brandA);
+      root.setProperty('--brand-accent-b', tone.brandB);
+    }
+
+    function updateBusinessUI(){
+      const businessName = appSettings?.negocio?.nombre || 'Gestión de Alquileres';
+      const shortName = businessName.length > 18 ? businessName.slice(0, 18).trim() : businessName;
+      if ($('brandName')) $('brandName').textContent = shortName;
+      const initials = businessName.split(/\s+/).map(part => part[0] || '').join('').slice(0,2).toUpperCase() || 'GA';
+      if ($('brandLogo')) $('brandLogo').textContent = initials;
+      if ($('splashTitle')) $('splashTitle').textContent = businessName;
+      if ($('loginTitle')) $('loginTitle').textContent = `Login · ${businessName}`;
+      document.title = businessName;
+    }
+
+    function applyCompactMode(){
+      document.body.classList.toggle('compact', !!appSettings?.apariencia?.compacta);
+    }
+
+    function applyAppSettings(){
+      if (!appSettings) return;
+      applyTheme(appSettings.apariencia.tema);
+      applyAccentPalette(appSettings.apariencia.acento);
+      applyCompactMode();
+      updateBusinessUI();
+      populatePaymentMethodSelect('mMedio');
+      populatePaymentMethodSelect('gMedio');
+    }
+
+    function nextReciboPreview(){
+      const prefix = sanitizePrefix(appSettings?.pagos?.reciboPrefijo, 'REC');
+      const digits = Math.max(1, asPositiveInt(appSettings?.pagos?.reciboDigitos, 6));
+      const number = asPositiveInt(appSettings?.pagos?.proximoRecibo, 1);
+      return `${prefix}-${String(number).padStart(digits, '0')}`;
+    }
+
+    function nextContratoPreview(){
+      const prefix = sanitizePrefix(appSettings?.documentos?.contratoPrefijo, 'CTR');
+      const number = asPositiveInt(appSettings?.documentos?.proximoContrato, 1);
+      return `${prefix}-${String(number).padStart(6, '0')}`;
+    }
+
+    function allocateReciboNumero(paymentId){
+      if (!paymentId) return buildReciboNumero({ id: paymentId }, false);
+      const key = String(paymentId);
+      if (receiptNumberMap[key]) return receiptNumberMap[key];
+      const prefix = sanitizePrefix(appSettings?.pagos?.reciboPrefijo, 'REC');
+      const digits = Math.max(1, asPositiveInt(appSettings?.pagos?.reciboDigitos, 6));
+      const number = asPositiveInt(appSettings?.pagos?.proximoRecibo, 1);
+      const assigned = `${prefix}-${String(number).padStart(digits, '0')}`;
+      receiptNumberMap[key] = assigned;
+      appSettings.pagos.proximoRecibo = number + 1;
+      saveReceiptNumberMap();
+      persistAppSettings();
+      return assigned;
+    }
+
+    function askConfirm(message){
+      if (appSettings?.seguridad?.confirmarEliminar === false) return true;
+      return confirm(message);
+    }
+
+    function getPreferredTheme(){
+      try{
+        const saved = localStorage.getItem(THEME_KEY);
+        if (saved === 'light' || saved === 'dark') return saved;
+      } catch (e){}
+      return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    }
+
+    function syncThemeToggleUI(){
+      const theme = document.documentElement.getAttribute('data-theme') || 'light';
+      const label = $('themeFabLabel');
+      const icon = $('themeFabIcon');
+      if (label) label.textContent = theme === 'dark' ? 'Modo claro' : 'Modo oscuro';
+      if (icon) icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+
+    function applyTheme(theme){
+      const next = theme === 'dark' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      try { localStorage.setItem(THEME_KEY, next); } catch (e){}
+      if (appSettings?.apariencia){
+        appSettings.apariencia.tema = next;
+        persistAppSettings();
+      }
+      syncThemeToggleUI();
+      if (appSettings?.apariencia?.acento) applyAccentPalette(appSettings.apariencia.acento);
+    }
+
+    function toggleTheme(){
+      const current = document.documentElement.getAttribute('data-theme') || getPreferredTheme();
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+      if (route === 'config') renderConfigPage();
+    }
+
+    function today(){ return new Date().toISOString().slice(0,10); }
+    function addDays(iso, days){ const d = new Date(iso + "T00:00:00"); d.setDate(d.getDate()+days); return d.toISOString().slice(0,10); }
+    function monthStartISO(d=new Date()){ return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0,10); }
+    function nextMonthStartISO(d=new Date()){ return new Date(d.getFullYear(), d.getMonth()+1, 1).toISOString().slice(0,10); }
+
+    function parseMoneyToDecimalString(input) {
+      if (!input) return null;
+      let s = String(input).trim().replace(/[^\d,.\-]/g, "");
+      const hasComma = s.includes(","), hasDot = s.includes(".");
+      if (hasComma && hasDot) {
+        if (s.lastIndexOf(",") > s.lastIndexOf(".")) s = s.replace(/\./g, "").replace(",", ".");
+        else s = s.replace(/,/g, "");
+      } else if (hasComma && !hasDot) s = s.replace(",", ".");
+      else {
+        const dots = (s.match(/\./g) || []).length;
+        if (dots >= 2) s = s.replace(/\./g, "");
+        else {
+          const m = s.match(/^(\-?\d+)\.(\d{3})$/);
+          if (m) s = m[1] + m[2];
+        }
+      }
+      const n = Number(s);
+      if (!Number.isFinite(n) || n <= 0) return null;
+      return (Math.round(n * 100) / 100).toFixed(2);
+    }
+
+    function updateTopSearchUI(){
+      const input = $('globalSearch');
+      if (!input) return;
+      const placeholders = {
+        inicio: 'Buscar unidad, código o inquilino...',
+        activos: 'Buscar unidad, código o inquilino...',
+        documentos: 'Buscar contrato, recibo o archivo...',
+        informes: 'Buscar información...',
+        config: 'Ajustes del sistema'
+      };
+      input.placeholder = placeholders[route] || 'Buscar...';
+    }
+
+    function setRoute(r){
+      route = r;
+      document.querySelectorAll('.sb-item').forEach(b => b.classList.toggle('active', b.dataset.route === r));
+      const map = {
+        inicio:'viewInicio',
+        activos:'viewActivos',
+        documentos:'viewDocumentos',
+        informes:'viewInformes',
+        config:'viewConfig'
+      };
+      Object.values(map).forEach(id => $(id).style.display = 'none');
+      if (!map[r]) r = 'inicio';
+      route = r;
+      $(map[r]).style.display = 'block';
+      document.body.classList.toggle('route-config', r === 'config');
+      updateTopSearchUI();
+      closeSidebarIfMobile();
+
+      if (r === 'documentos') renderDocumentosPage();
+      if (r === 'informes') renderInformesPage();
+      if (r === 'config') renderConfigPage();
+    }
+
+    function setLoginMessage(message = '', tone = 'default'){
+      const el = $('loginMsg');
+      if (!el) return;
+      el.textContent = message;
+      el.style.color = tone === 'error' ? 'var(--danger)' : tone === 'success' ? 'var(--ok)' : 'var(--muted)';
+    }
+
+    function setRememberedEmail(email = '', checked = false){
+      if ($('email')) $('email').value = email || '';
+      if ($('resetEmail')) $('resetEmail').value = email || '';
+      if ($('rememberMe')) $('rememberMe').checked = !!checked;
+      if ($('lastLoginHint')) $('lastLoginHint').textContent = email ? `Último acceso recordado: ${email}` : '';
+    }
+
+    function loadRememberedEmail(){
+      try{
+        const remembered = localStorage.getItem(LOGIN_REMEMBER_KEY) || '';
+        setRememberedEmail(remembered, !!remembered);
+      } catch (e){}
+    }
+
+    function persistRememberedEmail(){
+      try{
+        const email = ($('email')?.value || '').trim();
+        const shouldRemember = !!$('rememberMe')?.checked;
+        if (shouldRemember && email) localStorage.setItem(LOGIN_REMEMBER_KEY, email);
+        else localStorage.removeItem(LOGIN_REMEMBER_KEY);
+        setRememberedEmail(shouldRemember ? email : '', shouldRemember);
+      } catch (e){}
+    }
+
+    function toggleForgotPassword(show){
+      if ($('forgotBox')) $('forgotBox').hidden = !show;
+      if (show && $('resetBox')) $('resetBox').hidden = true;
+      if (show && $('resetEmail') && !$('resetEmail').value) $('resetEmail').value = ($('email')?.value || '').trim();
+      if (!show && !authRecoveryMode && $('resetBox')) $('resetBox').hidden = true;
+      setLoginMessage('');
+    }
+
+    function showPasswordRecoveryMode(show){
+      authRecoveryMode = !!show;
+      if ($('forgotBox')) $('forgotBox').hidden = true;
+      if ($('resetBox')) $('resetBox').hidden = !show;
+      if (show) setLoginMessage('Creá una nueva contraseña para terminar la recuperación.');
+    }
+
+    function toggle(isLogged, u){
+      const loggedIn = !!isLogged && !authRecoveryMode;
+      document.body.classList.toggle("logged-out", !loggedIn);
+      $('loginCard').style.display = loggedIn ? 'none' : '';
+      $('app').style.display = loggedIn ? 'block' : 'none';
+      $('userInfo').textContent = loggedIn ? `Logueado: ${u?.email || '—'}` : '—';
+      if (!loggedIn) document.body.classList.remove('nav-open');
+      if (!loggedIn) document.body.classList.remove('route-config');
+      updateTopSearchUI();
+    }
+
+    async function login(){
+      setLoginMessage('');
+      try{
+        const email = ($('email')?.value || '').trim();
+        const password = $('pass')?.value || '';
+        if (!email || !password) {
+          setLoginMessage('Completá email y contraseña.', 'error');
+          return;
+        }
+        persistRememberedEmail();
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) setLoginMessage(error.message, 'error');
+      } catch (e){
+        setLoginMessage(String(e?.message || e), 'error');
+      }
+    }
+
+    async function signInWithGoogle(){
+      setLoginMessage('');
+      try{
+        const redirectTo = `${window.location.origin}${window.location.pathname}`;
+        const { error } = await sb.auth.signInWithOAuth({
+          provider:'google',
+          options:{ redirectTo }
+        });
+        if (error) throw error;
+      } catch (e){
+        setLoginMessage('No se pudo iniciar con Google. Revisá que el proveedor esté habilitado en Supabase Auth.', 'error');
+      }
+    }
+
+    async function sendPasswordReset(){
+      setLoginMessage('');
+      try{
+        const email = ($('resetEmail')?.value || $('email')?.value || '').trim();
+        if (!email) {
+          setLoginMessage('Ingresá un email para enviarte el enlace de recuperación.', 'error');
+          return;
+        }
+        const redirectTo = `${window.location.origin}${window.location.pathname}`;
+        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+        if (error) throw error;
+        setLoginMessage('Te enviamos un enlace para restablecer la contraseña.', 'success');
+        persistRememberedEmail();
+      } catch (e){
+        setLoginMessage(String(e?.message || e), 'error');
+      }
+    }
+
+    async function updatePasswordFromRecovery(){
+      setLoginMessage('');
+      try{
+        const password = $('newPass')?.value || '';
+        const confirm = $('confirmPass')?.value || '';
+        if (password.length < 6) {
+          setLoginMessage('La nueva contraseña debe tener al menos 6 caracteres.', 'error');
+          return;
+        }
+        if (password !== confirm) {
+          setLoginMessage('Las contraseñas no coinciden.', 'error');
+          return;
+        }
+        const { error } = await sb.auth.updateUser({ password });
+        if (error) throw error;
+        authRecoveryMode = false;
+        showPasswordRecoveryMode(false);
+        setLoginMessage('Contraseña actualizada. Ya podés seguir usando el sistema.', 'success');
+        const { data } = await sb.auth.getSession();
+        user = data.session?.user || user;
+        toggle(!!user, user);
+        if (user){
+          setRoute('inicio');
+          await refreshAll();
+        }
+      } catch (e){
+        setLoginMessage(String(e?.message || e), 'error');
+      }
+    }
+
+    async function logout(){
+      authRecoveryMode = false;
+      toggleForgotPassword(false);
+      showPasswordRecoveryMode(false);
+      await sb.auth.signOut();
+    }
+
+        function isSinAsignarName(name){
+      return String(name || '').startsWith('SIN ASIGNAR - ');
+    }
+
+function globalSearch(){
+      const q = ($('globalSearch').value || '').trim();
+
+      if (route === 'activos'){
+        if ($('q')) $('q').value = q;
+        renderUnidades();
+        return;
+      }
+
+      if (!q) return;
+
+      setRoute('activos');
+      if ($('q')) $('q').value = q;
+      renderUnidades();
+    }
+
+    function badgeEstado(row){      if (Number(row.deuda_atrasada||0) > 0) return `<span class="badge b-bad">ATRASADO</span>`;
+      if (Number(row.deuda_total||0) > 0) return `<span class="badge b-warn">DEBE</span>`;
+      return `<span class="badge b-ok">AL DÍA</span>`;
+    }
+
+    function clearFilters(){ $('q').value=''; $('filtro').value='TODOS'; renderUnidades(); }
+
+    async function refreshAll(){
+      await refreshUnidades();
+      if (selected?.contrato_id) await loadDetalle(selected);
+    }
+
+    async function refreshUnidades(){
+      $('unitsMsg').textContent = '';
+      const { data, error } = await sb.from('v_deuda_por_contrato').select('*').order('deuda_total', { ascending:false });
+      if (error){ $('unitsMsg').textContent = error.message; return; }
+      unidades = (data || []).filter(r => !isSinAsignarName(r.inquilino_nombre));
+      renderUnidades();
+      await renderInicio();
+      await refreshContratosActivos();
+      buildInqCache();
+    }
+
+    async function renderInicio(){
+      const total = unidades.length;
+      const deudaTotal = unidades.reduce((a,r)=>a+Number(r.deuda_total||0),0);
+      const deudaAtrasada = unidades.reduce((a,r)=>a+Number(r.deuda_atrasada||0),0);
+      const ocupados = total;
+      const libres = 0;
+      const ocupPerc = total ? 100 : 0;
+
+      const t = today();
+      const t7 = addDays(t, 7);
+      const { data: vencen7 } = await sb
+        .from('v_cobranzas')
+        .select('cuota_id')
+        .gt('saldo', 0)
+        .gte('vencimiento', t)
+        .lte('vencimiento', t7);
+
+      const ms = monthStartISO();
+      const nms = nextMonthStartISO();
+      const { data: pagosMes } = await sb
+        .from('pagos')
+        .select('monto, fecha_pago')
+        .gte('fecha_pago', ms)
+        .lt('fecha_pago', nms);
+
+      const recaudado = (pagosMes||[]).reduce((a,p)=>a+Number(p.monto||0),0);
+
+      const top = [...unidades]
+        .filter(r => Number(r.deuda_atrasada||0) > 0)
+        .sort((a,b)=>Number(b.deuda_atrasada||0)-Number(a.deuda_atrasada||0))
+        .slice(0, 10);
+
+      $('viewInicio').innerHTML = `
+        <div class="card">
+          <h2 style="margin:0;">Inicio</h2>
+          <div class="muted">Resumen general .</div>
+        </div>
+
+        <div class="card">
+          <div class="kpis">
+            <div class="kpi"><div class="label">Deuda total</div><div class="value">${fmtARS.format(deudaTotal)}</div><div class="muted">${total} unidades</div></div>
+            <div class="kpi"><div class="label">Deuda atrasada</div><div class="value">${fmtARS.format(deudaAtrasada)}</div><div class="muted">Cuotas vencidas con saldo</div></div>
+            <div class="kpi"><div class="label">Ocupación</div><div class="value">${ocupPerc}%</div><div class="muted">Ocupados: ${ocupados} | Libres: ${libres}</div></div>
+            <div class="kpi"><div class="label">Recaudado este mes</div><div class="value">${fmtARS.format(recaudado)}</div><div class="muted">Vencen en 7 días: ${(vencen7||[]).length}</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-top:0;">Top atrasados</h3>
+          <div class="tableWrap">
+            <table>
+              <thead><tr><th>Código</th><th>Inquilino</th><th class="right">Deuda</th><th class="right">Atrasada</th><th class="center">Acción</th></tr></thead>
+              <tbody>
+                ${top.map(r=>`
+                  <tr>
+                    <td><b>${r.local_codigo}</b></td>
+                    <td>${r.inquilino_nombre}</td>
+                    <td class="right">${fmtARS.format(Number(r.deuda_total||0))}</td>
+                    <td class="right">${fmtARS.format(Number(r.deuda_atrasada||0))}</td>
+                    <td class="center"><button class="btn primary" onclick="openDetalleFromInicio('${r.contrato_id}')">Ver</button></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+          <div class="muted">${top.length ? '' : 'No hay atrasados 🎉'}</div>
+        </div>
+      `;
+    }
+
+    function openDetalleFromInicio(contratoId){
+      openActiveDetailByContrato(contratoId);
+    }
+
+    function openInquilinoDetalleByContrato(contratoId){
+      openActiveDetailByContrato(contratoId);
+    }
+
+    function openActiveDetailByContrato(contratoId){
+      const unidad = unidades.find(x => x.contrato_id === contratoId);
+      if (!unidad) return alert('No hay datos para este activo.');
+
+      setRoute('activos');
+      if ($('globalSearch')) $('globalSearch').value = unidad.local_codigo || unidad.inquilino_nombre || '';
+      if ($('q')) $('q').value = unidad.local_codigo || unidad.inquilino_nombre || '';
+      renderUnidades();
+      openDetalle(unidad);
+    }
+
+    function renderUnidades(){
+      const q = ($('q').value || '').trim().toLowerCase();
+      const filtro = $('filtro').value;
+      let rows = unidades;
+
+      if (q){
+        rows = rows.filter(r =>
+          String(r.local_codigo||'').toLowerCase().includes(q) ||
+          String(r.inquilino_nombre||'').toLowerCase().includes(q)
+        );
+      }
+
+      if (filtro === 'ATRASADOS') rows = rows.filter(r => Number(r.deuda_atrasada||0) > 0);
+      else if (filtro === 'AL_DIA') rows = rows.filter(r => Number(r.deuda_total||0) <= 0);
+
+      $('unitsCount').textContent = `${rows.length} resultados`;
+
+      const tb = $('tbodyUnits');
+      tb.innerHTML = '';
+
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><b>${r.local_codigo}</b></td>
+          <td>${r.inquilino_nombre}</td>
+          <td class="right">${fmtARS.format(Number(r.deuda_total||0))}</td>
+          <td class="right">${fmtARS.format(Number(r.deuda_atrasada||0))}</td>
+          <td class="center">${Number(r.meses_adeudados||0)}</td>
+          <td class="center">${badgeEstado(r)}</td>
+          <td class="center">
+            <button class="btn primary" onclick='openPagoModal(${JSON.stringify(r).replace(/'/g,"&#39;")})'>Cobrar</button>
+            <button class="btn" onclick="openActiveDetailByContrato('${r.contrato_id}')">Detalle</button>
+          </td>
+        `;
+        tb.appendChild(tr);
+      });
+    }
+
+    function openDetalle(r){
+      selected = r;
+      setRoute('activos');
+      $('detalleCard').style.display = 'block';
+      loadDetalle(r);
+      requestAnimationFrame(() => {
+        $('detalleCard')?.scrollIntoView({ behavior:'smooth', block:'start' });
+      });
+    }
+
+    async function loadDetalle(r){
+      $('detalleMsg').textContent = '';
+      $('detalleMeta').textContent = `Contrato: ${r.contrato_id} | Código: ${r.local_codigo} | Inquilino: ${r.inquilino_nombre}`;
+      $('detalleBadge').textContent = `Deuda: ${fmtARS.format(Number(r.deuda_total||0))} | Meses: ${Number(r.meses_adeudados||0)}`;
+
+      const { data, error } = await sb
+        .from('v_cobranzas')
+        .select('*')
+        .eq('contrato_id', r.contrato_id)
+        .order('vencimiento', { ascending:true });
+
+      if (error){ $('detalleMsg').textContent = error.message; return; }
+
+      const tb = $('detalleBody');
+      tb.innerHTML = '';
+      (data||[]).forEach(x => {
+        const estado = x.estado_detalle || x.estado;
+        let cls = 'b-info';
+        if (String(estado).includes('ATRASAD')) cls = 'b-bad';
+        else if (String(estado).includes('PENDIENTE')) cls = 'b-warn';
+        else if (String(estado).includes('PAGA')) cls = 'b-ok';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${String(x.periodo).slice(0,10)}</td>
+          <td>${String(x.vencimiento).slice(0,10)}</td>
+          <td class="right">${fmtARS.format(Number(x.total||0))}</td>
+          <td class="right">${fmtARS.format(Number(x.pagado||0))}</td>
+          <td class="right">${fmtARS.format(Number(x.saldo||0))}</td>
+          <td class="center"><span class="badge ${cls}">${estado}</span></td>
+          <td class="center">${Number(x.dias_atraso||0)}</td>
+        `;
+        tb.appendChild(tr);
+      });
+
+
+      // cargar documentos del contrato
+      await loadDetalleDocs();
+    }
+
+    function openPagoModal(r){
+      modalContrato = r;
+      $('modalBack').style.display = 'flex';
+      $('modalMeta').textContent = `${r.local_codigo} — ${r.inquilino_nombre} | Deuda: ${fmtARS.format(Number(r.deuda_total||0))}`;
+      $('mFecha').value = today();
+      $('mMonto').value = '';
+      populatePaymentMethodSelect('mMedio');
+      $('modalMsg').textContent = '';
+      if ($('mRecibo')) $('mRecibo').value = '';
+    }
+
+    function closePagoModal(){
+      $('modalBack').style.display = 'none';
+      modalContrato = null;
+    }
+
+    async function registrarPagoModal(){
+      const msgEl = $('modalMsg');
+      if (!modalContrato) return;
+      msgEl.textContent = 'Procesando...';
+      try{
+        const monto = parseMoneyToDecimalString($('mMonto').value);
+        const fecha = $('mFecha').value;
+        const medio = $('mMedio').value;
+        const reciboFile = $('mRecibo')?.files?.[0];
+        if (!monto){ msgEl.textContent = 'Monto inválido.'; return; }
+        if (appSettings?.documentos?.exigeAdjuntoRecibo && !reciboFile){ msgEl.textContent = 'Adjuntá el recibo antes de guardar.'; return; }
+
+        const { data, error } = await sb.rpc('registrar_pago_y_aplicar', {
+          p_contrato_id: modalContrato.contrato_id,
+          p_fecha_pago: fecha,
+          p_monto: monto,
+          p_medio: medio,
+          p_referencia: null
+        });
+
+        if (error){
+          msgEl.textContent = 'Error al registrar pago: ' + error.message;
+          console.error(error);
+          return;
+        }
+
+        const r = Array.isArray(data) ? data[0] : data;
+        if (!r) {
+          msgEl.textContent = "Pago registrado, pero el servidor no devolvió detalle. Refrescando...";
+          await refreshAll();
+          return;
+      }
+
+        const reciboNumero = buildReciboNumero({
+          id: r?.pago_id,
+          fecha_pago: fecha,
+          referencia: r?.referencia || null
+        }, true);
+
+        // Refrescar deuda primero (para que veas el pago aunque falle el recibo)
+        await refreshAll();
+
+        // Opcional: subir recibo adjunto
+        if (reciboFile && r?.pago_id){
+          msgEl.textContent = `Pago registrado. Subiendo adjunto del ${reciboNumero}...`;
+          const ok = await uploadDocCore(
+            { contratoId: modalContrato.contrato_id, tipo: 'RECIBO', file: reciboFile, pagoId: r.pago_id },
+            null
+          );
+
+          if (ok){
+            msgEl.textContent = `Pago OK + ${reciboNumero} con archivo ✅`;
+            $('mRecibo').value = '';
+            if (selected?.contrato_id === modalContrato.contrato_id){
+              await loadDetalleDocs();
+            }
+          } else {
+            const extra = window.__lastDocError ? ` (${window.__lastDocError})` : '';
+            msgEl.textContent = `Pago OK, ${reciboNumero} generado, pero NO se pudo subir el archivo.` + extra;
+          }
+        } else {
+          msgEl.textContent = `Pago registrado ✅ | ${reciboNumero}`;
+        }
+      } catch(e){
+        console.error(e);
+        msgEl.textContent = 'Error inesperado: ' + String(e?.message || e);
+      }
+    }
+
+        // ===== Inquilinos (lista + detalle) =====
+    let contratosActivos = [];          // contratos activos con locales + inquilinos
+    let inqCache = [];                  // resumen por inquilino
+    let selectedInqId = null;
+    let lastGlobalQuery = "";
+
+    async function refreshContratosActivos(){
+      const { data, error } = await sb
+        .from('contratos')
+        .select('id, inquilino_id, locales(codigo), inquilinos(id,nombre,telefono,email,documento)')
+        .eq('estado','ACTIVO');
+
+      if (error){
+        // No cortamos la app si falla, solo dejamos vacío
+        console.warn('refreshContratosActivos:', error.message);
+        contratosActivos = [];
+        return;
+      }
+      contratosActivos = data || [];
+    }
+
+    function buildInqCache(){
+      const debtByContrato = new Map(unidades.map(u => [u.contrato_id, u]));
+      const byId = new Map();
+
+      for (const c of contratosActivos){
+        const inq = c.inquilinos;
+        const inqId = inq?.id || c.inquilino_id;
+        if (!inqId) continue;
+
+        const nombre = (inq?.nombre || '').trim() || '—';
+        if (isSinAsignarName(nombre)) continue;
+        const row = byId.get(inqId) || {
+          inquilino_id: inqId,
+          nombre,
+          telefono: inq?.telefono || null,
+          email: inq?.email || null,
+          documento: inq?.documento || null,
+          contratos_activos: 0,
+          deuda_total: 0,
+          deuda_atrasada: 0,
+          contratos: [],
+        };
+
+        const d = debtByContrato.get(c.id);
+        const deuda_total = Number(d?.deuda_total || 0);
+        const deuda_atrasada = Number(d?.deuda_atrasada || 0);
+        const meses_adeudados = Number(d?.meses_adeudados || 0);
+
+        row.contratos_activos += 1;
+        row.deuda_total += deuda_total;
+        row.deuda_atrasada += deuda_atrasada;
+
+        row.contratos.push({
+          contrato_id: c.id,
+          local_codigo: c.locales?.codigo || d?.local_codigo || '—',
+          deuda_total,
+          deuda_atrasada,
+          meses_adeudados,
+          inquilino_nombre: nombre,
+        });
+
+        byId.set(inqId, row);
+      }
+
+      let list = [...byId.values()];
+
+      // Orden: primero los que deben más, luego nombre
+      list.sort((a,b) => (b.deuda_total - a.deuda_total) || a.nombre.localeCompare(b.nombre));
+
+      inqCache = list;
+    }
+
+    function inqBadge(inq){      if (inq.deuda_atrasada > 0) return `<span class="badge b-bad">ATRASADO</span>`;
+      if (inq.deuda_total > 0) return `<span class="badge b-warn">DEBE</span>`;
+      return `<span class="badge b-ok">AL DÍA</span>`;
+    }
+
+    function renderInquilinosPage(){
+      const el = $('viewInquilinos');
+      if (!el) return;
+
+      el.innerHTML = `
+        <div class="card">
+          <div class="row" style="justify-content:space-between;">
+            <div>
+              <h2 style="margin:0;">Inquilinos</h2>
+              <div class="muted">Buscá por nombre y mirá sus unidades.</div>
+            </div>
+            <div class="row">
+              <button class="btn" onclick="openInqModal('create')">Nuevo</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="split">
+          <div class="card">
+            <div class="tableWrap">
+              <table style="min-width:860px">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th class="center">Unidades</th>
+                    <th class="right">Deuda</th>
+                    <th class="right">Atrasada</th>
+                    <th class="center">Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="tbInq"></tbody>
+              </table>
+            </div>
+            <div class="toast" id="inqMsg"></div>
+          </div>
+
+          <div class="card" id="inqDetailCard" style="display:none;">
+            <div class="row" style="justify-content:space-between;">
+              <div>
+                <h2 style="margin:0;" id="inqName">—</h2>
+                <div class="muted" id="inqSub">—</div>
+              </div>
+              <button class="btn" onclick="openInqModal('edit')">Editar</button>
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="row">
+              <span class="badge b-info" id="inqDebt">—</span>
+              <span class="badge b-bad" id="inqDebtLate">—</span>
+              <span class="badge b-info" id="inqUnits">—</span>
+            </div>
+
+            <div class="hr"></div>
+
+            <h3 style="margin:0 0 10px;">Unidades</h3>
+            <div class="tableWrap">
+              <table style="min-width:820px">
+                <thead>
+                  <tr>
+                    <th style="width:110px;">Código</th>
+                    <th class="right">Deuda</th>
+                    <th class="right">Atrasada</th>
+                    <th class="center">Meses</th>
+                    <th class="center" style="width:220px;">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tbInqContracts"></tbody>
+              </table>
+            </div>
+            <div class="toast" id="inqDetailMsg"></div>
+          </div>
+        </div>
+      `;
+
+      // Prefill búsqueda desde barra superior si aplica
+      const q = lastGlobalQuery;
+      if (q && $('globalSearch')){
+        $('globalSearch').value = q;
+        lastGlobalQuery = '';
+      }
+
+      renderInquilinosTable();
+      if (selectedInqId) renderInquilinoDetail();
+    }
+
+    function renderInquilinosTable(){
+      const q = ($('globalSearch')?.value || '').trim().toLowerCase();
+
+      let rows = inqCache;
+      if (q) rows = rows.filter(x => x.nombre.toLowerCase().includes(q));
+
+      const tb = $('tbInq');
+      if (!tb) return;
+
+      tb.innerHTML = rows.slice(0, 400).map(x => `
+        <tr onclick="selectInquilino('${x.inquilino_id}')">
+          <td><b>${x.nombre}</b></td>
+          <td class="center">${x.contratos_activos}</td>
+          <td class="right">${fmtARS.format(x.deuda_total)}</td>
+          <td class="right">${fmtARS.format(x.deuda_atrasada)}</td>
+          <td class="center">${inqBadge(x)}</td>
+        </tr>
+      `).join('');
+
+      const msg = $('inqMsg');
+      if (msg) msg.textContent = rows.length ? '' : 'Sin resultados.';
+      // Si no hay seleccionado o el seleccionado ya no está, ocultamos detalle
+      if (selectedInqId && !rows.some(r => r.inquilino_id === selectedInqId)){
+        selectedInqId = null;
+        const dc = $('inqDetailCard'); if (dc) dc.style.display = 'none';
+      }
+    }
+
+    function selectInquilino(inqId){
+      selectedInqId = inqId;
+      renderInquilinoDetail();
+    }
+
+    function renderInquilinoDetail(){
+      const inq = inqCache.find(x => x.inquilino_id === selectedInqId);
+      const card = $('inqDetailCard');
+      if (!inq || !card) return;
+
+      card.style.display = 'block';
+      $('inqName').textContent = inq.nombre;
+      $('inqSub').textContent = `${inq.telefono || '—'} • ${inq.email || '—'} • ${inq.documento || '—'}`;
+      $('inqDebt').textContent = `Deuda: ${fmtARS.format(inq.deuda_total)}`;
+      $('inqDebtLate').textContent = `Atrasada: ${fmtARS.format(inq.deuda_atrasada)}`;
+      $('inqUnits').textContent = `Unidades: ${inq.contratos_activos}`;
+
+      const tb = $('tbInqContracts');
+      tb.innerHTML = inq.contratos
+        .sort((a,b)=> (b.deuda_atrasada - a.deuda_atrasada) || a.local_codigo.localeCompare(b.local_codigo))
+        .map(c => `
+          <tr>
+            <td><b>${c.local_codigo}</b></td>
+            <td class="right">${fmtARS.format(c.deuda_total)}</td>
+            <td class="right">${fmtARS.format(c.deuda_atrasada)}</td>
+            <td class="center">${c.meses_adeudados}</td>
+            <td class="center">
+              <button class="btn primary" onclick="openPagoByContrato('${c.contrato_id}')">Cobrar</button>
+              <button class="btn" onclick="openDetalleByContrato('${c.contrato_id}')">Detalle</button>
+            </td>
+          </tr>
+        `).join('');
+
+      $('inqDetailMsg').textContent = '';
+    }
+
+    function openDetalleByContrato(contratoId){
+      const u = unidades.find(x => x.contrato_id === contratoId);
+      if (!u) return alert('No hay datos de deuda para este contrato.');
+      setRoute('activos');
+      openDetalle(u);
+    }
+
+    function openPagoByContrato(contratoId){
+      const u = unidades.find(x => x.contrato_id === contratoId);
+      if (!u) return alert('No hay datos de deuda para este contrato.');
+      openPagoModal(u);
+    }
+
+    // ===== Modal inquilino (crear/editar) =====
+    let inqModalMode = 'create';
+    function openInqModal(mode){
+      inqModalMode = mode;
+      $('inqModalMsg').textContent = '';
+      $('modalInqBack').style.display = 'flex';
+
+      if (mode === 'edit'){
+        const inq = inqCache.find(x => x.inquilino_id === selectedInqId);
+        if (!inq) { $('inqModalMsg').textContent = 'Seleccioná un inquilino primero.'; return; }
+        $('inqModalTitle').textContent = 'Editar inquilino';
+        $('inqNombre').value = inq.nombre || '';
+        $('inqTel').value = inq.telefono || '';
+        $('inqEmail').value = inq.email || '';
+        $('inqDoc').value = inq.documento || '';
+      } else {
+        $('inqModalTitle').textContent = 'Nuevo inquilino';
+        $('inqNombre').value = '';
+        $('inqTel').value = '';
+        $('inqEmail').value = '';
+        $('inqDoc').value = '';
+      }
+    }
+
+    function closeInqModal(){
+      $('modalInqBack').style.display = 'none';
+    }
+
+    async function saveInqModal(){
+      const nombre = ($('inqNombre').value || '').trim();
+      if (!nombre) { $('inqModalMsg').textContent = 'El nombre es obligatorio.'; return; }
+
+      const payload = {
+        nombre,
+        telefono: ($('inqTel').value || '').trim() || null,
+        email: ($('inqEmail').value || '').trim() || null,
+        documento: ($('inqDoc').value || '').trim() || null,
+      };
+
+      if (inqModalMode === 'edit'){
+        const inq = inqCache.find(x => x.inquilino_id === selectedInqId);
+        if (!inq) { $('inqModalMsg').textContent = 'Seleccioná un inquilino.'; return; }
+
+        const { error } = await sb.from('inquilinos').update(payload).eq('id', inq.inquilino_id);
+        if (error) { $('inqModalMsg').textContent = error.message; return; }
+
+        $('inqModalMsg').textContent = 'Guardado ✅';
+        // refrescar cache desde DB
+        await refreshContratosActivos();
+        buildInqCache();
+        renderInquilinosPage();
+        selectedInqId = inq.inquilino_id;
+        renderInquilinoDetail();
+        closeInqModal();
+      } else {
+        const { data, error } = await sb.from('inquilinos').insert(payload).select('id').single();
+        if (error) { $('inqModalMsg').textContent = error.message; return; }
+
+        $('inqModalMsg').textContent = 'Creado ✅';
+        closeInqModal();
+        // Nota: aparecerá en la lista cuando tenga un contrato activo asignado
+        alert('Inquilino creado. Para verlo en la lista, asignalo a un contrato.');
+      }
+    }
+
+    // ===== Documentos (Storage + tabla documentos) =====
+    let docsContratoId = null; // contrato seleccionado en gestor
+
+    function safeFileName(name){
+      return String(name||'archivo').replace(/[^\w.\-() ]/g, '_');
+    }
+
+    function contratoLabelById(contratoId){
+      const u = unidades.find(x => x.contrato_id === contratoId);
+      if (!u) return contratoId;
+      return `${u.local_codigo} — ${u.inquilino_nombre}`;
+    }
+
+    function openDocumentosFromDetalle(){
+      if (!selected?.contrato_id) return;
+      docsContratoId = selected.contrato_id;
+      setRoute('documentos');
+    }
+
+    async function renderDocumentosPage(){
+      const el = $('viewDocumentos');
+      el.innerHTML = `
+        <div class="card">
+          <div class="row" style="justify-content:space-between;">
+            <div>
+              <h2 style="margin:0;">Documentos</h2>
+              <div class="muted">Acá se ve todo lo relacionado con contratos y recibos. Los recibos se generan automáticamente cuando registrás un pago.</div>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:12px;">
+            <label class="muted">Contrato:</label>
+            <select id="docsContratoSel" style="min-width:420px;" onchange="loadDocsForSelected()"></select>
+            <select id="docsFiltroTipo" style="width:170px" onchange="loadDocsForSelected()">
+              <option value="TODOS">Todo</option>
+              <option value="RECIBO">Recibos</option>
+              <option value="CONTRATO">Contratos</option>
+              <option value="OTRO">Otros</option>
+            </select>
+            <button class="btn" onclick="loadDocsForSelected()">Actualizar</button>
+          </div>
+
+          <div class="row" style="margin-top:12px;">
+            <span class="badge b-info" id="docsResumeTotal">0 movimientos</span>
+            <span class="badge b-ok" id="docsResumeRecibos">0 recibos</span>
+            <span class="badge b-info" id="docsResumeContratos">0 contratos</span>
+            <span class="badge b-warn" id="docsResumeOtros">0 otros</span>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="row" style="justify-content:space-between;align-items:end;">
+            <div>
+              <h3 style="margin:0;">Adjuntar archivo</h3>
+              <div class="muted">Podés subir contratos, recibos escaneados u otros archivos al contrato seleccionado.</div>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:12px;">
+            <select id="docsTipo" style="width:180px">
+              <option value="CONTRATO">CONTRATO</option>
+              <option value="RECIBO">RECIBO</option>
+              <option value="OTRO">OTRO</option>
+            </select>
+            <input id="docsFile" type="file" style="width:420px" />
+            <button class="btn primary" onclick="uploadDocFromDocs()">Subir</button>
+          </div>
+
+          <div class="toast" id="docsMsg"></div>
+        </div>
+
+        <div class="card">
+          <div class="tableWrap">
+            <table style="min-width:1280px;">
+              <thead>
+                <tr>
+                  <th>Tipo</th>
+                  <th>Número</th>
+                  <th>Contrato</th>
+                  <th>Detalle / Archivo</th>
+                  <th>Fecha</th>
+                  <th class="right">Importe</th>
+                  <th>Medio de pago</th>
+                  <th class="center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="docsBody"></tbody>
+            </table>
+          </div>
+          <div class="toast" id="docsListMsg"></div>
+        </div>
+      `;
+
+      const sel = $('docsContratoSel');
+      sel.innerHTML = '';
+
+      const allOpt = document.createElement('option');
+      allOpt.value = '__ALL__';
+      allOpt.textContent = 'Todos los contratos';
+      sel.appendChild(allOpt);
+
+      const opts = [...unidades]
+        .sort((a,b)=>String(a.local_codigo).localeCompare(String(b.local_codigo)))
+        .map(u => ({ id:u.contrato_id, label:`${u.local_codigo} — ${u.inquilino_nombre}`}));
+
+      for (const o of opts){
+        const op = document.createElement('option');
+        op.value = o.id;
+        op.textContent = o.label;
+        sel.appendChild(op);
+      }
+
+      if (docsContratoId && [...sel.options].some(o => o.value === docsContratoId)){
+        sel.value = docsContratoId;
+      } else {
+        docsContratoId = '__ALL__';
+        sel.value = '__ALL__';
+      }
+
+      await loadDocsForSelected();
+    }
+
+    async function loadDocsForSelected(){
+      const sel = $('docsContratoSel');
+      docsContratoId = sel?.value || docsContratoId || '__ALL__';
+      await loadDocsListInto('docsBody', 'docsListMsg', docsContratoId, true);
+    }
+
+    function isAllContratos(value){
+      return !value || value === '__ALL__';
+    }
+
+    function formatDateDisplay(value){
+      if (!value) return '—';
+      return String(value).slice(0, 10);
+    }
+
+    function formatDateTimeDisplay(value){
+      if (!value) return '—';
+      return String(value).slice(0, 19).replace('T', ' ');
+    }
+
+    function buildReciboNumero(pago, createIfMissing=false){
+      const ref = pago?.referencia || pago?.numero_recibo || pago?.nro_recibo || pago?.recibo_numero;
+      if (ref) return String(ref);
+      const paymentId = String(pago?.id || pago?.pago_id || '').trim();
+      if (paymentId && receiptNumberMap[paymentId]) return receiptNumberMap[paymentId];
+      if (createIfMissing && paymentId) return allocateReciboNumero(paymentId);
+      const prefix = sanitizePrefix(appSettings?.pagos?.reciboPrefijo, 'REC');
+      const datePart = String(pago?.fecha_pago || pago?.created_at || today()).slice(0,10).replace(/-/g,'');
+      const rawId = String(pago?.id || pago?.pago_id || '').replace(/-/g,'').toUpperCase();
+      const suffix = rawId ? rawId.slice(-6) : 'SN';
+      return `${prefix}-${datePart}-${suffix}`;
+    }
+
+    function buildContratoDocumentoNumero(doc){
+      const prefix = sanitizePrefix(appSettings?.documentos?.contratoPrefijo, 'CTR');
+      const rawId = String(doc?.id || '').replace(/-/g,'').toUpperCase();
+      const suffix = rawId ? rawId.slice(-6) : String(asPositiveInt(appSettings?.documentos?.proximoContrato, 1)).padStart(6, '0');
+      return `${prefix}-${suffix}`;
+    }
+
+
+        // ===== Informes / Gastos =====
+    const GASTOS_STORAGE_KEY = 'ga_gastos_v1';
+    const GASTOS_IMPORTED_FLAG = 'ga_gastos_imported_to_supabase_v1';
+    let gastosCache = [];
+    let gastoEditId = null;
+    let informesLoadError = '';
+
+    function legacyGastosRows(){
+      try{
+        const raw = localStorage.getItem(GASTOS_STORAGE_KEY);
+        const arr = raw ? JSON.parse(raw) : [];
+        return Array.isArray(arr) ? arr : [];
+      } catch (e){
+        return [];
+      }
+    }
+
+    function hasLegacyGastosPendingImport(){
+      try{
+        if (localStorage.getItem(GASTOS_IMPORTED_FLAG) === '1') return false;
+      } catch (e){}
+      return legacyGastosRows().length > 0;
+    }
+
+    function markLegacyGastosImported(){
+      try{ localStorage.setItem(GASTOS_IMPORTED_FLAG, '1'); } catch (e){}
+    }
+
+    function backupAndClearLegacyGastos(){
+      try{
+        const raw = localStorage.getItem(GASTOS_STORAGE_KEY);
+        if (raw) {
+          localStorage.setItem(`${GASTOS_STORAGE_KEY}_backup_${Date.now()}`, raw);
+          localStorage.removeItem(GASTOS_STORAGE_KEY);
+        }
+        localStorage.setItem(GASTOS_IMPORTED_FLAG, '1');
+      } catch (e){}
+    }
+
+    function generateGastoId(){
+      if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+      return `g_${Date.now()}_${Math.random().toString(36).slice(2,10)}`;
+    }
+
+    function gastoNumero(item){
+      if (item?.numero) return item.numero;
+      const datePart = String(item?.fecha || today()).slice(0,10).replace(/-/g,'');
+      const rawId = String(item?.id || '').replace(/-/g,'').toUpperCase();
+      return `GST-${datePart}-${rawId.slice(-5) || 'SN'}`;
+    }
+
+    function normalizeGasto(payload){
+      const id = payload.id || generateGastoId();
+      const fecha = payload.fecha || today();
+      const monto = Number(payload.monto || 0);
+      const categoria = payload.categoria || 'OTRO';
+      const createdAt = payload.created_at || new Date().toISOString();
+      return {
+        id,
+        numero: payload.numero || gastoNumero({ id, fecha }),
+        fecha,
+        categoria,
+        concepto: String(payload.concepto || '').trim(),
+        beneficiario: String(payload.beneficiario || '').trim(),
+        medio: payload.medio || 'EFECTIVO',
+        monto,
+        observaciones: String(payload.observaciones || '').trim(),
+        created_at: createdAt,
+        updated_at: payload.updated_at || createdAt
+      };
+    }
+
+    function getFilteredGastos(){
+      const q = ($('infSearch')?.value || '').trim().toLowerCase();
+      const categoria = $('infCategoria')?.value || 'TODOS';
+      const mes = $('infMes')?.value || '';
+
+      let rows = [...gastosCache];
+      if (categoria !== 'TODOS') rows = rows.filter(x => x.categoria === categoria);
+      if (mes) rows = rows.filter(x => String(x.fecha || '').slice(0,7) === mes);
+      if (q){
+        rows = rows.filter(x =>
+          String(x.numero || '').toLowerCase().includes(q) ||
+          String(x.concepto || '').toLowerCase().includes(q) ||
+          String(x.beneficiario || '').toLowerCase().includes(q) ||
+          String(x.categoria || '').toLowerCase().includes(q) ||
+          String(x.medio || '').toLowerCase().includes(q)
+        );
+      }
+      rows.sort((a,b) => {
+        const ka = `${a.fecha || ''} ${a.created_at || ''}`;
+        const kb = `${b.fecha || ''} ${b.created_at || ''}`;
+        return kb.localeCompare(ka);
+      });
+      return rows;
+    }
+
+    function currentMonthValue(){
+      return today().slice(0,7);
+    }
+
+    function computeGastosKPIs(rows){
+      const total = rows.reduce((a,x)=>a+Number(x.monto||0),0);
+      const sueldos = rows.filter(x=>x.categoria==='SUELDO').reduce((a,x)=>a+Number(x.monto||0),0);
+      const otros = rows.filter(x=>x.categoria!=='SUELDO').reduce((a,x)=>a+Number(x.monto||0),0);
+      const cantidad = rows.length;
+      return { total, sueldos, otros, cantidad };
+    }
+
+    function setInformesConnectionState(mode, text){
+      const importBtn = $('infImportLocalBtn');
+      if (importBtn){
+        importBtn.style.display = hasLegacyGastosPendingImport() ? 'inline-flex' : 'none';
+      }
+    }
+
+    function showInformesLoadError(errorMsg){
+      informesLoadError = errorMsg || '';
+      const setupBox = $('infSetupBox');
+      if (!setupBox) return;
+
+      if (!errorMsg){
+        setupBox.style.display = 'none';
+        setupBox.innerHTML = '';
+        setInformesConnectionState('ok', 'Supabase conectado');
+        return;
+      }
+
+      let friendly = `Error de Supabase: ${errorMsg}`;
+      if (/relation .*gastos.* does not exist/i.test(errorMsg)) {
+        friendly = 'Falta crear la tabla <b>gastos</b> en Supabase. Ejecutá el SQL de setup y recargá la página.';
+      } else if (/permission denied|row-level security|violates row-level security|not authorized/i.test(errorMsg)) {
+        friendly = 'Hay un problema de permisos o políticas RLS en la tabla <b>gastos</b>. Ejecutá el SQL completo de políticas y recargá.';
+      }
+
+      setupBox.style.display = 'block';
+      setupBox.innerHTML = `
+        <div><b>Supabase no está listo para Gastos.</b></div>
+        <div class="muted" style="margin-top:6px;">${friendly}</div>
+      `;
+      setInformesConnectionState('bad', 'Supabase no listo');
+    }
+
+    async function refreshInformesData(opts = {}){
+      const tbody = $('infBody');
+      if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="9" class="center">Cargando gastos...</td></tr>`;
+      }
+      if ($('infMsg')) $('infMsg').textContent = '';
+      setInformesConnectionState('warn', 'Cargando...');
+
+      const { data, error } = await sb
+        .from('gastos')
+        .select('*')
+        .order('fecha', { ascending:false })
+        .order('created_at', { ascending:false });
+
+      if (error){
+        gastosCache = [];
+        renderInformesTable();
+        showInformesLoadError(error.message);
+        if ($('infMsg')) $('infMsg').textContent = error.message;
+        return;
+      }
+
+      gastosCache = (data || []).map(normalizeGasto);
+      showInformesLoadError('');
+      renderInformesTable();
+      if ($('infMsg')) $('infMsg').textContent = gastosCache.length ? '' : 'Todavía no hay gastos guardados en Supabase.';
+      if (!opts.keepSuccessMsg && $('gastoMsg')) $('gastoMsg').textContent = '';
+    }
+
+    function renderInformesPage(){
+      const el = $('viewInformes');
+      el.innerHTML = `
+        <div class="card">
+          <div class="row" style="justify-content:space-between;align-items:end;">
+            <div>
+              <h2 style="margin:0;">Informes</h2>
+              <div class="muted">Acá se registran todos los egresos: sueldos, reparaciones, servicios, impuestos y cualquier otro gasto.</div>
+            </div>
+            <div class="row">
+                            <button class="btn" onclick="refreshInformesData({ keepSuccessMsg:true })">Recargar</button>
+              <button class="btn" id="infImportLocalBtn" onclick="importLegacyGastos()" style="display:none;">Importar datos locales</button>
+              <input id="infSearch" placeholder="Buscar gasto, persona, número o categoría..." style="width:320px" oninput="renderInformesTable()">
+              <select id="infCategoria" style="width:190px" onchange="renderInformesTable()">
+                <option value="TODOS">Todas las categorías</option>
+                <option value="SUELDO">Sueldos</option>
+                <option value="MANTENIMIENTO">Mantenimiento</option>
+                <option value="REPARACION">Reparación</option>
+                <option value="SERVICIO">Servicios</option>
+                <option value="IMPUESTO">Impuestos</option>
+                <option value="LIMPIEZA">Limpieza</option>
+                <option value="INSUMO">Insumos</option>
+                <option value="OTRO">Otro</option>
+              </select>
+              <input id="infMes" type="month" style="width:170px" onchange="renderInformesTable()">
+              <button class="btn" onclick="resetInformesFilters()">Limpiar</button>
+            </div>
+          </div>
+          <div class="toast" id="infSetupBox" style="display:none;margin-top:12px;"></div>
+        </div>
+
+        <div class="card">
+          <div class="kpis">
+            <div class="kpi"><div class="label">Gastos del filtro</div><div class="value" id="infKpiTotal">${fmtARS.format(0)}</div><div class="muted" id="infKpiCount">0 movimientos</div></div>
+            <div class="kpi"><div class="label">Sueldos</div><div class="value" id="infKpiSueldos">${fmtARS.format(0)}</div><div class="muted">Pagos a personal</div></div>
+            <div class="kpi"><div class="label">Otros gastos</div><div class="value" id="infKpiOtros">${fmtARS.format(0)}</div><div class="muted">Servicios, impuestos y más</div></div>
+            <div class="kpi"><div class="label">Promedio por gasto</div><div class="value" id="infKpiPromedio">${fmtARS.format(0)}</div><div class="muted">Ticket promedio</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="row" style="justify-content:space-between;align-items:end;">
+            <div>
+              <h3 style="margin:0;">Registrar gasto</h3>
+              <div class="muted">Usá este formulario para cargar cualquier egreso, incluyendo sueldos repartidos.</div>
+            </div>
+            <span class="badge b-info" id="infFormMode">Nuevo gasto</span>
+          </div>
+
+          <div class="row" style="margin-top:12px;">
+            <input id="gFecha" type="date" style="width:160px">
+            <select id="gCategoria" style="width:190px">
+              <option value="SUELDO">SUELDO</option>
+              <option value="MANTENIMIENTO">MANTENIMIENTO</option>
+              <option value="REPARACION">REPARACIÓN</option>
+              <option value="SERVICIO">SERVICIO</option>
+              <option value="IMPUESTO">IMPUESTO</option>
+              <option value="LIMPIEZA">LIMPIEZA</option>
+              <option value="INSUMO">INSUMO</option>
+              <option value="OTRO">OTRO</option>
+            </select>
+            <input id="gConcepto" placeholder="Concepto / detalle" style="width:260px">
+            <input id="gBeneficiario" placeholder="Persona o proveedor" style="width:240px">
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <select id="gMedio" style="width:180px">
+              <option value="EFECTIVO">EFECTIVO</option>
+              <option value="TRANSFERENCIA">TRANSFERENCIA</option>
+              <option value="MERCADOPAGO">MERCADOPAGO</option>
+              <option value="TARJETA">TARJETA</option>
+              <option value="OTRO">OTRO</option>
+            </select>
+            <input id="gMonto" placeholder="Monto" style="width:180px">
+            <input id="gObs" placeholder="Observaciones" style="flex:1;min-width:240px;">
+            <button class="btn primary" onclick="saveGasto()">Guardar</button>
+            <button class="btn" onclick="clearGastoForm()">Limpiar</button>
+          </div>
+          <div class="toast" id="gastoMsg"></div>
+        </div>
+
+        <div class="card">
+          <div class="row" style="justify-content:space-between;">
+            <div>
+              <h3 style="margin:0;">Historial de gastos</h3>
+              <div class="muted">Todos los egresos cargados, incluidos los sueldos.</div>
+            </div>
+            <span class="badge b-bad" id="infTotalRows">0 registros</span>
+          </div>
+          <div class="tableWrap" style="margin-top:12px;">
+            <table style="min-width:1280px;">
+              <thead>
+                <tr>
+                  <th>Número</th>
+                  <th>Fecha</th>
+                  <th>Categoría</th>
+                  <th>Concepto</th>
+                  <th>Beneficiario</th>
+                  <th>Medio</th>
+                  <th class="right">Monto</th>
+                  <th>Observaciones</th>
+                  <th class="center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="infBody"></tbody>
+            </table>
+          </div>
+          <div class="toast" id="infMsg"></div>
+        </div>
+      `;
+
+      $('infMes').value = currentMonthValue();
+      $('gFecha').value = today();
+      populatePaymentMethodSelect('gMedio');
+      clearGastoForm(true);
+      renderInformesTable();
+      setInformesConnectionState('warn', 'Cargando...');
+      refreshInformesData();
+    }
+
+    function resetInformesFilters(){
+      if ($('infSearch')) $('infSearch').value = '';
+      if ($('infCategoria')) $('infCategoria').value = 'TODOS';
+      if ($('infMes')) $('infMes').value = currentMonthValue();
+      renderInformesTable();
+    }
+
+    function renderInformesTable(){
+      const rows = getFilteredGastos();
+      const tb = $('infBody');
+      const msg = $('infMsg');
+      if (!tb) return;
+      tb.innerHTML = '';
+
+      const k = computeGastosKPIs(rows);
+      if ($('infKpiTotal')) $('infKpiTotal').textContent = fmtARS.format(k.total);
+      if ($('infKpiSueldos')) $('infKpiSueldos').textContent = fmtARS.format(k.sueldos);
+      if ($('infKpiOtros')) $('infKpiOtros').textContent = fmtARS.format(k.otros);
+      if ($('infKpiCount')) $('infKpiCount').textContent = `${k.cantidad} movimientos`;
+      if ($('infKpiPromedio')) $('infKpiPromedio').textContent = fmtARS.format(k.cantidad ? (k.total / k.cantidad) : 0);
+      if ($('infTotalRows')) $('infTotalRows').textContent = `${rows.length} registros`;
+
+      rows.forEach(x => {
+        const badgeClass = x.categoria === 'SUELDO' ? 'b-ok' : (x.categoria === 'IMPUESTO' ? 'b-bad' : 'b-info');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><b>${x.numero}</b></td>
+          <td>${formatDateDisplay(x.fecha)}</td>
+          <td><span class="badge ${badgeClass}">${x.categoria}</span></td>
+          <td>${x.concepto || '—'}</td>
+          <td>${x.beneficiario || '—'}</td>
+          <td>${x.medio || '—'}</td>
+          <td class="right">${fmtARS.format(Number(x.monto||0))}</td>
+          <td>${x.observaciones || '—'}</td>
+          <td class="center">
+            <button class="linkBtn" onclick="editGasto('${x.id}')">Editar</button>&nbsp;|&nbsp;
+            <button class="linkBtn" onclick="deleteGasto('${x.id}')">Eliminar</button>
+          </td>
+        `;
+        tb.appendChild(tr);
+      });
+
+      if (msg){
+        if (informesLoadError) msg.textContent = informesLoadError;
+        else msg.textContent = rows.length ? '' : 'No hay gastos cargados para este filtro.';
+      }
+    }
+
+    function clearGastoForm(keepMsg=false){
+      gastoEditId = null;
+      if ($('gFecha')) $('gFecha').value = today();
+      if ($('gCategoria')) $('gCategoria').value = 'SUELDO';
+      if ($('gConcepto')) $('gConcepto').value = '';
+      if ($('gBeneficiario')) $('gBeneficiario').value = '';
+      populatePaymentMethodSelect('gMedio', 'EFECTIVO');
+      if ($('gMonto')) $('gMonto').value = '';
+      if ($('gObs')) $('gObs').value = '';
+      if ($('infFormMode')) $('infFormMode').textContent = 'Nuevo gasto';
+      if (!keepMsg && $('gastoMsg')) $('gastoMsg').textContent = '';
+    }
+
+    async function saveGasto(){
+      const msg = $('gastoMsg');
+      const fecha = $('gFecha')?.value || today();
+      const categoria = $('gCategoria')?.value || 'OTRO';
+      const concepto = ($('gConcepto')?.value || '').trim();
+      const beneficiario = ($('gBeneficiario')?.value || '').trim();
+      const medio = $('gMedio')?.value || 'EFECTIVO';
+      const monto = parseMoneyToDecimalString($('gMonto')?.value || '');
+      const observaciones = ($('gObs')?.value || '').trim();
+
+      if (!concepto){ msg.textContent = 'Completá el concepto.'; return; }
+      if (!monto){ msg.textContent = 'Monto inválido.'; return; }
+      if (!user){ msg.textContent = 'Primero iniciá sesión.'; return; }
+
+      const editingId = gastoEditId;
+      const existing = editingId ? gastosCache.find(x => x.id === editingId) : null;
+      const payload = normalizeGasto({
+        id: editingId || generateGastoId(),
+        numero: existing?.numero,
+        fecha,
+        categoria,
+        concepto,
+        beneficiario,
+        medio,
+        monto: Number(monto),
+        observaciones,
+        created_at: existing?.created_at || new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+
+      const dbPayload = {
+        id: payload.id,
+        numero: payload.numero,
+        fecha: payload.fecha,
+        categoria: payload.categoria,
+        concepto: payload.concepto,
+        beneficiario: payload.beneficiario || null,
+        medio: payload.medio,
+        monto: Number(payload.monto || 0),
+        observaciones: payload.observaciones || null
+      };
+
+      msg.textContent = editingId ? 'Actualizando gasto...' : 'Guardando gasto...';
+
+      let response;
+      if (editingId){
+        response = await sb.from('gastos').update(dbPayload).eq('id', editingId).select('*').single();
+      } else {
+        response = await sb.from('gastos').insert(dbPayload).select('*').single();
+      }
+
+      if (response.error){
+        showInformesLoadError(response.error.message);
+        msg.textContent = response.error.message;
+        return;
+      }
+
+      showInformesLoadError('');
+      const saved = normalizeGasto(response.data || payload);
+      const idx = gastosCache.findIndex(x => x.id === saved.id);
+      if (idx >= 0) gastosCache[idx] = saved;
+      else gastosCache.unshift(saved);
+
+      msg.textContent = editingId ? 'Gasto actualizado ✅' : 'Gasto guardado ✅';
+      clearGastoForm(true);
+      renderInformesTable();
+      setInformesConnectionState('ok', 'Supabase conectado');
+    }
+
+    function editGasto(id){
+      const item = gastosCache.find(x => x.id === id);
+      if (!item) return;
+      gastoEditId = item.id;
+      $('gFecha').value = item.fecha || today();
+      $('gCategoria').value = item.categoria || 'OTRO';
+      $('gConcepto').value = item.concepto || '';
+      $('gBeneficiario').value = item.beneficiario || '';
+      populatePaymentMethodSelect('gMedio', item.medio || 'EFECTIVO');
+      $('gMonto').value = String(item.monto || '');
+      $('gObs').value = item.observaciones || '';
+      $('infFormMode').textContent = `Editando ${item.numero}`;
+      $('gastoMsg').textContent = 'Editando gasto...';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function deleteGasto(id){
+      const item = gastosCache.find(x => x.id === id);
+      if (!item) return;
+      if (!askConfirm(`Eliminar ${item.numero}?`)) return;
+
+      const { error } = await sb.from('gastos').delete().eq('id', id);
+      if (error){
+        showInformesLoadError(error.message);
+        if ($('gastoMsg')) $('gastoMsg').textContent = error.message;
+        return;
+      }
+
+      showInformesLoadError('');
+      gastosCache = gastosCache.filter(x => x.id !== id);
+      if (gastoEditId === id) clearGastoForm(true);
+      if ($('gastoMsg')) $('gastoMsg').textContent = 'Gasto eliminado ✅';
+      renderInformesTable();
+      if (!gastosCache.length && $('infMsg')) $('infMsg').textContent = 'Todavía no hay gastos guardados en Supabase.';
+      setInformesConnectionState('ok', 'Supabase conectado');
+    }
+
+    async function importLegacyGastos(){
+      const msg = $('gastoMsg');
+      const legacy = legacyGastosRows().map(normalizeGasto);
+      if (!legacy.length){
+        if (msg) msg.textContent = 'No hay datos locales para importar.';
+        return;
+      }
+      if (!askConfirm(`Se importarán ${legacy.length} gastos guardados localmente a Supabase. ¿Continuar?`)) return;
+
+      const rows = legacy.map(x => ({
+        id: x.id,
+        numero: x.numero,
+        fecha: x.fecha,
+        categoria: x.categoria,
+        concepto: x.concepto,
+        beneficiario: x.beneficiario || null,
+        medio: x.medio,
+        monto: Number(x.monto || 0),
+        observaciones: x.observaciones || null
+      }));
+
+      if (msg) msg.textContent = 'Importando datos locales...';
+      const { error } = await sb.from('gastos').upsert(rows, { onConflict: 'id' }).select('id');
+      if (error){
+        showInformesLoadError(error.message);
+        if (msg) msg.textContent = error.message;
+        return;
+      }
+
+      backupAndClearLegacyGastos();
+      if (msg) msg.textContent = 'Datos locales importados a Supabase ✅';
+      await refreshInformesData({ keepSuccessMsg:true });
+    }
+
+    async function fetchDocumentosRows(contratoId){
+      let q = sb.from('documentos').select('*').order('created_at', { ascending:false });
+      if (!isAllContratos(contratoId)) q = q.eq('contrato_id', contratoId);
+      const { data, error } = await q;
+      return { data: data || [], error };
+    }
+
+    async function fetchPagosRows(contratoId){
+      const selects = [
+        'id, contrato_id, fecha_pago, monto, medio, referencia, created_at',
+        'id, contrato_id, fecha_pago, monto, medio, created_at',
+        'id, contrato_id, fecha_pago, monto, created_at'
+      ];
+
+      let lastError = null;
+      for (const sel of selects){
+        let q = sb.from('pagos').select(sel).order('fecha_pago', { ascending:false });
+        if (!isAllContratos(contratoId)) q = q.eq('contrato_id', contratoId);
+        const { data, error } = await q;
+        if (!error) return { data: data || [], error: null };
+        lastError = error;
+      }
+      return { data: [], error: lastError };
+    }
+
+    async function buildCombinedDocumentRows(contratoId){
+      const [docsRes, pagosRes] = await Promise.all([
+        fetchDocumentosRows(contratoId),
+        fetchPagosRows(contratoId)
+      ]);
+
+      const docs = docsRes.data || [];
+      const pagos = pagosRes.data || [];
+
+      const signedUrlByDocId = new Map();
+      for (const d of docs){
+        if (!d.path) continue;
+        const signed = await sb.storage.from('documentos').createSignedUrl(d.path, 60 * 60);
+        if (signed.data?.signedUrl){
+          signedUrlByDocId.set(d.id, signed.data.signedUrl);
+        }
+      }
+
+      const reciboDocByPagoId = new Map();
+      const looseReceiptDocs = [];
+      const contractDocs = [];
+      const otherDocs = [];
+
+      for (const d of docs){
+        if (d.tipo === 'RECIBO' && d.pago_id){
+          reciboDocByPagoId.set(String(d.pago_id), d);
+        } else if (d.tipo === 'RECIBO'){
+          looseReceiptDocs.push(d);
+        } else if (d.tipo === 'CONTRATO'){
+          contractDocs.push(d);
+        } else {
+          otherDocs.push(d);
+        }
+      }
+
+      const rows = [];
+
+      for (const p of pagos){
+        const attached = reciboDocByPagoId.get(String(p.id));
+        rows.push({
+          rowType: 'RECIBO',
+          badgeClass: 'b-ok',
+          numero: buildReciboNumero(p),
+          contrato_id: p.contrato_id || null,
+          detalle: attached?.nombre_archivo || 'Pago registrado',
+          fecha: p.fecha_pago || p.created_at || null,
+          fecha_hora: p.created_at || p.fecha_pago || null,
+          monto: Number(p.monto || 0),
+          medio: p.medio || '—',
+          referencia: p.referencia || null,
+          downloadUrl: attached ? (signedUrlByDocId.get(attached.id) || null) : null,
+          docId: attached?.id || null,
+          docPath: attached?.path || null
+        });
+      }
+
+      for (const d of contractDocs){
+        rows.push({
+          rowType: 'CONTRATO',
+          badgeClass: 'b-info',
+          numero: buildContratoDocumentoNumero(d),
+          contrato_id: d.contrato_id,
+          detalle: d.nombre_archivo,
+          fecha: d.created_at,
+          fecha_hora: d.created_at,
+          monto: null,
+          medio: '—',
+          referencia: null,
+          downloadUrl: signedUrlByDocId.get(d.id) || null,
+          docId: d.id,
+          docPath: d.path || null
+        });
+      }
+
+      for (const d of looseReceiptDocs){
+        rows.push({
+          rowType: 'RECIBO',
+          badgeClass: 'b-ok',
+          numero: `REC-ADJ-${String(d.id || '').replace(/-/g,'').slice(-6).toUpperCase() || 'SN'}`,
+          contrato_id: d.contrato_id,
+          detalle: d.nombre_archivo,
+          fecha: d.created_at,
+          fecha_hora: d.created_at,
+          monto: null,
+          medio: '—',
+          referencia: 'Adjunto manual',
+          downloadUrl: signedUrlByDocId.get(d.id) || null,
+          docId: d.id,
+          docPath: d.path || null
+        });
+      }
+
+      for (const d of otherDocs){
+        rows.push({
+          rowType: 'OTRO',
+          badgeClass: 'b-warn',
+          numero: `DOC-${String(d.id || '').replace(/-/g,'').slice(-6).toUpperCase() || 'SN'}`,
+          contrato_id: d.contrato_id,
+          detalle: d.nombre_archivo,
+          fecha: d.created_at,
+          fecha_hora: d.created_at,
+          monto: null,
+          medio: '—',
+          referencia: null,
+          downloadUrl: signedUrlByDocId.get(d.id) || null,
+          docId: d.id,
+          docPath: d.path || null
+        });
+      }
+
+      rows.sort((a,b) => String(b.fecha_hora || b.fecha || '').localeCompare(String(a.fecha_hora || a.fecha || '')));
+
+      const error = docsRes.error && pagosRes.error
+        ? (docsRes.error.message || pagosRes.error.message)
+        : null;
+
+      return { rows, error };
+    }
+
+    function updateDocumentSummary(rows){
+      const total = rows.length;
+      const recibos = rows.filter(r => r.rowType === 'RECIBO').length;
+      const contratos = rows.filter(r => r.rowType === 'CONTRATO').length;
+      const otros = rows.filter(r => r.rowType === 'OTRO').length;
+
+      if ($('docsResumeTotal')) $('docsResumeTotal').textContent = `${total} movimientos`;
+      if ($('docsResumeRecibos')) $('docsResumeRecibos').textContent = `${recibos} recibos`;
+      if ($('docsResumeContratos')) $('docsResumeContratos').textContent = `${contratos} contratos`;
+      if ($('docsResumeOtros')) $('docsResumeOtros').textContent = `${otros} otros`;
+    }
+
+    async function loadDocsListInto(tbodyId, msgId, contratoId, includeContratoCol){
+      const msgEl = $(msgId);
+      if (msgEl) msgEl.textContent = '';
+      const tb = $(tbodyId);
+      if (tb) tb.innerHTML = '';
+
+      const { rows, error } = await buildCombinedDocumentRows(contratoId);
+
+      if (tbodyId === 'docsBody'){
+        updateDocumentSummary(rows);
+      }
+
+      const filtroTipo = tbodyId === 'docsBody' ? ($('docsFiltroTipo')?.value || 'TODOS') : 'TODOS';
+      const filtered = filtroTipo === 'TODOS' ? rows : rows.filter(r => r.rowType === filtroTipo);
+
+      if (error && !filtered.length){
+        if (msgEl) msgEl.textContent = error;
+        return;
+      }
+
+      if (!filtered.length){
+        if (msgEl) msgEl.textContent = 'Sin movimientos para mostrar.';
+        return;
+      }
+
+      for (const row of filtered){
+        const tr = document.createElement('tr');
+        const detailExtra = row.referencia ? `<div class="muted">Ref.: ${row.referencia}</div>` : '';
+        const actions = [];
+
+        if (row.downloadUrl){
+          actions.push(`<a class="linkBtn" href="${row.downloadUrl}" target="_blank">Descargar</a>`);
+        } else if (row.rowType === 'RECIBO'){
+          actions.push(`<span class="muted">Sin adjunto</span>`);
+        } else {
+          actions.push(`<span class="muted">—</span>`);
+        }
+
+        if (row.docId && row.docPath){
+          actions.push(`<button class="linkBtn" onclick="deleteDoc('${row.docId}','${row.docPath}','${contratoId}','${tbodyId}','${msgId}', ${includeContratoCol})">Eliminar archivo</button>`);
+        }
+
+        tr.innerHTML = `
+          <td><span class="badge ${row.badgeClass}">${row.rowType}</span></td>
+          <td><b>${row.numero || '—'}</b></td>
+          ${includeContratoCol ? `<td>${row.contrato_id ? contratoLabelById(row.contrato_id) : '—'}</td>` : ''}
+          <td>${row.detalle || '—'}${detailExtra}</td>
+          <td>${formatDateTimeDisplay(row.fecha_hora || row.fecha)}</td>
+          <td class="right">${row.monto == null ? '—' : fmtARS.format(Number(row.monto || 0))}</td>
+          <td>${row.medio || '—'}</td>
+          <td class="center">${actions.join('&nbsp;|&nbsp;')}</td>
+        `;
+        tb.appendChild(tr);
+      }
+
+      if (error && msgEl){
+        msgEl.textContent = `Aviso: ${error}`;
+      }
+    }
+
+    async function uploadDocCore({ contratoId, tipo, file, pagoId=null }, msgId){
+      window.__lastDocError = null;
+      const msgEl = msgId ? $(msgId) : null;
+      const setMsg = (t) => {
+        if (msgEl) msgEl.textContent = t;
+      };
+
+      if (!contratoId) {
+        window.__lastDocError = 'Seleccioná un contrato.';
+        setMsg(window.__lastDocError);
+        return false;
+      }
+      if (!file) {
+        window.__lastDocError = 'Seleccioná un archivo.';
+        setMsg(window.__lastDocError);
+        return false;
+      }
+      const maxBytes = Math.max(1, asPositiveInt(appSettings?.documentos?.maxFileMB, 10)) * 1024 * 1024;
+      if ((file.size || 0) > maxBytes) {
+        window.__lastDocError = `El archivo supera el máximo de ${appSettings?.documentos?.maxFileMB || 10} MB.`;
+        setMsg(window.__lastDocError);
+        return false;
+      }
+
+      setMsg('Subiendo archivo...');
+      const safe = safeFileName(file.name);
+      const base = `contratos/${contratoId}`;
+      const path = `${base}/${Date.now()}_${safe}`;
+
+      const up = await sb.storage.from('documentos').upload(path, file, {
+        upsert: false,
+        contentType: file.type || 'application/octet-stream'
+      });
+
+      if (up.error){
+        window.__lastDocError = up.error.message;
+        setMsg('Error al subir archivo: ' + up.error.message);
+        console.error(up.error);
+        return false;
+      }
+
+      setMsg('Guardando en la base...');
+      const payload = {
+        contrato_id: contratoId,
+        tipo,
+        nombre_archivo: file.name,
+        path,
+        mime_type: file.type || null,
+        size_bytes: file.size || null,
+        pago_id: pagoId
+      };
+
+      // pago_id puede no existir aún en la tabla → fallback sin pago_id
+      let ins = await sb.from('documentos').insert(payload);
+      if (ins.error && String(ins.error.message||'').toLowerCase().includes('pago_id')){
+        delete payload.pago_id;
+        ins = await sb.from('documentos').insert(payload);
+      }
+
+      if (ins.error){
+        window.__lastDocError = ins.error.message;
+        await sb.storage.from('documentos').remove([path]); // rollback archivo
+        setMsg('Error guardando en DB: ' + ins.error.message);
+        console.error(ins.error);
+        return false;
+      }
+
+      setMsg('Documento subido ✅');
+      return true;
+    }
+
+    async function uploadDocFromDocs() {
+  const contratoId = $('docsContratoSel')?.value;
+  const tipo = $('docsTipo')?.value || 'OTRO';
+  const file = $('docsFile')?.files?.[0];
+
+  if (!contratoId || contratoId === '__ALL__') {
+    $('docsMsg').textContent = 'Elegí un contrato específico para adjuntar un archivo.';
+    return;
+  }
+  if (!file) {
+    $('docsMsg').textContent = 'Seleccioná un archivo.';
+    return;
+  }
+
+  const ok = await uploadDocCore({ contratoId, tipo, file }, 'docsMsg');
+
+  if (ok) {
+    $('docsFile').value = '';
+    await loadDocsForSelected();
+
+    if (selected?.contrato_id === contratoId) {
+      await loadDetalleDocs();
+    }
+  }
+}
+
+    async function uploadDocFromDetalle(){
+      if (!selected?.contrato_id) return;
+      const contratoId = selected.contrato_id;
+      const tipo = $('detDocTipo')?.value || 'OTRO';
+      const file = $('detDocFile')?.files?.[0];
+      const ok = await uploadDocCore({ contratoId, tipo, file }, 'detDocsMsg');
+      if (ok){
+        $('detDocFile').value = '';
+        await loadDetalleDocs();
+      }
+    }
+
+    async function loadDetalleDocs(){
+      if (!selected?.contrato_id) return;
+      await loadDocsListInto('detDocsBody', 'detDocsMsg', selected.contrato_id, false);
+    }
+
+    async function deleteDoc(docId, path, contratoId, tbodyId, msgId, includeContratoCol){
+      const msgEl = $(msgId);
+      if (msgEl) msgEl.textContent = '';
+      if (!askConfirm('¿Eliminar este archivo?')) return;
+
+      // borrar archivo
+      const rm = await sb.storage.from('documentos').remove([path]);
+      if (rm.error){
+        if (msgEl) msgEl.textContent = rm.error.message;
+        return;
+      }
+
+      // borrar fila DB
+      const del = await sb.from('documentos').delete().eq('id', docId);
+      if (del.error){
+        if (msgEl) msgEl.textContent = del.error.message;
+        return;
+      }
+
+      if (msgEl) msgEl.textContent = 'Eliminado ✅';
+      // refrescar lista
+      if (tbodyId === 'docsBody'){
+        await loadDocsForSelected();
+      } else {
+        await loadDetalleDocs();
+      }
+    }
+
+
+    let currentConfigTab = 'general';
+
+    function renderConfigPage(){
+      const el = $('viewConfig');
+      if (!el) return;
+      const s = appSettings || loadAppSettings();
+      const enabled = enabledPaymentMethods();
+      const tab = currentConfigTab || 'general';
+      el.innerHTML = `
+        <div class="settings-shell">
+          <div class="card">
+            <div class="config-header">
+              <div class="config-title">
+                <h2>Configuración</h2>
+                <div class="muted">Unificá identidad, cobranzas, documentos, apariencia y seguridad desde un espacio más ordenado y fácil de usar.</div>
+              </div>
+              <div class="config-actions">
+                <button class="btn" onclick="exportConfigSettings()">Exportar ajustes</button>
+                <button class="btn" onclick="resetConfigSettings()">Restablecer</button>
+                <button class="btn primary" onclick="saveConfigSettings()">Guardar cambios</button>
+              </div>
+            </div>
+            <div class="config-meta">
+              <div class="config-stat">
+                <div class="eyebrow">Negocio</div>
+                <div class="value">${escapeHtml(s.negocio.nombre || 'Gestión')}</div>
+                <div class="sub">${escapeHtml(s.negocio.moneda || 'ARS')} · ${escapeHtml(s.negocio.email || 'Sin email')}</div>
+              </div>
+              <div class="config-stat">
+                <div class="eyebrow">Próxima numeración</div>
+                <div class="value">${nextReciboPreview()}</div>
+                <div class="sub">Contrato: ${nextContratoPreview()}</div>
+              </div>
+              <div class="config-stat">
+                <div class="eyebrow">Apariencia</div>
+                <div class="value">${s.apariencia.tema === 'dark' ? 'Oscuro' : 'Claro'}</div>
+                <div class="sub">Acento ${escapeHtml(s.apariencia.acento)}${s.apariencia.compacta ? ' · Compacta' : ''}</div>
+              </div>
+              <div class="config-stat">
+                <div class="eyebrow">Medios activos</div>
+                <div class="value">${enabled.length}</div>
+                <div class="sub">${enabled.join(', ') || 'Sin medios habilitados'}</div>
+              </div>
+            </div>
+            <div class="toast" id="cfgMsg" style="margin-top:14px;"></div>
+          </div>
+
+          <div class="card settings-workspace">
+            <aside class="config-rail">
+              <div class="config-rail-head">
+                <div class="eyebrow">Secciones</div>
+                <h3>Ajustes del sistema</h3>
+                <p>Entrá en una sección, editá lo necesario y guardá cuando termines. Todo queda dentro del mismo panel.</p>
+              </div>
+              <div class="config-tabs">
+                <button type="button" class="config-tab ${tab === 'general' ? 'active' : ''}" onclick="switchConfigTab('general')"><strong>General</strong><span>Marca, contacto, fiscal y moneda.</span></button>
+                <button type="button" class="config-tab ${tab === 'cobranza' ? 'active' : ''}" onclick="switchConfigTab('cobranza')"><strong>Cobranza</strong><span>Recibos, vencimientos y medios de pago.</span></button>
+                <button type="button" class="config-tab ${tab === 'docs' ? 'active' : ''}" onclick="switchConfigTab('docs')"><strong>Documentos</strong><span>Contratos, adjuntos y reglas de archivo.</span></button>
+                <button type="button" class="config-tab ${tab === 'ui' ? 'active' : ''}" onclick="switchConfigTab('ui')"><strong>Apariencia</strong><span>Tema visual, acento y densidad.</span></button>
+                <button type="button" class="config-tab ${tab === 'seguridad' ? 'active' : ''}" onclick="switchConfigTab('seguridad')"><strong>Seguridad</strong><span>Confirmaciones y acciones sensibles.</span></button>
+              </div>
+            </aside>
+
+            <div class="config-content">
+              <section class="config-panel ${tab === 'general' ? 'active' : ''}" id="cfgSectionGeneral" data-tab="general">
+                <div class="config-panel-head">
+                  <div>
+                    <h3>Datos del negocio</h3>
+                    <p>Información base para identificar la administración y usarla después en recibos, contratos e informes.</p>
+                  </div>
+                  <div class="config-inline-badges">
+                    <span class="badge b-info">General</span>
+                    <span class="badge b-info">Identidad</span>
+                  </div>
+                </div>
+                <div class="config-panel-surface">
+                  <div class="field-grid">
+                    <div class="setting-field"><label>Nombre del negocio</label><input id="cfgNombre" value="${escapeAttr(s.negocio.nombre)}" placeholder="Ej. Gestión de Alquileres"></div>
+                    <div class="setting-field"><label>Teléfono</label><input id="cfgTelefono" value="${escapeAttr(s.negocio.telefono)}" placeholder="Ej. +54 376 ..."></div>
+                    <div class="setting-field"><label>Email</label><input id="cfgEmail" value="${escapeAttr(s.negocio.email)}" placeholder="admin@correo.com"></div>
+                    <div class="setting-field"><label>CUIT / identificación fiscal</label><input id="cfgCuit" value="${escapeAttr(s.negocio.cuit)}" placeholder="30-00000000-0"></div>
+                    <div class="setting-field"><label>Dirección</label><input id="cfgDireccion" value="${escapeAttr(s.negocio.direccion)}" placeholder="Dirección"></div>
+                    <div class="setting-field"><label>Moneda</label><input id="cfgMoneda" value="${escapeAttr(s.negocio.moneda)}" placeholder="ARS"></div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="config-panel ${tab === 'cobranza' ? 'active' : ''}" id="cfgSectionCobranza" data-tab="cobranza">
+                <div class="config-panel-head">
+                  <div>
+                    <h3>Pagos y recibos</h3>
+                    <p>Definí la numeración automática, reglas financieras y medios de pago habilitados para todo el sistema.</p>
+                  </div>
+                  <div class="config-inline-badges">
+                    <span class="badge b-ok">Cobranza</span>
+                    <span class="badge b-info">${nextReciboPreview()}</span>
+                  </div>
+                </div>
+                <div class="config-stack">
+                  <div class="config-panel-surface">
+                    <div class="field-grid cols-3">
+                      <div class="setting-field"><label>Prefijo recibo</label><input id="cfgReciboPrefijo" value="${escapeAttr(s.pagos.reciboPrefijo)}" placeholder="REC"></div>
+                      <div class="setting-field"><label>Próximo número</label><input id="cfgProximoRecibo" type="number" min="1" value="${s.pagos.proximoRecibo}"></div>
+                      <div class="setting-field"><label>Dígitos</label><input id="cfgReciboDigitos" type="number" min="1" max="12" value="${s.pagos.reciboDigitos}"></div>
+                      <div class="setting-field"><label>Día de vencimiento por defecto</label><input id="cfgVencimientoDia" type="number" min="1" max="31" value="${s.pagos.vencimientoDia}"></div>
+                      <div class="setting-field"><label>Días de gracia</label><input id="cfgDiasGracia" type="number" min="0" max="31" value="${s.pagos.diasGracia}"></div>
+                      <div class="setting-field"><label>Recargo por mora (%)</label><input id="cfgMoraPct" type="number" min="0" step="0.01" value="${s.pagos.moraPct}"></div>
+                    </div>
+                  </div>
+                  <div class="config-panel-surface">
+                    <div class="mini-note" style="margin-bottom:10px;">Medios de pago habilitados</div>
+                    <div class="check-grid">
+                      ${['EFECTIVO','TRANSFERENCIA','MERCADOPAGO','TARJETA','OTRO'].map(method => `
+                        <label class="check-item"><input type="checkbox" id="cfgMedio_${method}" ${s.pagos.medios[method] ? 'checked' : ''}> ${method}</label>
+                      `).join('')}
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="config-panel ${tab === 'docs' ? 'active' : ''}" id="cfgSectionDocs" data-tab="docs">
+                <div class="config-panel-head">
+                  <div>
+                    <h3>Contratos y documentos</h3>
+                    <p>Controlá numeración visible, límites de archivos y comportamiento al registrar comprobantes y contratos.</p>
+                  </div>
+                  <div class="config-inline-badges">
+                    <span class="badge b-info">Documentación</span>
+                    <span class="badge b-warn">${s.documentos.maxFileMB} MB</span>
+                  </div>
+                </div>
+                <div class="config-stack">
+                  <div class="config-panel-surface">
+                    <div class="field-grid cols-3">
+                      <div class="setting-field"><label>Prefijo contrato</label><input id="cfgContratoPrefijo" value="${escapeAttr(s.documentos.contratoPrefijo)}" placeholder="CTR"></div>
+                      <div class="setting-field"><label>Próximo número de contrato</label><input id="cfgProximoContrato" type="number" min="1" value="${s.documentos.proximoContrato}"></div>
+                      <div class="setting-field"><label>Tamaño máximo por archivo (MB)</label><input id="cfgMaxFileMB" type="number" min="1" value="${s.documentos.maxFileMB}"></div>
+                    </div>
+                  </div>
+                  <div class="switch-row">
+                    <div>
+                      <div style="font-weight:800;">Exigir adjunto al registrar pagos</div>
+                      <div class="mini-note">Si está activo, no se podrá guardar un pago sin subir el archivo del recibo.</div>
+                    </div>
+                    <input id="cfgExigeAdjuntoRecibo" type="checkbox" ${s.documentos.exigeAdjuntoRecibo ? 'checked' : ''}>
+                  </div>
+                  <div class="setting-field">
+                    <label>Observaciones por defecto</label>
+                    <textarea id="cfgObsDocs" placeholder="Texto base para contratos o recordatorios administrativos">${escapeHtml(s.documentos.observaciones)}</textarea>
+                  </div>
+                </div>
+              </section>
+
+              <section class="config-panel ${tab === 'ui' ? 'active' : ''}" id="cfgSectionUI" data-tab="ui">
+                <div class="config-panel-head">
+                  <div>
+                    <h3>Apariencia</h3>
+                    <p>Elegí cómo querés que se vea la interfaz. Todo lo visual vive acá, sin duplicar controles en otras partes.</p>
+                  </div>
+                  <div class="config-inline-badges">
+                    <span class="badge b-warn">UI</span>
+                    <span class="badge b-ok">Tema ${s.apariencia.tema === 'dark' ? 'Oscuro' : 'Claro'}</span>
+                  </div>
+                </div>
+                <input type="hidden" id="cfgTema" value="${escapeAttr(s.apariencia.tema)}">
+                <input type="hidden" id="cfgAcento" value="${escapeAttr(s.apariencia.acento)}">
+                <div class="config-stack">
+                  <div class="config-panel-surface">
+                    <div class="field-grid">
+                      <div class="setting-field">
+                        <label>Tema</label>
+                        <div class="choice-group" data-target="cfgTema">
+                          <button type="button" class="choice-pill ${s.apariencia.tema === 'light' ? 'active' : ''}" data-value="light" onclick="setChoiceValue('cfgTema','light')">Claro</button>
+                          <button type="button" class="choice-pill ${s.apariencia.tema === 'dark' ? 'active' : ''}" data-value="dark" onclick="setChoiceValue('cfgTema','dark')">Oscuro</button>
+                        </div>
+                      </div>
+                      <div class="setting-field">
+                        <label>Color principal</label>
+                        <div class="choice-group" data-target="cfgAcento">
+                          <button type="button" class="choice-pill ${s.apariencia.acento === 'azul' ? 'active' : ''}" data-value="azul" onclick="setChoiceValue('cfgAcento','azul')">Azul</button>
+                          <button type="button" class="choice-pill ${s.apariencia.acento === 'verde' ? 'active' : ''}" data-value="verde" onclick="setChoiceValue('cfgAcento','verde')">Verde</button>
+                          <button type="button" class="choice-pill ${s.apariencia.acento === 'violeta' ? 'active' : ''}" data-value="violeta" onclick="setChoiceValue('cfgAcento','violeta')">Violeta</button>
+                          <button type="button" class="choice-pill ${s.apariencia.acento === 'gris' ? 'active' : ''}" data-value="gris" onclick="setChoiceValue('cfgAcento','gris')">Grafito</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="switch-row">
+                    <div>
+                      <div style="font-weight:800;">Vista compacta</div>
+                      <div class="mini-note">Reduce espacios y tamaños para mostrar más información en tablas y paneles.</div>
+                    </div>
+                    <input id="cfgCompacta" type="checkbox" ${s.apariencia.compacta ? 'checked' : ''}>
+                  </div>
+                </div>
+              </section>
+
+              <section class="config-panel ${tab === 'seguridad' ? 'active' : ''}" id="cfgSectionSeguridad" data-tab="seguridad">
+                <div class="config-panel-head">
+                  <div>
+                    <h3>Seguridad y acciones sensibles</h3>
+                    <p>Definí confirmaciones y comportamiento para evitar errores al borrar o tocar información importante.</p>
+                  </div>
+                  <div class="config-inline-badges">
+                    <span class="badge b-bad">Seguridad</span>
+                  </div>
+                </div>
+                <div class="switch-row">
+                  <div>
+                    <div style="font-weight:800;">Confirmar antes de eliminar</div>
+                    <div class="mini-note">Aplica a gastos y documentos eliminables desde la interfaz.</div>
+                  </div>
+                  <input id="cfgConfirmarEliminar" type="checkbox" ${s.seguridad.confirmarEliminar ? 'checked' : ''}>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function switchConfigTab(tab){
+      currentConfigTab = tab || 'general';
+      const root = $('viewConfig');
+      if (!root) return;
+      root.querySelectorAll('.config-tab').forEach(btn => {
+        const isActive = btn.getAttribute('onclick')?.includes(`'${currentConfigTab}'`);
+        btn.classList.toggle('active', !!isActive);
+      });
+      root.querySelectorAll('.config-panel').forEach(panel => panel.classList.toggle('active', panel.dataset.tab === currentConfigTab));
+    }
+
+    function scrollConfigSection(id){
+      currentConfigTab = id;
+    }
+
+    function updateConfigNavState(){
+      return;
+    }
+
+    function setChoiceValue(targetId, value){
+      const input = $(targetId);
+      if (!input) return;
+      input.value = value;
+      const group = document.querySelector(`.choice-group[data-target="${targetId}"]`);
+      if (!group) return;
+      [...group.querySelectorAll('.choice-pill')].forEach(btn => btn.classList.toggle('active', btn.dataset.value === value));
+    }
+
+    function escapeAttr(value){
+      return String(value ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function escapeHtml(value){
+      return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function collectConfigSettingsFromForm(){
+      const medios = {};
+      ['EFECTIVO','TRANSFERENCIA','MERCADOPAGO','TARJETA','OTRO'].forEach(method => {
+        medios[method] = !!$(`cfgMedio_${method}`)?.checked;
+      });
+      return normalizeSettings({
+        negocio: {
+          nombre: $('cfgNombre')?.value || '',
+          telefono: $('cfgTelefono')?.value || '',
+          email: $('cfgEmail')?.value || '',
+          direccion: $('cfgDireccion')?.value || '',
+          cuit: $('cfgCuit')?.value || '',
+          moneda: $('cfgMoneda')?.value || 'ARS'
+        },
+        pagos: {
+          reciboPrefijo: $('cfgReciboPrefijo')?.value || 'REC',
+          proximoRecibo: $('cfgProximoRecibo')?.value || 1,
+          reciboDigitos: $('cfgReciboDigitos')?.value || 6,
+          vencimientoDia: $('cfgVencimientoDia')?.value || 10,
+          diasGracia: $('cfgDiasGracia')?.value || 0,
+          moraPct: $('cfgMoraPct')?.value || 0,
+          medios
+        },
+        documentos: {
+          contratoPrefijo: $('cfgContratoPrefijo')?.value || 'CTR',
+          proximoContrato: $('cfgProximoContrato')?.value || 1,
+          exigeAdjuntoRecibo: !!$('cfgExigeAdjuntoRecibo')?.checked,
+          maxFileMB: $('cfgMaxFileMB')?.value || 10,
+          observaciones: $('cfgObsDocs')?.value || ''
+        },
+        apariencia: {
+          tema: $('cfgTema')?.value || 'light',
+          acento: $('cfgAcento')?.value || 'azul',
+          compacta: !!$('cfgCompacta')?.checked
+        },
+        seguridad: {
+          confirmarEliminar: !!$('cfgConfirmarEliminar')?.checked
+        }
+      });
+    }
+
+    function saveConfigSettings(){
+      const next = collectConfigSettingsFromForm();
+      if (!Object.values(next.pagos.medios).some(Boolean)){
+        const msg = $('cfgMsg');
+        if (msg) msg.textContent = 'Habilitá al menos un medio de pago.';
+        return;
+      }
+      appSettings = next;
+      persistAppSettings();
+      applyAppSettings();
+      renderConfigPage();
+      if ($('cfgMsg')) $('cfgMsg').textContent = 'Configuración guardada ✅';
+    }
+
+    function resetConfigSettings(){
+      if (!askConfirm('¿Restablecer los ajustes a los valores iniciales?')) return;
+      appSettings = normalizeSettings(defaultSettings());
+      persistAppSettings();
+      applyAppSettings();
+      renderConfigPage();
+      if ($('cfgMsg')) $('cfgMsg').textContent = 'Se restablecieron los ajustes.';
+    }
+
+    function exportConfigSettings(){
+      const blob = new Blob([JSON.stringify(appSettings || loadAppSettings(), null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ajustes-gestion-alquileres.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    window.addEventListener('scroll', () => { if (currentRoute === 'config') updateConfigNavState(); }, { passive:true });
+
+    // ocultar splash ====
+    let splashDone = false;
+
+    function hideSplash() {
+    if (splashDone) return;
+   splashDone = true;
+
+   const el = document.getElementById("splash");
+    if (!el) return;
+
+  el.classList.add("hide");
+  // lo removemos del DOM después del fade
+  setTimeout(() => el.remove(), 450);
+}
+
+    async function init(){
+      loadNavState();
+      loadAppSettings();
+      loadReceiptNumberMap();
+      applyAppSettings();
+      updateTopSearchUI();
+      loadRememberedEmail();
+      if ($('email')) $('email').addEventListener('input', () => {
+        if ($('rememberMe')?.checked) persistRememberedEmail();
+      });
+      if ($('rememberMe')) $('rememberMe').addEventListener('change', persistRememberedEmail);
+      if ($('email')) $('email').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('pass')?.focus(); });
+      if ($('pass')) $('pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') login(); });
+      const { data } = await sb.auth.getSession();
+      user = data.session?.user || null;
+      toggle(!!user, user);
+      if (user){
+        setRoute('inicio');
+        await refreshAll();
+      }
+      sb.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          user = session?.user || null;
+          showPasswordRecoveryMode(true);
+          toggle(false, user);
+          return;
+        }
+        authRecoveryMode = false;
+        user = session?.user || null;
+        toggle(!!user, user);
+        if (user){
+          setRememberedEmail(user.email || ($('email')?.value || ''), true);
+          try{ localStorage.setItem(LOGIN_REMEMBER_KEY, user.email || ($('email')?.value || '')); } catch (e){}
+          setRoute('inicio');
+          await refreshAll();
+        }
+      });
+
+      setTimeout(hideSplash, 900);
+    }
+
+
+    if (window.matchMedia) {
+      const media = window.matchMedia('(prefers-color-scheme: dark)');
+      const onThemeChange = () => {
+        try{
+          const saved = localStorage.getItem(THEME_KEY);
+          if (!saved) {
+            applyTheme(media.matches ? 'dark' : 'light');
+          }
+        } catch (e){}
+      };
+      if (typeof media.addEventListener === 'function') media.addEventListener('change', onThemeChange);
+      else if (typeof media.addListener === 'function') media.addListener(onThemeChange);
+    }
+
+    init();
+  
+  </script>
+</body>
+</html>
