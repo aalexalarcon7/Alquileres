@@ -2094,50 +2094,40 @@
       </div>
       <div class="muted" id="modalMeta">—</div>
 
-      <div class="row" style="margin-top:12px; align-items:center; flex-wrap:wrap;">
-  <input id="mFecha" type="date" style="width:160px">
+      <div class="row" style="margin-top:12px; align-items:flex-end; flex-wrap:wrap;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-width:180px;">
+          <label class="muted" style="font-size:12px;">Fecha</label>
+          <input id="mFecha" type="date" style="width:160px">
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px; min-width:200px;">
+          <label class="muted" style="font-size:12px;">Alquiler</label>
+          <input id="mMontoAlquiler" placeholder="Monto alquiler" style="width:200px" oninput="syncPagoSplitTotal()">
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px; min-width:200px;">
+          <label class="muted" style="font-size:12px;">Impuesto</label>
+          <input id="mMontoImpuesto" placeholder="Monto impuesto" style="width:200px" oninput="syncPagoSplitTotal()">
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px; min-width:200px;">
+          <label class="muted" style="font-size:12px;">Total a cobrar</label>
+          <input id="mMonto" placeholder="Total" style="width:200px; font-weight:900;" readonly>
+        </div>
+      </div>
 
-  <input
-    id="mAlquiler"
-    placeholder="Alquiler (ej: 70.000,50)"
-    style="width:220px"
-    oninput="recalcularCobroModal()"
-  >
-
-  <input
-    id="mImpPct"
-    type="number"
-    min="0"
-    step="0.01"
-    placeholder="% impuesto"
-    style="width:140px"
-    oninput="recalcularCobroModal()"
-  >
-
-  <input
-    id="mImpMonto"
-    placeholder="Impuesto"
-    style="width:180px"
-    readonly
-  >
-
-  <input
-    id="mTotal"
-    placeholder="Total a cobrar"
-    style="width:200px"
-    readonly
-  >
-
-  <input id="mReferencia" placeholder="N° recibo" style="width:180px">
-
-  <select id="mMedio" style="width:160px">
-    <option>EFECTIVO</option>
-    <option>TRANSFERENCIA</option>
-    <option>MERCADOPAGO</option>
-  </select>
-
-  <button class="btn primary" onclick="registrarPagoModal()">Guardar</button>
-</div>
+      <div class="row" style="margin-top:10px; align-items:flex-end; flex-wrap:wrap;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-width:190px;">
+          <label class="muted" style="font-size:12px;">N° recibo</label>
+          <input id="mReferencia" placeholder="N° recibo" style="width:180px">
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px; min-width:170px;">
+          <label class="muted" style="font-size:12px;">Medio de pago</label>
+          <select id="mMedio" style="width:160px">
+            <option>EFECTIVO</option>
+            <option>TRANSFERENCIA</option>
+            <option>MERCADOPAGO</option>
+          </select>
+        </div>
+        <button class="btn primary" onclick="registrarPagoModal()">Guardar</button>
+      </div>
 
       <div class="muted" style="margin-top:8px;">Cobros divididos: cargá alquiler e impuesto por separado y el total se calcula automáticamente.</div>
 
