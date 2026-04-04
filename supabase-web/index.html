@@ -1805,10 +1805,24 @@
       width:100% !important;
       height:280px !important;
     }
+    .balance-kpis-centered .kpi,
+    .balance-kpis-centered .label,
+    .balance-kpis-centered .value,
+    .balance-kpis-centered .muted{
+      text-align:center;
+    }
+    .balance-table th,
+    .balance-table td,
+    .balance-table td.right,
+    .balance-table td.center{
+      text-align:center !important;
+      vertical-align:middle;
+    }
     .balance-table-note{
       margin-top:10px;
       font-size:12px;
       color:var(--muted);
+      text-align:center;
     }
     @media (max-width: 900px){
       .balance-grid{grid-template-columns:1fr;}
@@ -2772,7 +2786,7 @@ function globalSearch(){
       $('viewInicio').innerHTML = `
         <div class="card">
           <h2 style="margin:0;">Inicio</h2>
-          <div class="muted">Resumen general.</div>
+          <div class="muted">Resumen general .</div>
         </div>
 
         <div class="card">
@@ -4426,7 +4440,7 @@ function globalSearch(){
         </div>
 
         <div class="card">
-          <div class="kpis">
+          <div class="kpis balance-kpis-centered">
             <div class="kpi"><div class="label">Recaudación bruta del mes</div><div class="value" id="balKpiRecaudacion">${fmtARS.format(0)}</div><div class="muted">Todo lo cobrado en el mes</div></div>
             <div class="kpi"><div class="label">Gastos del mes</div><div class="value" id="balKpiGastos">${fmtARS.format(0)}</div><div class="muted">Egresos cargados en el mes</div></div>
             <div class="kpi"><div class="label">Ganancia del mes</div><div class="value" id="balKpiGanancia">${fmtARS.format(0)}</div><div class="muted">Recaudación - gastos</div></div>
@@ -4441,7 +4455,7 @@ function globalSearch(){
               <div class="muted">Estimación del cierre del mes actual según lo cargado hasta hoy.</div>
             </div>
           </div>
-          <div class="kpis" style="margin-top:12px;">
+          <div class="kpis balance-kpis-centered" style="margin-top:12px;">
             <div class="kpi"><div class="label">Proyección de recaudación</div><div class="value" id="balProjRecaudacion">${fmtARS.format(0)}</div></div>
             <div class="kpi"><div class="label">Proyección de gastos</div><div class="value" id="balProjGastos">${fmtARS.format(0)}</div></div>
             <div class="kpi"><div class="label">Proyección de ganancia</div><div class="value" id="balProjGanancia">${fmtARS.format(0)}</div></div>
@@ -4457,7 +4471,7 @@ function globalSearch(){
             </div>
           </div>
           <div class="tableWrap" style="margin-top:12px;">
-            <table style="min-width:1300px;">
+            <table class="balance-table" style="min-width:1300px;">
               <thead>
                 <tr>
                   <th>Mes</th>
