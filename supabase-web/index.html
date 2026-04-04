@@ -2094,17 +2094,42 @@
       </div>
       <div class="muted" id="modalMeta">—</div>
 
-      <div class="row" style="margin-top:12px; align-items:center; flex-wrap:wrap;">
-        <input id="mFecha" type="date" style="width:160px">
-        <input id="mMonto" placeholder="Monto (ej: 70.000,50)" style="width:220px">
-        <input id="mReferencia" placeholder="N° recibo" style="width:180px">
-        <select id="mMedio" style="width:160px">
-          <option>EFECTIVO</option>
-          <option>TRANSFERENCIA</option>
-          <option>MERCADOPAGO</option>
-        </select>
+      <div class="row" style="margin-top:12px; align-items:flex-end; flex-wrap:wrap;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-width:180px;">
+          <label class="muted" style="font-size:12px;">Fecha</label>
+          <input id="mFecha" type="date" style="width:160px">
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px; min-width:200px;">
+          <label class="muted" style="font-size:12px;">Alquiler</label>
+          <input id="mMontoAlquiler" placeholder="Monto alquiler" style="width:200px" oninput="syncPagoSplitTotal()">
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px; min-width:200px;">
+          <label class="muted" style="font-size:12px;">Impuesto</label>
+          <input id="mMontoImpuesto" placeholder="Monto impuesto" style="width:200px" oninput="syncPagoSplitTotal()">
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px; min-width:200px;">
+          <label class="muted" style="font-size:12px;">Total a cobrar</label>
+          <input id="mMonto" placeholder="Total" style="width:200px; font-weight:900;" readonly>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px; align-items:flex-end; flex-wrap:wrap;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-width:190px;">
+          <label class="muted" style="font-size:12px;">N° recibo</label>
+          <input id="mReferencia" placeholder="N° recibo" style="width:180px">
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px; min-width:170px;">
+          <label class="muted" style="font-size:12px;">Medio de pago</label>
+          <select id="mMedio" style="width:160px">
+            <option>EFECTIVO</option>
+            <option>TRANSFERENCIA</option>
+            <option>MERCADOPAGO</option>
+          </select>
+        </div>
         <button class="btn primary" onclick="registrarPagoModal()">Guardar</button>
       </div>
+
+      <div class="muted" style="margin-top:8px;">Cobros divididos: cargá alquiler e impuesto por separado y el total se calcula automáticamente.</div>
 
       
       <div class="row" style="margin-top:10px;">
@@ -3049,16 +3074,37 @@ function globalSearch(){
       await loadDetalleDocs();
     }
 
+    function parseMoneyToNumber(input){
+      const parsed = parseMoneyToDecimalString(input);
+      return parsed ? Number(parsed) : 0;
+    }
+
+    function formatMoneyInputValue(value){
+      const num = Number(value || 0);
+      if (!Number.isFinite(num) || num <= 0) return '';
+      return num.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function syncPagoSplitTotal(){
+      const alquiler = parseMoneyToNumber($('mMontoAlquiler')?.value || '');
+      const impuesto = parseMoneyToNumber($('mMontoImpuesto')?.value || '');
+      const total = alquiler + impuesto;
+      if ($('mMonto')) $('mMonto').value = formatMoneyInputValue(total);
+    }
+
     function openPagoModal(r){
       modalContrato = r;
       $('modalBack').style.display = 'flex';
       $('modalMeta').textContent = `${r.local_codigo} — ${r.inquilino_nombre} | Deuda: ${fmtARS.format(Number(r.deuda_total||0))}`;
       $('mFecha').value = today();
+      if ($('mMontoAlquiler')) $('mMontoAlquiler').value = '';
+      if ($('mMontoImpuesto')) $('mMontoImpuesto').value = '';
       $('mMonto').value = '';
       if ($('mReferencia')) $('mReferencia').value = nextReciboPreview();
       populatePaymentMethodSelect('mMedio');
       $('modalMsg').textContent = '';
       if ($('mRecibo')) $('mRecibo').value = '';
+      syncPagoSplitTotal();
     }
 
     function closePagoModal(){
@@ -3071,12 +3117,15 @@ function globalSearch(){
       if (!modalContrato) return;
       msgEl.textContent = 'Procesando...';
       try{
+        const montoAlquiler = parseMoneyToDecimalString($('mMontoAlquiler')?.value || '');
+        const montoImpuesto = parseMoneyToDecimalString($('mMontoImpuesto')?.value || '');
         const monto = parseMoneyToDecimalString($('mMonto').value);
         const fecha = $('mFecha').value;
         const medio = $('mMedio').value;
         const referencia = String($('mReferencia')?.value || '').trim();
         const reciboFile = $('mRecibo')?.files?.[0];
-        if (!monto){ msgEl.textContent = 'Monto inválido.'; return; }
+        if (!monto){ msgEl.textContent = 'Cargá alquiler y/o impuesto para calcular el total.'; return; }
+        if (!montoAlquiler && !montoImpuesto){ msgEl.textContent = 'Ingresá al menos uno de los dos importes.'; return; }
         if (appSettings?.documentos?.exigeAdjuntoRecibo && !reciboFile){ msgEl.textContent = 'Adjuntá el recibo antes de guardar.'; return; }
 
         const { data, error } = await sb.rpc('registrar_pago_y_aplicar', {
@@ -3128,7 +3177,7 @@ function globalSearch(){
             msgEl.textContent = `Pago OK, ${reciboNumero} generado, pero NO se pudo subir el archivo.` + extra;
           }
         } else {
-          msgEl.textContent = `Pago registrado ✅ | ${reciboNumero}`;
+          msgEl.textContent = `Pago registrado ✅ | ${reciboNumero} | Alquiler: ${fmtARS.format(Number(montoAlquiler || 0))} | Impuesto: ${fmtARS.format(Number(montoImpuesto || 0))}`;
         }
       } catch(e){
         console.error(e);
