@@ -2099,17 +2099,21 @@
           <label class="muted" style="font-size:12px;">Fecha</label>
           <input id="mFecha" type="date" style="width:160px">
         </div>
-        <div style="display:flex; flex-direction:column; gap:6px; min-width:200px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-width:220px;">
           <label class="muted" style="font-size:12px;">Alquiler</label>
-          <input id="mMontoAlquiler" placeholder="Monto alquiler" style="width:200px" oninput="syncPagoSplitTotal()">
+          <input id="mAlquiler" placeholder="Monto alquiler" style="width:220px" oninput="recalcularCobroModal()">
         </div>
-        <div style="display:flex; flex-direction:column; gap:6px; min-width:200px;">
+        <div style="display:flex; flex-direction:column; gap:6px; min-width:150px;">
+          <label class="muted" style="font-size:12px;">% impuesto</label>
+          <input id="mImpPct" type="number" min="0" step="0.01" placeholder="Ej: 10" style="width:140px" oninput="recalcularCobroModal()">
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px; min-width:180px;">
           <label class="muted" style="font-size:12px;">Impuesto</label>
-          <input id="mMontoImpuesto" placeholder="Monto impuesto" style="width:200px" oninput="syncPagoSplitTotal()">
+          <input id="mImpMonto" placeholder="Impuesto" style="width:180px; font-weight:800;" readonly>
         </div>
         <div style="display:flex; flex-direction:column; gap:6px; min-width:200px;">
           <label class="muted" style="font-size:12px;">Total a cobrar</label>
-          <input id="mMonto" placeholder="Total" style="width:200px; font-weight:900;" readonly>
+          <input id="mTotal" placeholder="Total" style="width:200px; font-weight:900;" readonly>
         </div>
       </div>
 
@@ -2129,7 +2133,7 @@
         <button class="btn primary" onclick="registrarPagoModal()">Guardar</button>
       </div>
 
-      <div class="muted" style="margin-top:8px;">Cobros divididos: cargá alquiler e impuesto por separado y el total se calcula automáticamente.</div>
+      <div class="muted" style="margin-top:8px;">Cobros divididos: cargá el alquiler, definí el porcentaje de impuesto y el sistema calcula automáticamente impuesto y total.</div>
 
       
       <div class="row" style="margin-top:10px;">
@@ -3085,11 +3089,26 @@ function globalSearch(){
       return num.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
-    function syncPagoSplitTotal(){
-      const alquiler = parseMoneyToNumber($('mMontoAlquiler')?.value || '');
-      const impuesto = parseMoneyToNumber($('mMontoImpuesto')?.value || '');
-      const total = alquiler + impuesto;
-      if ($('mMonto')) $('mMonto').value = formatMoneyInputValue(total);
+    function round2(n){
+      return Math.round((Number(n) || 0) * 100) / 100;
+    }
+
+    function parsePercentInput(value){
+      const s = String(value || '').trim().replace(',', '.');
+      const n = Number(s);
+      return Number.isFinite(n) && n >= 0 ? n : 0;
+    }
+
+    function recalcularCobroModal(){
+      const alquiler = parseMoneyToNumber($('mAlquiler')?.value || '');
+      const impPct = parsePercentInput($('mImpPct')?.value || 0);
+      const impuesto = round2(alquiler * impPct / 100);
+      const total = round2(alquiler + impuesto);
+
+      if ($('mImpMonto')) $('mImpMonto').value = formatMoneyInputValue(impuesto);
+      if ($('mTotal')) $('mTotal').value = formatMoneyInputValue(total);
+
+      return { alquiler, impPct, impuesto, total };
     }
 
     function openPagoModal(r){
@@ -3097,14 +3116,15 @@ function globalSearch(){
       $('modalBack').style.display = 'flex';
       $('modalMeta').textContent = `${r.local_codigo} — ${r.inquilino_nombre} | Deuda: ${fmtARS.format(Number(r.deuda_total||0))}`;
       $('mFecha').value = today();
-      if ($('mMontoAlquiler')) $('mMontoAlquiler').value = '';
-      if ($('mMontoImpuesto')) $('mMontoImpuesto').value = '';
-      $('mMonto').value = '';
+      if ($('mAlquiler')) $('mAlquiler').value = '';
+      if ($('mImpPct')) $('mImpPct').value = '';
+      if ($('mImpMonto')) $('mImpMonto').value = '';
+      if ($('mTotal')) $('mTotal').value = '';
       if ($('mReferencia')) $('mReferencia').value = nextReciboPreview();
       populatePaymentMethodSelect('mMedio');
       $('modalMsg').textContent = '';
       if ($('mRecibo')) $('mRecibo').value = '';
-      syncPagoSplitTotal();
+      recalcularCobroModal();
     }
 
     function closePagoModal(){
@@ -3116,24 +3136,53 @@ function globalSearch(){
       const msgEl = $('modalMsg');
       if (!modalContrato) return;
       msgEl.textContent = 'Procesando...';
+
       try{
-        const montoAlquiler = parseMoneyToDecimalString($('mMontoAlquiler')?.value || '');
-        const montoImpuesto = parseMoneyToDecimalString($('mMontoImpuesto')?.value || '');
-        const monto = parseMoneyToDecimalString($('mMonto').value);
         const fecha = $('mFecha').value;
         const medio = $('mMedio').value;
         const referencia = String($('mReferencia')?.value || '').trim();
         const reciboFile = $('mRecibo')?.files?.[0];
-        if (!monto){ msgEl.textContent = 'Cargá alquiler y/o impuesto para calcular el total.'; return; }
-        if (!montoAlquiler && !montoImpuesto){ msgEl.textContent = 'Ingresá al menos uno de los dos importes.'; return; }
-        if (appSettings?.documentos?.exigeAdjuntoRecibo && !reciboFile){ msgEl.textContent = 'Adjuntá el recibo antes de guardar.'; return; }
+
+        const alquilerStr = parseMoneyToDecimalString($('mAlquiler')?.value || '');
+        const impPct = parsePercentInput($('mImpPct')?.value || 0);
+
+        if (!alquilerStr){
+          msgEl.textContent = 'Monto de alquiler inválido.';
+          return;
+        }
+
+        if (impPct < 0){
+          msgEl.textContent = 'El porcentaje de impuesto no puede ser negativo.';
+          return;
+        }
+
+        const alquilerNum = Number(alquilerStr);
+        const impuestoNum = round2(alquilerNum * impPct / 100);
+        const totalNum = round2(alquilerNum + impuestoNum);
+
+        const montoAlquiler = alquilerNum.toFixed(2);
+        const montoImpuesto = impuestoNum.toFixed(2);
+        const montoTotal = totalNum.toFixed(2);
+
+        if (Number(montoTotal) <= 0){
+          msgEl.textContent = 'El total a cobrar debe ser mayor a 0.';
+          return;
+        }
+
+        if (appSettings?.documentos?.exigeAdjuntoRecibo && !reciboFile){
+          msgEl.textContent = 'Adjuntá el recibo antes de guardar.';
+          return;
+        }
 
         const { data, error } = await sb.rpc('registrar_pago_y_aplicar', {
           p_contrato_id: modalContrato.contrato_id,
           p_fecha_pago: fecha,
-          p_monto: monto,
+          p_monto: montoTotal,
           p_medio: medio,
-          p_referencia: referencia || null
+          p_referencia: referencia || null,
+          p_monto_alquiler: montoAlquiler,
+          p_monto_impuesto: montoImpuesto,
+          p_impuesto_porcentaje: impPct
         });
 
         if (error){
@@ -3143,11 +3192,12 @@ function globalSearch(){
         }
 
         const r = Array.isArray(data) ? data[0] : data;
+
         if (!r) {
-          msgEl.textContent = "Pago registrado, pero el servidor no devolvió detalle. Refrescando...";
+          msgEl.textContent = 'Pago registrado, pero el servidor no devolvió detalle. Refrescando...';
           await refreshAll();
           return;
-      }
+        }
 
         const reciboNumero = referencia || buildReciboNumero({
           id: r?.pago_id,
@@ -3155,29 +3205,29 @@ function globalSearch(){
           referencia: r?.referencia || null
         }, true);
 
-        // Refrescar deuda primero (para que veas el pago aunque falle el recibo)
         await refreshAll();
 
-        // Opcional: subir recibo adjunto
         if (reciboFile && r?.pago_id){
           msgEl.textContent = `Pago registrado. Subiendo adjunto del ${reciboNumero}...`;
+
           const ok = await uploadDocCore(
             { contratoId: modalContrato.contrato_id, tipo: 'RECIBO', file: reciboFile, pagoId: r.pago_id },
             null
           );
 
           if (ok){
-            msgEl.textContent = `Pago OK + ${reciboNumero} con archivo ✅`;
+            msgEl.textContent = `Pago OK | ${reciboNumero} | Alquiler: ${fmtARS.format(alquilerNum)} | Impuesto: ${fmtARS.format(impuestoNum)} (${impPct}%) | Total: ${fmtARS.format(totalNum)} ✅`;
             $('mRecibo').value = '';
+
             if (selected?.contrato_id === modalContrato.contrato_id){
               await loadDetalleDocs();
             }
           } else {
             const extra = window.__lastDocError ? ` (${window.__lastDocError})` : '';
-            msgEl.textContent = `Pago OK, ${reciboNumero} generado, pero NO se pudo subir el archivo.` + extra;
+            msgEl.textContent = `Pago OK | ${reciboNumero} | Total: ${fmtARS.format(totalNum)}, pero NO se pudo subir el archivo.` + extra;
           }
         } else {
-          msgEl.textContent = `Pago registrado ✅ | ${reciboNumero} | Alquiler: ${fmtARS.format(Number(montoAlquiler || 0))} | Impuesto: ${fmtARS.format(Number(montoImpuesto || 0))}`;
+          msgEl.textContent = `Pago registrado ✅ | ${reciboNumero} | Alquiler: ${fmtARS.format(alquilerNum)} | Impuesto: ${fmtARS.format(impuestoNum)} (${impPct}%) | Total: ${fmtARS.format(totalNum)}`;
         }
       } catch(e){
         console.error(e);
