@@ -2052,9 +2052,10 @@
       </div>
       <div class="muted" id="modalMeta">—</div>
 
-      <div class="row" style="margin-top:12px;">
+      <div class="row" style="margin-top:12px; align-items:center; flex-wrap:wrap;">
         <input id="mFecha" type="date" style="width:160px">
         <input id="mMonto" placeholder="Monto (ej: 70.000,50)" style="width:220px">
+        <input id="mReferencia" placeholder="N° recibo" style="width:180px">
         <select id="mMedio" style="width:160px">
           <option>EFECTIVO</option>
           <option>TRANSFERENCIA</option>
@@ -2763,7 +2764,12 @@ function globalSearch(){
                     <td>${r.inquilino_nombre}</td>
                     <td class="right">${fmtARS.format(Number(r.deuda_total||0))}</td>
                     <td class="right">${fmtARS.format(Number(r.deuda_atrasada||0))}</td>
-                    <td class="center"><button class="btn primary" onclick="openDetalleFromInicio('${r.contrato_id}')">Ver</button></td>
+                    <td class="center">
+                      <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+                        <button class="btn primary" onclick="openPagoFromInicio('${r.contrato_id}')">Cobrar</button>
+                        <button class="btn" onclick="openDetalleFromInicio('${r.contrato_id}')">Ver</button>
+                      </div>
+                    </td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -2788,7 +2794,8 @@ function globalSearch(){
                   </div>
                 </div>
                 <div class="mobile-actions">
-                  <button class="btn primary" onclick="openDetalleFromInicio('${r.contrato_id}')">Ver detalle</button>
+                  <button class="btn primary" onclick="openPagoFromInicio('${r.contrato_id}')">Cobrar</button>
+                  <button class="btn" onclick="openDetalleFromInicio('${r.contrato_id}')">Ver detalle</button>
                 </div>
               </article>
             `).join('')}
@@ -2800,6 +2807,12 @@ function globalSearch(){
 
     function openDetalleFromInicio(contratoId){
       openActiveDetailByContrato(contratoId);
+    }
+
+    function openPagoFromInicio(contratoId){
+      const unidad = unidades.find(x => String(x.contrato_id) === String(contratoId));
+      if (!unidad) return alert('No hay datos para este activo.');
+      openPagoModal(unidad);
     }
 
     function openInquilinoDetalleByContrato(contratoId){
@@ -2996,6 +3009,7 @@ function globalSearch(){
       $('modalMeta').textContent = `${r.local_codigo} — ${r.inquilino_nombre} | Deuda: ${fmtARS.format(Number(r.deuda_total||0))}`;
       $('mFecha').value = today();
       $('mMonto').value = '';
+      if ($('mReferencia')) $('mReferencia').value = nextReciboPreview();
       populatePaymentMethodSelect('mMedio');
       $('modalMsg').textContent = '';
       if ($('mRecibo')) $('mRecibo').value = '';
@@ -3014,6 +3028,7 @@ function globalSearch(){
         const monto = parseMoneyToDecimalString($('mMonto').value);
         const fecha = $('mFecha').value;
         const medio = $('mMedio').value;
+        const referencia = String($('mReferencia')?.value || '').trim();
         const reciboFile = $('mRecibo')?.files?.[0];
         if (!monto){ msgEl.textContent = 'Monto inválido.'; return; }
         if (appSettings?.documentos?.exigeAdjuntoRecibo && !reciboFile){ msgEl.textContent = 'Adjuntá el recibo antes de guardar.'; return; }
@@ -3023,7 +3038,7 @@ function globalSearch(){
           p_fecha_pago: fecha,
           p_monto: monto,
           p_medio: medio,
-          p_referencia: null
+          p_referencia: referencia || null
         });
 
         if (error){
@@ -3039,7 +3054,7 @@ function globalSearch(){
           return;
       }
 
-        const reciboNumero = buildReciboNumero({
+        const reciboNumero = referencia || buildReciboNumero({
           id: r?.pago_id,
           fecha_pago: fecha,
           referencia: r?.referencia || null
