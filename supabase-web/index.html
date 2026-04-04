@@ -1791,6 +1791,32 @@
     }
   </style>
 
+
+  <style id="balanceViewStyles">
+    .balance-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+    }
+    .balance-chart-card{
+      min-height:360px;
+    }
+    .balance-chart-card canvas{
+      width:100% !important;
+      height:280px !important;
+    }
+    .balance-table-note{
+      margin-top:10px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    @media (max-width: 900px){
+      .balance-grid{grid-template-columns:1fr;}
+      .balance-chart-card{min-height:auto;}
+      .balance-chart-card canvas{height:250px !important;}
+    }
+  </style>
+
 </head>
 <body>
 <!-- SPLASH -->
@@ -1822,6 +1848,7 @@
         <button class="sb-item" data-route="activos" onclick="setRoute('activos')"><span class="sb-item-icon">🏢</span><span class="sb-item-label">Activos</span></button>
         <button class="sb-item" data-route="documentos" onclick="setRoute('documentos')"><span class="sb-item-icon">📎</span><span class="sb-item-label">Documentos</span></button>
         <button class="sb-item" data-route="informes" onclick="setRoute('informes')"><span class="sb-item-icon">📊</span><span class="sb-item-label">Informes</span></button>
+        <button class="sb-item" data-route="balance" onclick="setRoute('balance')"><span class="sb-item-icon">💰</span><span class="sb-item-label">Balance</span></button>
         <button class="sb-item" data-route="config" onclick="setRoute('config')"><span class="sb-item-icon">⚙️</span><span class="sb-item-label">Configuración</span></button>
       </nav>
 
@@ -2038,6 +2065,7 @@
 
         <section id="viewDocumentos" style="display:none;"></section>
         <section id="viewInformes" style="display:none;"></section>
+        <section id="viewBalance" style="display:none;"></section>
         <section id="viewConfig" style="display:none;"></section>
       </section>
     </main>
@@ -2130,6 +2158,7 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // ===== CONFIG  =====
@@ -2502,7 +2531,8 @@
         inicio: 'Buscar unidad, código o inquilino...',
         activos: 'Buscar unidad, código o inquilino...',
         documentos: 'Buscar contrato, recibo o archivo...',
-        informes: 'Buscar información...',
+        informes: 'Buscar gastos, persona o categoría...',
+        balance: 'Buscar en balance...',
         config: 'Ajustes del sistema'
       };
       input.placeholder = placeholders[route] || 'Buscar...';
@@ -2516,6 +2546,7 @@
         activos:'viewActivos',
         documentos:'viewDocumentos',
         informes:'viewInformes',
+        balance:'viewBalance',
         config:'viewConfig'
       };
       Object.values(map).forEach(id => $(id).style.display = 'none');
@@ -2528,6 +2559,7 @@
 
       if (r === 'documentos') renderDocumentosPage();
       if (r === 'informes') renderInformesPage();
+      if (r === 'balance') renderBalancePage();
       if (r === 'config') renderConfigPage();
     }
 
@@ -3662,6 +3694,7 @@ function globalSearch(){
     let gastosCache = [];
     let gastoEditId = null;
     let informesLoadError = '';
+    let balanceCharts = [];
 
     function legacyGastosRows(){
       try{
@@ -4147,6 +4180,354 @@ function globalSearch(){
       if (msg) msg.textContent = 'Datos locales importados a Supabase ✅';
       await refreshInformesData({ keepSuccessMsg:true });
     }
+
+    const BALANCE_MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+    function safePercent(numerator, denominator){
+      const num = Number(numerator || 0);
+      const den = Number(denominator || 0);
+      if (!Number.isFinite(num) || !Number.isFinite(den) || den <= 0) return 0;
+      return (num / den) * 100;
+    }
+
+    function startOfYearISO(year){
+      return `${year}-01-01`;
+    }
+
+    function nextYearStartISO(year){
+      return `${year + 1}-01-01`;
+    }
+
+    function monthIndexFromDate(value){
+      if (!value) return -1;
+      const iso = String(value).slice(0, 10);
+      const d = new Date(`${iso}T00:00:00`);
+      return Number.isFinite(d.getTime()) ? d.getMonth() : -1;
+    }
+
+    function daysInMonth(year, monthIndex){
+      return new Date(year, monthIndex + 1, 0).getDate();
+    }
+
+    function destroyBalanceCharts(){
+      balanceCharts.forEach(ch => {
+        try { ch.destroy(); } catch (e){}
+      });
+      balanceCharts = [];
+    }
+
+    async function fetchBalanceData(year){
+      const from = startOfYearISO(year);
+      const to = nextYearStartISO(year);
+
+      const pagosPromise = sb
+        .from('pagos')
+        .select('id, contrato_id, fecha_pago, monto, medio, referencia, created_at')
+        .gte('fecha_pago', from)
+        .lt('fecha_pago', to);
+
+      const gastosPromise = sb
+        .from('gastos')
+        .select('id, numero, fecha, categoria, concepto, beneficiario, medio, monto, observaciones, created_at')
+        .gte('fecha', from)
+        .lt('fecha', to);
+
+      const [{ data: pagosData, error: pagosError }, { data: gastosData, error: gastosError }] = await Promise.all([pagosPromise, gastosPromise]);
+
+      return {
+        pagos: pagosData || [],
+        gastos: gastosData || [],
+        pagosError,
+        gastosError
+      };
+    }
+
+    function buildBalanceYearSummary(year, pagos, gastos){
+      const recaudacion = Array(12).fill(0);
+      const gastosMes = Array(12).fill(0);
+
+      (pagos || []).forEach(item => {
+        const idx = monthIndexFromDate(item.fecha_pago || item.created_at);
+        if (idx >= 0) recaudacion[idx] += Number(item.monto || 0);
+      });
+
+      (gastos || []).forEach(item => {
+        const idx = monthIndexFromDate(item.fecha || item.created_at);
+        if (idx >= 0) gastosMes[idx] += Number(item.monto || 0);
+      });
+
+      const ganancia = recaudacion.map((value, idx) => value - gastosMes[idx]);
+      const saldo = [];
+      let acumulado = 0;
+      ganancia.forEach(value => {
+        acumulado += value;
+        saldo.push(acumulado);
+      });
+
+      const gastosSobreFact = recaudacion.map((value, idx) => safePercent(gastosMes[idx], value));
+      const utilidadSobreFact = recaudacion.map((value, idx) => safePercent(ganancia[idx], value));
+      const recaudacionSobreSaldo = recaudacion.map((value, idx) => safePercent(value, saldo[idx]));
+
+      const now = new Date();
+      const currentMonthIndex = now.getFullYear() === year ? now.getMonth() : 11;
+      const currentMonthDays = now.getFullYear() === year ? now.getDate() : daysInMonth(year, currentMonthIndex);
+      const monthTotalDays = daysInMonth(year, currentMonthIndex);
+
+      const recMesActual = recaudacion[currentMonthIndex] || 0;
+      const gastosActual = gastosMes[currentMonthIndex] || 0;
+      const gananciaActual = ganancia[currentMonthIndex] || 0;
+      const saldoActual = saldo[currentMonthIndex] || 0;
+
+      const proyFactor = currentMonthDays > 0 ? (monthTotalDays / currentMonthDays) : 0;
+      const proyeccion = now.getFullYear() === year ? {
+        recaudacion: recMesActual * proyFactor,
+        gastos: gastosActual * proyFactor,
+        ganancia: gananciaActual * proyFactor
+      } : {
+        recaudacion: recMesActual,
+        gastos: gastosActual,
+        ganancia: gananciaActual
+      };
+
+      const rows = BALANCE_MONTHS.map((mes, idx) => ({
+        mes,
+        recaudacion: recaudacion[idx],
+        gastos: gastosMes[idx],
+        ganancia: ganancia[idx],
+        saldo: saldo[idx],
+        gastosSobreFact: gastosSobreFact[idx],
+        utilidadSobreFact: utilidadSobreFact[idx],
+        recaudacionSobreSaldo: recaudacionSobreSaldo[idx]
+      }));
+
+      return {
+        rows,
+        summary: {
+          recMesActual,
+          gastosActual,
+          gananciaActual,
+          saldoActual,
+          proyeccion,
+          totalAnualRecaudado: recaudacion.reduce((a,b)=>a+b,0),
+          totalAnualGastos: gastosMes.reduce((a,b)=>a+b,0),
+          totalAnualGanancia: ganancia.reduce((a,b)=>a+b,0)
+        }
+      };
+    }
+
+    function buildBalanceTableRows(rows){
+      return rows.map(row => `
+        <tr>
+          <td><b>${row.mes}</b></td>
+          <td class="right">${fmtARS.format(row.recaudacion)}</td>
+          <td class="right">${fmtARS.format(row.gastos)}</td>
+          <td class="right">${fmtARS.format(row.ganancia)}</td>
+          <td class="right">${fmtARS.format(row.saldo)}</td>
+          <td class="right">${row.gastosSobreFact.toFixed(2)}%</td>
+          <td class="right">${row.utilidadSobreFact.toFixed(2)}%</td>
+          <td class="right">${row.recaudacionSobreSaldo.toFixed(2)}%</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderBalanceCharts(rows){
+      if (typeof Chart === 'undefined') return;
+
+      destroyBalanceCharts();
+
+      const labels = rows.map(r => r.mes);
+      const mk = (id, config) => {
+        const canvas = $(id);
+        if (!canvas) return;
+        const chart = new Chart(canvas.getContext('2d'), config);
+        balanceCharts.push(chart);
+      };
+
+      mk('balChartGastosMes', {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{ label: 'Gastos', data: rows.map(r => Number(r.gastos.toFixed(2))), borderWidth: 1 }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } }
+        }
+      });
+
+      mk('balChartGastosFact', {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{ label: 'Gastos / Facturación %', data: rows.map(r => Number(r.gastosSobreFact.toFixed(2))), tension: .28, fill: false, borderWidth: 2 }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } }
+        }
+      });
+
+      mk('balChartUtilidadFact', {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{ label: 'Utilidad / Facturación %', data: rows.map(r => Number(r.utilidadSobreFact.toFixed(2))), tension: .28, fill: false, borderWidth: 2 }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } }
+        }
+      });
+
+      mk('balChartRecaSaldo', {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Recaudación', data: rows.map(r => Number(r.recaudacion.toFixed(2))), borderWidth: 1 },
+            { label: 'Saldo', data: rows.map(r => Number(r.saldo.toFixed(2))), borderWidth: 1 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      });
+    }
+
+    async function renderBalancePage(){
+      const el = $('viewBalance');
+      if (!el) return;
+
+      const currentYear = new Date().getFullYear();
+      const selectedYear = Number($('balanceYear')?.value || currentYear);
+      const yearOptions = [currentYear - 1, currentYear, currentYear + 1]
+        .map(year => `<option value="${year}">${year}</option>`)
+        .join('');
+
+      el.innerHTML = `
+        <div class="card">
+          <div class="row" style="justify-content:space-between;align-items:end;">
+            <div>
+              <h2 style="margin:0;">Balance</h2>
+              <div class="muted">Seguimiento completo del flujo de dinero: recaudación, gastos, ganancia, saldo y proyecciones.</div>
+            </div>
+            <div class="row">
+              <select id="balanceYear" style="width:140px">
+                ${yearOptions}
+              </select>
+              <button class="btn" onclick="renderBalancePage()">Actualizar</button>
+            </div>
+          </div>
+          <div class="toast" id="balanceMsg" style="margin-top:12px;"></div>
+        </div>
+
+        <div class="card">
+          <div class="kpis">
+            <div class="kpi"><div class="label">Recaudación bruta del mes</div><div class="value" id="balKpiRecaudacion">${fmtARS.format(0)}</div><div class="muted">Todo lo cobrado en el mes</div></div>
+            <div class="kpi"><div class="label">Gastos del mes</div><div class="value" id="balKpiGastos">${fmtARS.format(0)}</div><div class="muted">Egresos cargados en el mes</div></div>
+            <div class="kpi"><div class="label">Ganancia del mes</div><div class="value" id="balKpiGanancia">${fmtARS.format(0)}</div><div class="muted">Recaudación - gastos</div></div>
+            <div class="kpi"><div class="label">Saldo acumulado</div><div class="value" id="balKpiSaldo">${fmtARS.format(0)}</div><div class="muted">Acumulado hasta el mes actual</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="row" style="justify-content:space-between;align-items:end;">
+            <div>
+              <h3 style="margin:0;">Proyección mensual</h3>
+              <div class="muted">Estimación del cierre del mes actual según lo cargado hasta hoy.</div>
+            </div>
+          </div>
+          <div class="kpis" style="margin-top:12px;">
+            <div class="kpi"><div class="label">Proyección de recaudación</div><div class="value" id="balProjRecaudacion">${fmtARS.format(0)}</div></div>
+            <div class="kpi"><div class="label">Proyección de gastos</div><div class="value" id="balProjGastos">${fmtARS.format(0)}</div></div>
+            <div class="kpi"><div class="label">Proyección de ganancia</div><div class="value" id="balProjGanancia">${fmtARS.format(0)}</div></div>
+            <div class="kpi"><div class="label">Totales anuales</div><div class="value" id="balAnnualResult">${fmtARS.format(0)}</div><div class="muted" id="balAnnualSub">Sin datos</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="row" style="justify-content:space-between;align-items:end;">
+            <div>
+              <h3 style="margin:0;">Detalle mensual</h3>
+              <div class="muted">Suma mensual de cobros, gastos, ganancia, saldo y porcentajes de control.</div>
+            </div>
+          </div>
+          <div class="tableWrap" style="margin-top:12px;">
+            <table style="min-width:1300px;">
+              <thead>
+                <tr>
+                  <th>Mes</th>
+                  <th class="right">Recaudación</th>
+                  <th class="right">Gastos</th>
+                  <th class="right">Ganancia</th>
+                  <th class="right">Saldo</th>
+                  <th class="right">Gastos / Fact. %</th>
+                  <th class="right">Utilidad / Fact. %</th>
+                  <th class="right">Recaudación / Saldo %</th>
+                </tr>
+              </thead>
+              <tbody id="balanceBody"></tbody>
+            </table>
+          </div>
+          <div class="balance-table-note">Cuando no hay facturación o saldo, los porcentajes se muestran en 0% para evitar errores de división.</div>
+        </div>
+
+        <div class="balance-grid">
+          <div class="card balance-chart-card">
+            <h3 style="margin-top:0;">Gastos mes a mes</h3>
+            <canvas id="balChartGastosMes"></canvas>
+          </div>
+          <div class="card balance-chart-card">
+            <h3 style="margin-top:0;">Gastos sobre facturación</h3>
+            <canvas id="balChartGastosFact"></canvas>
+          </div>
+          <div class="card balance-chart-card">
+            <h3 style="margin-top:0;">Utilidad sobre facturación</h3>
+            <canvas id="balChartUtilidadFact"></canvas>
+          </div>
+          <div class="card balance-chart-card">
+            <h3 style="margin-top:0;">Recaudación sobre saldo</h3>
+            <canvas id="balChartRecaSaldo"></canvas>
+          </div>
+        </div>
+      `;
+
+      const yearInput = $('balanceYear');
+      if (yearInput && !yearInput.dataset.bound){
+        yearInput.addEventListener('change', () => renderBalancePage());
+        yearInput.dataset.bound = '1';
+      }
+      if (yearInput) yearInput.value = String(selectedYear);
+
+      const year = Number(yearInput?.value || currentYear);
+      const { pagos, gastos, pagosError, gastosError } = await fetchBalanceData(year);
+      const { rows, summary } = buildBalanceYearSummary(year, pagos, gastos);
+
+      if ($('balKpiRecaudacion')) $('balKpiRecaudacion').textContent = fmtARS.format(summary.recMesActual);
+      if ($('balKpiGastos')) $('balKpiGastos').textContent = fmtARS.format(summary.gastosActual);
+      if ($('balKpiGanancia')) $('balKpiGanancia').textContent = fmtARS.format(summary.gananciaActual);
+      if ($('balKpiSaldo')) $('balKpiSaldo').textContent = fmtARS.format(summary.saldoActual);
+
+      if ($('balProjRecaudacion')) $('balProjRecaudacion').textContent = fmtARS.format(summary.proyeccion.recaudacion);
+      if ($('balProjGastos')) $('balProjGastos').textContent = fmtARS.format(summary.proyeccion.gastos);
+      if ($('balProjGanancia')) $('balProjGanancia').textContent = fmtARS.format(summary.proyeccion.ganancia);
+      if ($('balAnnualResult')) $('balAnnualResult').textContent = fmtARS.format(summary.totalAnualGanancia);
+      if ($('balAnnualSub')) $('balAnnualSub').textContent = `Recaudado ${fmtARS.format(summary.totalAnualRecaudado)} · Gastos ${fmtARS.format(summary.totalAnualGastos)}`;
+
+      if ($('balanceBody')) $('balanceBody').innerHTML = buildBalanceTableRows(rows);
+
+      const messages = [];
+      if (pagosError) messages.push(`Pagos: ${pagosError.message}`);
+      if (gastosError) messages.push(`Gastos: ${gastosError.message}`);
+      if ($('balanceMsg')) $('balanceMsg').textContent = messages.join(' | ');
+
+      renderBalanceCharts(rows);
+    }
+
 
     async function fetchDocumentosRows(contratoId){
       let q = sb.from('documentos').select('*').order('created_at', { ascending:false });
@@ -4840,7 +5221,7 @@ function globalSearch(){
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
-    window.addEventListener('scroll', () => { if (currentRoute === 'config') updateConfigNavState(); }, { passive:true });
+    window.addEventListener('scroll', () => { if (route === 'config') updateConfigNavState(); }, { passive:true });
 
     // splash: mostrar solo la primera vez por pestaña/sesión ====
     const SPLASH_SESSION_KEY = 'saladita_splash_seen';
