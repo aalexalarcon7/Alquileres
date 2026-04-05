@@ -1963,6 +1963,7 @@
               <select id="filtro" onchange="renderUnidades()">
                 <option value="TODOS">Todos</option>
                 <option value="ATRASADOS">Atrasados</option>
+                <option value="VENCE_PRONTO">Vence pronto</option>
                 <option value="AL_DIA">Al día</option>
               </select>
               <button class="btn" onclick="clearFilters()">Limpiar</button>
@@ -2220,6 +2221,8 @@
     let unidades = [];      // v_deuda_por_contrato
     let selected = null;    // fila seleccionada
     let modalContrato = null;
+    let proximoVencimientoMap = {};
+    const VENCE_PRONTO_DIAS = 7;
 
     const THEME_KEY = 'ga_theme';
     const SETTINGS_KEY = 'ga_settings_v1';
@@ -2546,6 +2549,29 @@
     function monthStartISO(d=new Date()){ return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0,10); }
     function nextMonthStartISO(d=new Date()){ return new Date(d.getFullYear(), d.getMonth()+1, 1).toISOString().slice(0,10); }
 
+    function daysBetweenISO(fromIso, toIso){
+      if (!fromIso || !toIso) return null;
+      const from = new Date(String(fromIso).slice(0,10) + "T00:00:00");
+      const to = new Date(String(toIso).slice(0,10) + "T00:00:00");
+      return Math.floor((to.getTime() - from.getTime()) / 86400000);
+    }
+
+    function getContratoStatus(row){
+      const deudaAtrasada = Number(row?.deuda_atrasada || 0);
+      const deudaTotal = Number(row?.deuda_total || 0);
+      if (deudaAtrasada > 0) return { key:'ATRASADO', label:'ATRASADO', className:'b-bad' };
+      if (deudaTotal <= 0) return { key:'AL_DIA', label:'AL DÍA', className:'b-ok' };
+
+      const prox = proximoVencimientoMap[String(row?.contrato_id || '')] || null;
+      const dias = prox ? daysBetweenISO(today(), prox) : null;
+
+      if (dias !== null && dias >= 0 && dias <= VENCE_PRONTO_DIAS) {
+        return { key:'VENCE_PRONTO', label:'VENCE PRONTO', className:'b-warn' };
+      }
+
+      return { key:'AL_DIA', label:'AL DÍA', className:'b-ok' };
+    }
+
     function parseMoneyToDecimalString(input) {
       if (!input) return null;
       let s = String(input).trim().replace(/[^\d,.\-]/g, "");
@@ -2753,9 +2779,9 @@ function globalSearch(){
       renderUnidades();
     }
 
-    function badgeEstado(row){      if (Number(row.deuda_atrasada||0) > 0) return `<span class="badge b-bad">ATRASADO</span>`;
-      if (Number(row.deuda_total||0) > 0) return `<span class="badge b-warn">DEBE</span>`;
-      return `<span class="badge b-ok">AL DÍA</span>`;
+    function badgeEstado(row){
+      const status = getContratoStatus(row);
+      return `<span class="badge ${status.className}">${status.label}</span>`;
     }
 
     function clearFilters(){
@@ -2774,6 +2800,25 @@ function globalSearch(){
       const { data, error } = await sb.from('v_deuda_por_contrato').select('*').order('deuda_total', { ascending:false });
       if (error){ $('unitsMsg').textContent = error.message; return; }
       unidades = (data || []).filter(r => !isSinAsignarName(r.inquilino_nombre));
+
+      proximoVencimientoMap = {};
+      const { data: vencimientosData, error: vencimientosError } = await sb
+        .from('v_cobranzas')
+        .select('contrato_id, vencimiento, saldo')
+        .gt('saldo', 0)
+        .order('vencimiento', { ascending:true });
+
+      if (!vencimientosError){
+        for (const item of (vencimientosData || [])){
+          const key = String(item.contrato_id || '');
+          const venc = String(item.vencimiento || '').slice(0,10);
+          if (!key || !venc) continue;
+          if (!proximoVencimientoMap[key] || venc < proximoVencimientoMap[key]) {
+            proximoVencimientoMap[key] = venc;
+          }
+        }
+      }
+
       renderUnidades();
       await renderInicio();
       await refreshContratosActivos();
@@ -2925,8 +2970,9 @@ function globalSearch(){
         );
       }
 
-      if (filtro === 'ATRASADOS') rows = rows.filter(r => Number(r.deuda_atrasada||0) > 0);
-      else if (filtro === 'AL_DIA') rows = rows.filter(r => Number(r.deuda_total||0) <= 0);
+      if (filtro === 'ATRASADOS') rows = rows.filter(r => getContratoStatus(r).key === 'ATRASADO');
+      else if (filtro === 'VENCE_PRONTO') rows = rows.filter(r => getContratoStatus(r).key === 'VENCE_PRONTO');
+      else if (filtro === 'AL_DIA') rows = rows.filter(r => getContratoStatus(r).key === 'AL_DIA');
 
       $('unitsCount').textContent = `${rows.length} resultados`;
 
@@ -2976,7 +3022,7 @@ function globalSearch(){
               </div>
               <div class="mobile-meta">
                 <div class="label">Estado</div>
-                <div class="value">${Number(r.deuda_atrasada||0) > 0 ? 'Atrasado' : 'Al día'}</div>
+                <div class="value">${getContratoStatus(r).label}</div>
               </div>
             </div>
             <div class="mobile-actions">
@@ -3011,7 +3057,7 @@ function globalSearch(){
         .filter(Boolean)
         .sort()[0] || '—';
       const saldoPendiente = pendientes.reduce((acc, x) => acc + Number(x.saldo || 0), 0);
-      const estado = Number(r.deuda_atrasada || 0) > 0 ? 'Atrasado' : (Number(r.deuda_total || 0) > 0 ? 'Con saldo' : 'Al día');
+      const estado = getContratoStatus(r).label;
 
       const items = [
         { label:'Código', value:r.local_codigo || '—' },
@@ -3373,6 +3419,7 @@ function globalSearch(){
           contratos_activos: 0,
           deuda_total: 0,
           deuda_atrasada: 0,
+          vence_pronto: 0,
           contratos: [],
         };
 
@@ -3380,10 +3427,12 @@ function globalSearch(){
         const deuda_total = Number(d?.deuda_total || 0);
         const deuda_atrasada = Number(d?.deuda_atrasada || 0);
         const meses_adeudados = Number(d?.meses_adeudados || 0);
+        const contratoStatus = getContratoStatus(d || { contrato_id: c.id, deuda_total, deuda_atrasada });
 
         row.contratos_activos += 1;
         row.deuda_total += deuda_total;
         row.deuda_atrasada += deuda_atrasada;
+        if (contratoStatus.key === 'VENCE_PRONTO') row.vence_pronto += 1;
 
         row.contratos.push({
           contrato_id: c.id,
@@ -3405,8 +3454,9 @@ function globalSearch(){
       inqCache = list;
     }
 
-    function inqBadge(inq){      if (inq.deuda_atrasada > 0) return `<span class="badge b-bad">ATRASADO</span>`;
-      if (inq.deuda_total > 0) return `<span class="badge b-warn">DEBE</span>`;
+    function inqBadge(inq){
+      if (inq.deuda_atrasada > 0) return `<span class="badge b-bad">ATRASADO</span>`;
+      if (Number(inq.vence_pronto || 0) > 0) return `<span class="badge b-warn">VENCE PRONTO</span>`;
       return `<span class="badge b-ok">AL DÍA</span>`;
     }
 
