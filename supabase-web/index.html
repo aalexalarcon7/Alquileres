@@ -4087,6 +4087,7 @@ function globalSearch(){
 
         await refreshAll();
 
+        let adjuntoEstado = '';
         if (reciboFile && r?.pago_id){
           msgEl.textContent = `Pago registrado. Subiendo adjunto del ${reciboNumero}...`;
 
@@ -4096,7 +4097,7 @@ function globalSearch(){
           );
 
           if (ok){
-            msgEl.textContent = `Pago OK | ${reciboNumero} | Alquiler: ${fmtARS.format(alquilerNum)} | Impuesto: ${fmtARS.format(impuestoNum)} (${impPct}%) | Total: ${fmtARS.format(totalNum)} ✅`;
+            adjuntoEstado = ' | Adjunto manual guardado';
             $('mRecibo').value = '';
 
             if (selected?.contrato_id === modalContrato.contrato_id){
@@ -4104,11 +4105,34 @@ function globalSearch(){
             }
           } else {
             const extra = window.__lastDocError ? ` (${window.__lastDocError})` : '';
-            msgEl.textContent = `Pago OK | ${reciboNumero} | Total: ${fmtARS.format(totalNum)}, pero NO se pudo subir el archivo.` + extra;
+            adjuntoEstado = ` | No se pudo subir el adjunto manual${extra}`;
           }
-        } else {
-          msgEl.textContent = `Pago registrado ✅ | ${reciboNumero} | Alquiler: ${fmtARS.format(alquilerNum)} | Impuesto: ${fmtARS.format(impuestoNum)} (${impPct}%) | Total: ${fmtARS.format(totalNum)}`;
         }
+
+        const internalReciboItem = {
+          id: r?.pago_id,
+          contrato_id: modalContrato.contrato_id,
+          fecha_pago: fecha,
+          medio,
+          referencia: referencia || reciboNumero,
+          created_at: new Date().toISOString(),
+          monto_alquiler: alquilerNum,
+          monto_impuesto: impuestoNum,
+          impuesto_porcentaje: impPct,
+          monto_total: totalNum,
+          monto: totalNum,
+          numero_recibo: reciboNumero,
+          inquilino_nombre: modalContrato.inquilino_nombre || '—',
+          telefono: modalContrato.telefono || '',
+          email: modalContrato.email || '',
+          documento: modalContrato.documento || '',
+          local_codigo: modalContrato.local_codigo || '—'
+        };
+
+        const archiveResult = await ensureInternalReciboArchived(internalReciboItem, { silent:true });
+        const archiveNote = archiveResult?.ok ? ' | Recibo archivado en Documentos' : ' | No se pudo archivar el recibo interno';
+
+        msgEl.textContent = `Pago registrado ✅ | ${reciboNumero} | Alquiler: ${fmtARS.format(alquilerNum)} | Impuesto: ${fmtARS.format(impuestoNum)} (${impPct}%) | Total: ${fmtARS.format(totalNum)}${archiveNote}${adjuntoEstado}`;
       } catch(e){
         console.error(e);
         msgEl.textContent = 'Error inesperado: ' + String(e?.message || e);
@@ -4643,7 +4667,7 @@ function globalSearch(){
             <div class="row" style="justify-content:space-between;align-items:end;">
               <div>
                 <h3 style="margin:0;">Carga rápida</h3>
-                <div class="muted">Subí contratos, recibos escaneados u otros archivos al contrato seleccionado sin salir del módulo.</div>
+                <div class="muted">Subí contratos, recibos escaneados u otros archivos al contrato seleccionado. Los recibos internos también se archivan automáticamente acá.</div>
               </div>
             </div>
 
@@ -4805,6 +4829,81 @@ function globalSearch(){
 
     function buildReciboPdfFileName(item){
       return `${sanitizeDownloadFileName(item?.numero_recibo || 'recibo')}.pdf`;
+    }
+
+    const INTERNAL_RECIBO_FILENAME_PREFIX = 'recibo_interno_';
+
+    function buildInternalReciboFileName(item){
+      const numero = sanitizeDownloadFileName(item?.numero_recibo || buildReciboNumero(item, true), 'recibo');
+      return `${INTERNAL_RECIBO_FILENAME_PREFIX}${numero}.pdf`;
+    }
+
+    function isInternalReciboDoc(doc){
+      return String(doc?.nombre_archivo || '').toLowerCase().startsWith(INTERNAL_RECIBO_FILENAME_PREFIX);
+    }
+
+    async function ensureInternalReciboArchived(item, options = {}){
+      if (!item?.id || !item?.contrato_id) {
+        return { ok:false, skipped:true, reason:'missing_payment_or_contract' };
+      }
+
+      try {
+        const existingRes = await sb
+          .from('documentos')
+          .select('id, nombre_archivo, path, pago_id, created_at')
+          .eq('tipo', 'RECIBO')
+          .eq('pago_id', item.id)
+          .order('created_at', { ascending:false });
+
+        if (!existingRes.error) {
+          const existingInternal = (existingRes.data || []).find(isInternalReciboDoc);
+          if (existingInternal) {
+            return { ok:true, skipped:true, existing:existingInternal };
+          }
+        }
+
+        const pdfPayload = await buildReciboPdfPayload({
+          ...item,
+          numero_recibo: item.numero_recibo || buildReciboNumero(item, true)
+        });
+
+        const internalName = buildInternalReciboFileName(item);
+        const uploadFile = new File([pdfPayload.blob], internalName, { type:'application/pdf' });
+        const storagePath = `contratos/${item.contrato_id}/recibos-internos/${Date.now()}_${safeFileName(internalName)}`;
+
+        const up = await sb.storage.from('documentos').upload(storagePath, uploadFile, {
+          upsert: false,
+          contentType: 'application/pdf'
+        });
+
+        if (up.error) throw up.error;
+
+        const payload = {
+          contrato_id: item.contrato_id,
+          tipo: 'RECIBO',
+          nombre_archivo: internalName,
+          path: storagePath,
+          mime_type: 'application/pdf',
+          size_bytes: uploadFile.size,
+          pago_id: item.id
+        };
+
+        let ins = await sb.from('documentos').insert(payload).select('id, nombre_archivo, path, pago_id').single();
+        if (ins.error && String(ins.error.message || '').toLowerCase().includes('pago_id')) {
+          delete payload.pago_id;
+          ins = await sb.from('documentos').insert(payload).select('id, nombre_archivo, path').single();
+        }
+
+        if (ins.error) {
+          await sb.storage.from('documentos').remove([storagePath]);
+          throw ins.error;
+        }
+
+        return { ok:true, skipped:false, doc:ins.data || null };
+      } catch (error) {
+        if (!options?.silent) console.warn('No se pudo archivar el recibo interno:', error);
+        return { ok:false, skipped:false, error };
+      }
     }
 
     async function buildReciboPdfBlob(item){
@@ -5474,7 +5573,7 @@ function globalSearch(){
       $('reciboModalMsg').textContent = '';
     }
 
-    function openReciboModal(id){
+    async function openReciboModal(id){
       const item = getReciboById(id);
       if (!item){
         alert('No se encontró el recibo.');
@@ -5485,6 +5584,7 @@ function globalSearch(){
       $('reciboModalMeta').textContent = `${item.numero_recibo} · ${item.inquilino_nombre} · ${item.local_codigo}`;
       $('reciboPreviewBody').innerHTML = buildReceiptPrintHtml(item);
       $('reciboModalMsg').textContent = '';
+      ensureInternalReciboArchived(item, { silent:true }).catch(() => {});
     }
 
     function printReciboActual(){
@@ -5540,13 +5640,14 @@ function globalSearch(){
         .catch(() => { $('reciboModalMsg').textContent = 'No se pudo copiar el texto.'; });
     }
 
-    function shareReciboByWhatsappText(id){
+    async function shareReciboByWhatsappText(id){
       const item = getReciboById(id);
       if (!item) return;
       if (!String(item.telefono || '').trim()){
         alert('Este locatario no tiene teléfono cargado.');
         return;
       }
+      await ensureInternalReciboArchived(item, { silent:true });
       const text = buildReceiptShareText(item);
       const link = buildWhatsappLink(item.telefono, text);
       if (!link){
@@ -5554,7 +5655,7 @@ function globalSearch(){
         return;
       }
       window.open(link, '_blank', 'noopener');
-      if ($('reciboModalMsg')) $('reciboModalMsg').textContent = 'Abrí WhatsApp directo con el texto del recibo.';
+      if ($('reciboModalMsg')) $('reciboModalMsg').textContent = 'Abrí WhatsApp directo con el texto del recibo. El PDF interno quedó archivado en Documentos.';
     }
 
     async function shareReciboByEmail(id){
@@ -5566,6 +5667,7 @@ function globalSearch(){
         return;
       }
 
+      await ensureInternalReciboArchived(item, { silent:true });
       const subject = buildEmailSubject(item);
       const body = buildEmailBody(item);
       const gmailLink = buildGmailComposeLink(email, subject, body);
@@ -5574,7 +5676,7 @@ function globalSearch(){
       try {
         const shared = await tryNativeShareReciboPdf(item, { title: subject, text: body });
         if (shared){
-          $('reciboModalMsg').textContent = 'Se abrió el menú compartir para enviar el PDF por email.';
+          $('reciboModalMsg').textContent = 'Se abrió el menú compartir para enviar el PDF por email. También quedó archivado en Documentos.';
           return;
         }
 
@@ -5583,12 +5685,12 @@ function globalSearch(){
         if (!popup) {
           window.location.href = mailtoLink;
         }
-        $('reciboModalMsg').textContent = 'Te abrí el correo y descargué el PDF para adjuntarlo.';
+        $('reciboModalMsg').textContent = 'Te abrí el correo, descargué el PDF y además quedó archivado en Documentos.';
       } catch (error) {
         console.error(error);
         const popup = window.open(gmailLink, '_blank', 'noopener');
         if (!popup) window.location.href = mailtoLink;
-        $('reciboModalMsg').textContent = 'No pude preparar el PDF automático, pero abrí el correo para que lo envíes manualmente.';
+        $('reciboModalMsg').textContent = 'No pude preparar el PDF automático, pero abrí el correo y el recibo quedó archivado en Documentos.';
       }
     }
 
@@ -5599,6 +5701,7 @@ function globalSearch(){
         alert('Este locatario no tiene teléfono cargado.');
         return;
       }
+      await ensureInternalReciboArchived(item, { silent:true });
       const link = buildWhatsappLink(item.telefono, '');
       if (!link){
         alert('No se pudo armar el enlace de WhatsApp.');
@@ -5611,18 +5714,18 @@ function globalSearch(){
           text: ''
         });
         if (shared){
-          $('reciboModalMsg').textContent = 'Se abrió el menú compartir para enviar solo el PDF por WhatsApp.';
+          $('reciboModalMsg').textContent = 'Se abrió el menú compartir para enviar solo el PDF por WhatsApp. También quedó archivado en Documentos.';
           return;
         }
 
         await downloadReciboPdf(item);
         window.open(link, '_blank', 'noopener');
-        $('reciboModalMsg').textContent = 'Te descargué el PDF y abrí WhatsApp para adjuntarlo manualmente, sin mensaje extra.';
+        $('reciboModalMsg').textContent = 'Te descargué el PDF, abrí WhatsApp para adjuntarlo manualmente y el recibo quedó archivado en Documentos.';
       } catch (error) {
         console.error(error);
         await downloadReciboPdf(item).catch(() => {});
         window.open(link, '_blank', 'noopener');
-        $('reciboModalMsg').textContent = 'Abrí WhatsApp y descargué el PDF para que lo adjuntes manualmente.';
+        $('reciboModalMsg').textContent = 'Abrí WhatsApp y descargué el PDF para que lo adjuntes manualmente. También quedó archivado en Documentos.';
       }
     }
 
@@ -6533,14 +6636,17 @@ function globalSearch(){
         }
       }
 
-      const reciboDocByPagoId = new Map();
+      const receiptDocsByPayment = new Map();
       const looseReceiptDocs = [];
       const contractDocs = [];
       const otherDocs = [];
 
       for (const d of docs){
         if (d.tipo === 'RECIBO' && d.pago_id){
-          reciboDocByPagoId.set(String(d.pago_id), d);
+          const key = String(d.pago_id);
+          const arr = receiptDocsByPayment.get(key) || [];
+          arr.push(d);
+          receiptDocsByPayment.set(key, arr);
         } else if (d.tipo === 'RECIBO'){
           looseReceiptDocs.push(d);
         } else if (d.tipo === 'CONTRATO'){
@@ -6553,21 +6659,43 @@ function globalSearch(){
       const rows = [];
 
       for (const p of pagos){
-        const attached = reciboDocByPagoId.get(String(p.id));
+        const relatedDocs = [...(receiptDocsByPayment.get(String(p.id)) || [])]
+          .sort((a,b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
+        const primaryDoc = relatedDocs.find(isInternalReciboDoc) || relatedDocs[0] || null;
+        const secondaryDocs = relatedDocs.filter(d => d !== primaryDoc);
+
         rows.push({
           rowType: 'RECIBO',
           badgeClass: 'b-ok',
           numero: buildReciboNumero(p),
           contrato_id: p.contrato_id || null,
-          detalle: attached?.nombre_archivo || 'Pago registrado',
+          detalle: primaryDoc?.nombre_archivo || 'Pago registrado',
           fecha: p.fecha_pago || p.created_at || null,
           fecha_hora: p.created_at || p.fecha_pago || null,
-          monto: Number(p.monto || 0),
+          monto: Number(p.monto || p.monto_total || 0),
           medio: p.medio || '—',
           referencia: p.referencia || null,
-          downloadUrl: attached ? (signedUrlByDocId.get(attached.id) || null) : null,
-          docId: attached?.id || null,
-          docPath: attached?.path || null
+          downloadUrl: primaryDoc ? (signedUrlByDocId.get(primaryDoc.id) || null) : null,
+          docId: primaryDoc?.id || null,
+          docPath: primaryDoc?.path || null
+        });
+
+        secondaryDocs.forEach((d, idx) => {
+          rows.push({
+            rowType: 'RECIBO',
+            badgeClass: 'b-ok',
+            numero: `${buildReciboNumero(p)} · ADJ ${idx + 1}`,
+            contrato_id: d.contrato_id || p.contrato_id || null,
+            detalle: d.nombre_archivo,
+            fecha: d.created_at,
+            fecha_hora: d.created_at,
+            monto: null,
+            medio: '—',
+            referencia: isInternalReciboDoc(d) ? 'PDF interno archivado' : 'Adjunto adicional',
+            downloadUrl: signedUrlByDocId.get(d.id) || null,
+            docId: d.id,
+            docPath: d.path || null
+          });
         });
       }
 
@@ -6600,7 +6728,7 @@ function globalSearch(){
           fecha_hora: d.created_at,
           monto: null,
           medio: '—',
-          referencia: 'Adjunto manual',
+          referencia: isInternalReciboDoc(d) ? 'PDF interno archivado' : 'Adjunto manual',
           downloadUrl: signedUrlByDocId.get(d.id) || null,
           docId: d.id,
           docPath: d.path || null
