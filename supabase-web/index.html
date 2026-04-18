@@ -4329,7 +4329,7 @@ function globalSearch(){
         if (error?.name === 'AbortError') return true;
         return false;
       }
-    }
+      
 
     async function downloadReciboPdf(item){
       const payload = await buildReciboPdfPayload(item);
@@ -4821,7 +4821,6 @@ function globalSearch(){
         window.open(link, '_blank', 'noopener');
         $('reciboModalMsg').textContent = 'Abrí WhatsApp con el texto del recibo. Si querés adjuntar el PDF, usá el botón Imprimir / Guardar PDF.';
       }
-    }
 
     function openReciboEmail(){
       if (!reciboActual) return;
