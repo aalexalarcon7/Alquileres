@@ -1831,6 +1831,199 @@
     }
   </style>
 
+
+  <style id="recibosInternosStyles">
+    .recibos-grid{
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:14px;
+    }
+    .recibos-history-head{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-end;
+      flex-wrap:wrap;
+    }
+    .recibos-summary-row{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+      margin-top:12px;
+    }
+    .recibos-kpi{text-align:center}
+    .recibos-kpi .value{font-size:24px;font-weight:900}
+    .recibos-kpi .label{font-size:12px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+    .recibo-mini-card{
+      padding:16px;
+      border:1px solid var(--border);
+      border-radius:20px;
+      background:var(--panel-bg);
+    }
+    .recibo-contact-lines{
+      display:grid;
+      gap:10px;
+      margin-top:12px;
+    }
+    .recibo-contact-item{
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:12px 14px;
+      background:var(--surface-soft);
+    }
+    .recibo-contact-item .label{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:var(--muted);
+      font-weight:800;
+      margin-bottom:6px;
+    }
+    .recibo-contact-item .value{
+      font-size:14px;
+      font-weight:800;
+      word-break:break-word;
+    }
+    .recibo-preview{
+      width:min(760px,100%);
+      max-height:92dvh;
+      overflow:auto;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      padding:20px;
+    }
+    .recibo-sheet{
+      border:1px solid var(--border);
+      border-radius:24px;
+      background:linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.88));
+      color:#0f172a;
+      padding:24px;
+    }
+    [data-theme="dark"] .recibo-sheet{
+      background:linear-gradient(180deg, #ffffff, #f8fafc);
+      color:#0f172a;
+    }
+    .recibo-sheet *{color:inherit}
+    .recibo-sheet-head{
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      align-items:flex-start;
+      margin-bottom:18px;
+    }
+    .recibo-sheet-logo{
+      width:56px;
+      height:56px;
+      border-radius:18px;
+      display:grid;
+      place-items:center;
+      font-weight:900;
+      color:#fff;
+      background:#0f172a;
+      flex:0 0 56px;
+    }
+    .recibo-sheet-title{font-size:28px;font-weight:950;letter-spacing:-.03em;margin:0}
+    .recibo-sheet-sub{margin-top:6px;font-size:13px;color:#475569}
+    .recibo-sheet-badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .recibo-sheet-badge{
+      border:1px solid rgba(15,23,42,.12);
+      border-radius:999px;
+      padding:6px 12px;
+      font-size:12px;
+      font-weight:900;
+      background:#f8fafc;
+    }
+    .recibo-sheet-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+      margin-bottom:16px;
+    }
+    .recibo-sheet-box{
+      border:1px solid rgba(15,23,42,.10);
+      border-radius:18px;
+      padding:14px 16px;
+      background:#f8fafc;
+      min-height:94px;
+    }
+    .recibo-sheet-box .label{
+      font-size:11px;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:#64748b;
+      margin-bottom:8px;
+    }
+    .recibo-sheet-box .value{
+      font-size:16px;
+      font-weight:900;
+      line-height:1.3;
+    }
+    .recibo-amount-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:12px;
+      margin-bottom:16px;
+    }
+    .recibo-amount-card{
+      border:1px solid rgba(15,23,42,.10);
+      border-radius:18px;
+      padding:16px;
+      background:#f8fafc;
+      text-align:center;
+    }
+    .recibo-amount-card .label{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:#64748b;
+      font-weight:900;
+      margin-bottom:8px;
+    }
+    .recibo-amount-card .value{
+      font-size:22px;
+      font-weight:950;
+      letter-spacing:-.03em;
+    }
+    .recibo-amount-card.total{
+      background:#0f172a;
+      border-color:#0f172a;
+      color:#fff;
+    }
+    .recibo-amount-card.total .label{color:#cbd5e1}
+    .recibo-note{
+      border:1px dashed rgba(15,23,42,.18);
+      border-radius:18px;
+      padding:14px 16px;
+      background:#fff;
+      font-size:13px;
+      line-height:1.55;
+      color:#475569;
+    }
+    .recibo-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:14px;
+      justify-content:flex-end;
+    }
+    .recibos-table td .contact-sub{
+      display:block;
+      margin-top:4px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:600;
+    }
+    @media (max-width: 1100px){
+      .recibos-grid,
+      .recibo-sheet-grid,
+      .recibo-amount-grid,
+      .recibos-summary-row{grid-template-columns:1fr}
+    }
+  </style>
+
 </head>
 <body>
 <!-- SPLASH -->
@@ -1861,6 +2054,7 @@
         <button class="sb-item active" data-route="inicio" onclick="setRoute('inicio')"><span class="sb-item-icon">🏠</span><span class="sb-item-label">Inicio</span></button>
         <button class="sb-item" data-route="activos" onclick="setRoute('activos')"><span class="sb-item-icon">🏢</span><span class="sb-item-label">Activos</span></button>
         <button class="sb-item" data-route="documentos" onclick="setRoute('documentos')"><span class="sb-item-icon">📎</span><span class="sb-item-label">Documentos</span></button>
+        <button class="sb-item" data-route="recibos" onclick="setRoute('recibos')"><span class="sb-item-icon">🧾</span><span class="sb-item-label">Recibos</span></button>
         <button class="sb-item" data-route="informes" onclick="setRoute('informes')"><span class="sb-item-icon">📊</span><span class="sb-item-label">Informes</span></button>
         <button class="sb-item" data-route="balance" onclick="setRoute('balance')"><span class="sb-item-icon">💰</span><span class="sb-item-label">Balance</span></button>
         <button class="sb-item" data-route="config" onclick="setRoute('config')"><span class="sb-item-icon">⚙️</span><span class="sb-item-label">Configuración</span></button>
@@ -2079,6 +2273,7 @@
 
 
         <section id="viewDocumentos" style="display:none;"></section>
+        <section id="viewRecibos" style="display:none;"></section>
         <section id="viewInformes" style="display:none;"></section>
         <section id="viewBalance" style="display:none;"></section>
         <section id="viewConfig" style="display:none;"></section>
@@ -2203,6 +2398,29 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- MODAL RECIBO INTERNO -->
+  <div class="modalBack" id="modalReciboBack">
+    <div class="recibo-preview">
+      <div class="row" style="justify-content:space-between;align-items:flex-start;gap:12px;">
+        <div>
+          <h3 style="margin:0;">Recibo interno</h3>
+          <div class="muted" id="reciboModalMeta">Vista previa del recibo generado.</div>
+        </div>
+        <button class="btn" onclick="closeReciboModal()">Cerrar</button>
+      </div>
+      <div id="reciboPreviewBody" style="margin-top:14px;"></div>
+      <div class="recibo-actions">
+        <button class="btn" onclick="copyReciboShareText()">Copiar texto</button>
+        <button class="btn" onclick="openReciboEmail()">Email</button>
+        <button class="btn" onclick="openReciboWhatsapp()">WhatsApp</button>
+        <button class="btn primary" onclick="printReciboActual()">Imprimir / Guardar PDF</button>
+      </div>
+      <div class="toast" id="reciboModalMsg"></div>
+    </div>
+  </div>
+
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // ===== CONFIG  =====
@@ -2221,6 +2439,8 @@
     let unidades = [];      // v_deuda_por_contrato
     let selected = null;    // fila seleccionada
     let modalContrato = null;
+    let recibosInternosCache = [];
+    let reciboActual = null;
     let proximoVencimientoMap = {};
     const VENCE_PRONTO_DIAS = 7;
 
@@ -2600,6 +2820,7 @@
         inicio: 'Buscar unidad, código o inquilino...',
         activos: 'Buscar unidad, código o inquilino...',
         documentos: 'Buscar contrato, recibo o archivo...',
+        recibos: 'Buscar recibo, locatario o local...',
         informes: 'Buscar gastos, persona o categoría...',
         balance: 'Buscar en balance...',
         config: 'Ajustes del sistema'
@@ -2614,6 +2835,7 @@
         inicio:'viewInicio',
         activos:'viewActivos',
         documentos:'viewDocumentos',
+        recibos:'viewRecibos',
         informes:'viewInformes',
         balance:'viewBalance',
         config:'viewConfig'
@@ -2627,6 +2849,7 @@
       closeSidebarIfMobile();
 
       if (r === 'documentos') renderDocumentosPage();
+      if (r === 'recibos') renderRecibosPage();
       if (r === 'informes') renderInformesPage();
       if (r === 'balance') renderBalancePage();
       if (r === 'config') renderConfigPage();
@@ -2770,6 +2993,11 @@ function globalSearch(){
 
       if (route === 'activos'){
         renderUnidades();
+        return;
+      }
+
+      if (route === 'recibos'){
+        renderRecibosPage();
         return;
       }
 
@@ -3841,6 +4069,434 @@ function globalSearch(){
       const rawId = String(pago?.id || pago?.pago_id || '').replace(/-/g,'').toUpperCase();
       const suffix = rawId ? rawId.slice(-6) : 'SN';
       return `${prefix}-${datePart}-${suffix}`;
+    }
+
+
+    function buildWhatsappLink(phone, text){
+      const digits = String(phone || '').replace(/\D/g, '');
+      if (!digits) return '';
+      const normalized = digits.startsWith('54') ? digits : `54${digits}`;
+      return `https://wa.me/${normalized}?text=${encodeURIComponent(text || '')}`;
+    }
+
+    function buildReceiptShareText(item){
+      if (!item) return '';
+      const negocio = appSettings?.negocio?.nombre || 'Gestión de Alquileres';
+      const lines = [
+        `${negocio}`,
+        `Recibo interno: ${item.numero_recibo || '—'}`,
+        `Locatario: ${item.inquilino_nombre || '—'}`,
+        `Unidad: ${item.local_codigo || '—'}`,
+        `Fecha: ${formatDateDisplay(item.fecha_pago || item.created_at)}`,
+        `Alquiler: ${fmtARS.format(Number(item.monto_alquiler || 0))}`,
+        `Impuesto: ${fmtARS.format(Number(item.monto_impuesto || 0))}${item.impuesto_porcentaje != null ? ` (${Number(item.impuesto_porcentaje || 0).toFixed(2)}%)` : ''}`,
+        `Total: ${fmtARS.format(Number(item.monto_total || item.monto || 0))}`,
+        `Medio de pago: ${item.medio || '—'}`,
+        item.referencia ? `N° recibo / referencia: ${item.referencia}` : null
+      ].filter(Boolean);
+      return lines.join('\n');
+    }
+
+    function buildReceiptPrintHtml(item){
+      const negocio = escapeHtml(appSettings?.negocio?.nombre || 'Gestión de Alquileres');
+      const initials = escapeHtml((appSettings?.negocio?.nombre || 'GA').split(/\s+/).map(part => part[0] || '').join('').slice(0,2).toUpperCase() || 'GA');
+      const email = escapeHtml(appSettings?.negocio?.email || '—');
+      const telefono = escapeHtml(appSettings?.negocio?.telefono || '—');
+      const direccion = escapeHtml(appSettings?.negocio?.direccion || '—');
+      const cuit = escapeHtml(appSettings?.negocio?.cuit || '—');
+      const numero = escapeHtml(item.numero_recibo || '—');
+      const locatario = escapeHtml(item.inquilino_nombre || '—');
+      const documento = escapeHtml(item.documento || '—');
+      const tel = escapeHtml(item.telefono || '—');
+      const mail = escapeHtml(item.email || '—');
+      const local = escapeHtml(item.local_codigo || '—');
+      const fecha = escapeHtml(formatDateDisplay(item.fecha_pago || item.created_at));
+      const medio = escapeHtml(item.medio || '—');
+      const referencia = escapeHtml(item.referencia || '—');
+      const impuestoPct = Number(item.impuesto_porcentaje || 0);
+      const alquiler = fmtARS.format(Number(item.monto_alquiler || 0));
+      const impuesto = fmtARS.format(Number(item.monto_impuesto || 0));
+      const total = fmtARS.format(Number(item.monto_total || item.monto || 0));
+      return `
+        <div class="recibo-sheet" id="reciboSheetPrintable">
+          <div class="recibo-sheet-head">
+            <div style="display:flex;gap:14px;align-items:flex-start;">
+              <div class="recibo-sheet-logo">${initials}</div>
+              <div>
+                <h2 class="recibo-sheet-title">Recibo interno</h2>
+                <div class="recibo-sheet-sub">${negocio}</div>
+                <div class="recibo-sheet-sub">${direccion} · ${telefono} · ${email}</div>
+                <div class="recibo-sheet-sub">CUIT / identificación: ${cuit}</div>
+              </div>
+            </div>
+            <div class="recibo-sheet-badges">
+              <span class="recibo-sheet-badge">N° ${numero}</span>
+              <span class="recibo-sheet-badge">${fecha}</span>
+            </div>
+          </div>
+
+          <div class="recibo-sheet-grid">
+            <div class="recibo-sheet-box">
+              <div class="label">Locatario</div>
+              <div class="value">${locatario}</div>
+              <div class="recibo-sheet-sub">${documento}</div>
+              <div class="recibo-sheet-sub">${tel} · ${mail}</div>
+            </div>
+            <div class="recibo-sheet-box">
+              <div class="label">Unidad / local</div>
+              <div class="value">${local}</div>
+              <div class="recibo-sheet-sub">Medio de pago: ${medio}</div>
+              <div class="recibo-sheet-sub">Referencia: ${referencia}</div>
+            </div>
+          </div>
+
+          <div class="recibo-amount-grid">
+            <div class="recibo-amount-card">
+              <div class="label">Alquiler</div>
+              <div class="value">${alquiler}</div>
+            </div>
+            <div class="recibo-amount-card">
+              <div class="label">Impuesto</div>
+              <div class="value">${impuesto}</div>
+              <div class="recibo-sheet-sub">${impuestoPct.toFixed(2)}%</div>
+            </div>
+            <div class="recibo-amount-card total">
+              <div class="label">Total recibido</div>
+              <div class="value">${total}</div>
+            </div>
+          </div>
+
+          <div class="recibo-note">
+            Este recibo interno deja constancia del cobro registrado en el sistema. Puede enviarse por email o WhatsApp como copia administrativa al locatario.
+          </div>
+        </div>
+      `;
+    }
+
+    async function fetchRecibosInternosData(){
+      const query = ($('globalSearch')?.value || '').trim().toLowerCase();
+      let pagos = [];
+      let pagosError = null;
+
+      const tries = [
+        () => sb.from('v_pagos_detallados').select('id, contrato_id, fecha_pago, medio, referencia, created_at, monto_alquiler, monto_impuesto, monto_total, impuesto_porcentaje').order('fecha_pago', { ascending:false }),
+        () => sb.from('pagos').select('id, contrato_id, fecha_pago, medio, referencia, created_at, monto, monto_alquiler, monto_impuesto, impuesto_porcentaje').order('fecha_pago', { ascending:false }),
+        () => sb.from('pagos').select('id, contrato_id, fecha_pago, medio, referencia, created_at, monto').order('fecha_pago', { ascending:false })
+      ];
+
+      for (const getQuery of tries){
+        const { data, error } = await getQuery();
+        if (!error){
+          pagos = data || [];
+          pagosError = null;
+          break;
+        }
+        pagosError = error;
+      }
+
+      const contratoIds = [...new Set((pagos || []).map(x => String(x.contrato_id || '')).filter(Boolean))];
+      let contratosMeta = [];
+      let contratosError = null;
+      if (contratoIds.length){
+        const { data, error } = await sb
+          .from('contratos')
+          .select('id, locales(codigo), inquilinos(nombre,telefono,email,documento)')
+          .in('id', contratoIds);
+        contratosMeta = data || [];
+        contratosError = error;
+      }
+
+      const metaMap = new Map((contratosMeta || []).map(item => [String(item.id), item]));
+      const rows = (pagos || []).map(item => {
+        const meta = metaMap.get(String(item.contrato_id || '')) || {};
+        const inq = meta.inquilinos || {};
+        const local = meta.locales || {};
+        const montoTotal = Number(item.monto_total ?? item.monto ?? ((Number(item.monto_alquiler || 0) + Number(item.monto_impuesto || 0))));
+        return {
+          ...item,
+          monto_total: montoTotal,
+          monto_alquiler: Number(item.monto_alquiler || (item.monto && !item.monto_impuesto ? item.monto : 0) || 0),
+          monto_impuesto: Number(item.monto_impuesto || 0),
+          impuesto_porcentaje: Number(item.impuesto_porcentaje || 0),
+          numero_recibo: buildReciboNumero(item, true),
+          inquilino_nombre: inq.nombre || '—',
+          telefono: inq.telefono || '',
+          email: inq.email || '',
+          documento: inq.documento || '',
+          local_codigo: local.codigo || '—'
+        };
+      }).filter(item => {
+        if (!query) return true;
+        return [
+          item.numero_recibo,
+          item.inquilino_nombre,
+          item.local_codigo,
+          item.telefono,
+          item.email,
+          item.referencia
+        ].some(value => String(value || '').toLowerCase().includes(query));
+      });
+
+      rows.sort((a,b) => String(b.fecha_pago || b.created_at || '').localeCompare(String(a.fecha_pago || a.created_at || '')));
+
+      return { rows, pagosError, contratosError };
+    }
+
+    function renderRecibosKPIs(rows){
+      const total = rows.length;
+      const totalMonto = rows.reduce((acc, item) => acc + Number(item.monto_total || 0), 0);
+      const monthKey = today().slice(0,7);
+      const delMes = rows.filter(item => String(item.fecha_pago || item.created_at || '').slice(0,7) === monthKey);
+      const ultimo = rows[0];
+      return {
+        total,
+        totalMonto,
+        delMesCantidad: delMes.length,
+        delMesMonto: delMes.reduce((acc, item) => acc + Number(item.monto_total || 0), 0),
+        ultimoNumero: ultimo?.numero_recibo || '—'
+      };
+    }
+
+    async function renderRecibosPage(){
+      const el = $('viewRecibos');
+      if (!el) return;
+
+      const { rows, pagosError, contratosError } = await fetchRecibosInternosData();
+      recibosInternosCache = rows;
+
+      const summary = renderRecibosKPIs(rows);
+      const ultimo = rows[0];
+
+      el.innerHTML = `
+        <div class="card">
+          <div class="recibos-history-head">
+            <div>
+              <h2 style="margin:0;">Recibos internos</h2>
+              <div class="muted">Cada cobro registrado genera un recibo interno con historial, datos del locatario y opciones rápidas para compartirlo.</div>
+            </div>
+            <div class="row">
+              <button class="btn" onclick="renderRecibosPage()">Actualizar</button>
+            </div>
+          </div>
+
+          <div class="recibos-summary-row">
+            <div class="kpi recibos-kpi">
+              <div class="label">Recibos generados</div>
+              <div class="value">${summary.total}</div>
+              <div class="muted">Historial completo</div>
+            </div>
+            <div class="kpi recibos-kpi">
+              <div class="label">Monto histórico</div>
+              <div class="value">${fmtARS.format(summary.totalMonto)}</div>
+              <div class="muted">Suma de todos los recibos</div>
+            </div>
+            <div class="kpi recibos-kpi">
+              <div class="label">Recibos del mes</div>
+              <div class="value">${summary.delMesCantidad}</div>
+              <div class="muted">${fmtARS.format(summary.delMesMonto)}</div>
+            </div>
+            <div class="kpi recibos-kpi">
+              <div class="label">Último número</div>
+              <div class="value">${summary.ultimoNumero}</div>
+              <div class="muted">${ultimo ? `${ultimo.inquilino_nombre} · ${ultimo.local_codigo}` : 'Sin movimientos'}</div>
+            </div>
+          </div>
+          <div class="toast" id="recibosMsg" style="margin-top:12px;">${[pagosError?.message, contratosError?.message].filter(Boolean).join(' | ')}</div>
+        </div>
+
+        <div class="recibos-grid">
+          <div class="card">
+            <div class="row" style="justify-content:space-between;align-items:end;">
+              <div>
+                <h3 style="margin:0;">Historial</h3>
+                <div class="muted">Buscá por número de recibo, nombre del locatario, local o contacto.</div>
+              </div>
+              <span class="badge b-info">${rows.length} registros</span>
+            </div>
+            <div class="tableWrap recibos-table" style="margin-top:12px;">
+              <table style="min-width:1400px;">
+                <thead>
+                  <tr>
+                    <th>N° recibo</th>
+                    <th>Fecha</th>
+                    <th>Locatario</th>
+                    <th>Local</th>
+                    <th class="right">Alquiler</th>
+                    <th class="right">Impuesto</th>
+                    <th class="right">Total</th>
+                    <th>Contacto</th>
+                    <th class="center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="recibosBody">
+                  ${rows.map(item => `
+                    <tr>
+                      <td><b>${escapeHtml(item.numero_recibo)}</b><span class="contact-sub">${escapeHtml(item.referencia || 'Sin referencia')}</span></td>
+                      <td>${formatDateDisplay(item.fecha_pago || item.created_at)}</td>
+                      <td>${escapeHtml(item.inquilino_nombre)}<span class="contact-sub">${escapeHtml(item.documento || 'Sin documento')}</span></td>
+                      <td>${escapeHtml(item.local_codigo)}</td>
+                      <td class="right">${fmtARS.format(Number(item.monto_alquiler || 0))}</td>
+                      <td class="right">${fmtARS.format(Number(item.monto_impuesto || 0))}<span class="contact-sub">${Number(item.impuesto_porcentaje || 0).toFixed(2)}%</span></td>
+                      <td class="right"><b>${fmtARS.format(Number(item.monto_total || 0))}</b></td>
+                      <td>${escapeHtml(item.telefono || '—')}<span class="contact-sub">${escapeHtml(item.email || 'Sin email')}</span></td>
+                      <td class="center">
+                        <button class="linkBtn" onclick="openReciboModal('${item.id}')">Generar</button>&nbsp;|&nbsp;
+                        <button class="linkBtn" onclick="shareReciboByEmail('${item.id}')">Email</button>&nbsp;|&nbsp;
+                        <button class="linkBtn" onclick="shareReciboByWhatsapp('${item.id}')">WhatsApp</button>
+                      </td>
+                    </tr>
+                  `).join('') || `<tr><td colspan="9" class="center">Todavía no hay cobros para generar recibos.</td></tr>`}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="row" style="justify-content:space-between;align-items:end;">
+              <div>
+                <h3 style="margin:0;">Vista rápida del locatario</h3>
+                <div class="muted">Ideal para enviar la copia del recibo por mail o WhatsApp sin salir del sistema.</div>
+              </div>
+            </div>
+            ${ultimo ? `
+              <div class="recibo-mini-card" style="margin-top:12px;">
+                <div class="badge b-ok">${escapeHtml(ultimo.numero_recibo)}</div>
+                <h3 style="margin:12px 0 6px;">${escapeHtml(ultimo.inquilino_nombre)}</h3>
+                <div class="muted">Local ${escapeHtml(ultimo.local_codigo)} · Total ${fmtARS.format(Number(ultimo.monto_total || 0))}</div>
+                <div class="recibo-contact-lines">
+                  <div class="recibo-contact-item">
+                    <div class="label">Teléfono</div>
+                    <div class="value">${escapeHtml(ultimo.telefono || 'No cargado')}</div>
+                  </div>
+                  <div class="recibo-contact-item">
+                    <div class="label">Email</div>
+                    <div class="value">${escapeHtml(ultimo.email || 'No cargado')}</div>
+                  </div>
+                  <div class="recibo-contact-item">
+                    <div class="label">Último recibo</div>
+                    <div class="value">${escapeHtml(ultimo.numero_recibo)} · ${formatDateDisplay(ultimo.fecha_pago || ultimo.created_at)}</div>
+                  </div>
+                </div>
+                <div class="row" style="margin-top:12px;">
+                  <button class="btn" onclick="shareReciboByEmail('${ultimo.id}')">Enviar por email</button>
+                  <button class="btn" onclick="shareReciboByWhatsapp('${ultimo.id}')">Enviar por WhatsApp</button>
+                  <button class="btn primary" onclick="openReciboModal('${ultimo.id}')">Abrir recibo</button>
+                </div>
+              </div>
+            ` : `<div class="toast" style="margin-top:12px;">Apenas registres un cobro, vas a ver el recibo interno acá.</div>`}
+          </div>
+        </div>
+      `;
+    }
+
+    function getReciboById(id){
+      return recibosInternosCache.find(item => String(item.id) === String(id)) || null;
+    }
+
+    function closeReciboModal(){
+      $('modalReciboBack').style.display = 'none';
+      $('reciboModalMsg').textContent = '';
+    }
+
+    function openReciboModal(id){
+      const item = getReciboById(id);
+      if (!item){
+        alert('No se encontró el recibo.');
+        return;
+      }
+      reciboActual = item;
+      $('modalReciboBack').style.display = 'flex';
+      $('reciboModalMeta').textContent = `${item.numero_recibo} · ${item.inquilino_nombre} · ${item.local_codigo}`;
+      $('reciboPreviewBody').innerHTML = buildReceiptPrintHtml(item);
+      $('reciboModalMsg').textContent = '';
+    }
+
+    function printReciboActual(){
+      if (!reciboActual) return;
+      const printable = buildReceiptPrintHtml(reciboActual);
+      const w = window.open('', '_blank', 'width=960,height=800');
+      if (!w) return;
+      w.document.write(`
+        <html>
+          <head>
+            <title>${reciboActual.numero_recibo}</title>
+            <meta charset="utf-8">
+            <style>
+              body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f8fafc;margin:0;padding:24px}
+              .recibo-sheet{max-width:820px;margin:0 auto;border:1px solid rgba(15,23,42,.10);border-radius:24px;background:#fff;color:#0f172a;padding:24px}
+              .recibo-sheet *{box-sizing:border-box}
+              .recibo-sheet-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}
+              .recibo-sheet-logo{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;font-weight:900;color:#fff;background:#0f172a;flex:0 0 56px}
+              .recibo-sheet-title{font-size:28px;font-weight:950;letter-spacing:-.03em;margin:0}
+              .recibo-sheet-sub{margin-top:6px;font-size:13px;color:#475569}
+              .recibo-sheet-badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+              .recibo-sheet-badge{border:1px solid rgba(15,23,42,.12);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:900;background:#f8fafc}
+              .recibo-sheet-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:16px}
+              .recibo-sheet-box{border:1px solid rgba(15,23,42,.10);border-radius:18px;padding:14px 16px;background:#f8fafc;min-height:94px}
+              .recibo-sheet-box .label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-bottom:8px}
+              .recibo-sheet-box .value{font-size:16px;font-weight:900;line-height:1.3}
+              .recibo-amount-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
+              .recibo-amount-card{border:1px solid rgba(15,23,42,.10);border-radius:18px;padding:16px;background:#f8fafc;text-align:center}
+              .recibo-amount-card .label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#64748b;font-weight:900;margin-bottom:8px}
+              .recibo-amount-card .value{font-size:22px;font-weight:950;letter-spacing:-.03em}
+              .recibo-amount-card.total{background:#0f172a;border-color:#0f172a;color:#fff}
+              .recibo-amount-card.total .label{color:#cbd5e1}
+              .recibo-note{border:1px dashed rgba(15,23,42,.18);border-radius:18px;padding:14px 16px;background:#fff;font-size:13px;line-height:1.55;color:#475569}
+              @media print{body{padding:0;background:#fff}.recibo-sheet{border:none;border-radius:0;box-shadow:none;max-width:none}}
+            </style>
+          </head>
+          <body>${printable}</body>
+        </html>
+      `);
+      w.document.close();
+      w.focus();
+      setTimeout(() => w.print(), 250);
+    }
+
+    function copyReciboShareText(){
+      if (!reciboActual) return;
+      const text = buildReceiptShareText(reciboActual);
+      navigator.clipboard?.writeText(text)
+        .then(() => { $('reciboModalMsg').textContent = 'Texto copiado ✅'; })
+        .catch(() => { $('reciboModalMsg').textContent = 'No se pudo copiar el texto.'; });
+    }
+
+    function shareReciboByEmail(id){
+      const item = getReciboById(id);
+      if (!item) return;
+      const email = String(item.email || '').trim();
+      if (!email){
+        alert('Este locatario no tiene email cargado.');
+        return;
+      }
+      const subject = encodeURIComponent(`Recibo interno ${item.numero_recibo}`);
+      const body = encodeURIComponent(buildReceiptShareText(item));
+      window.open(`mailto:${email}?subject=${subject}&body=${body}`, '_self');
+    }
+
+    function shareReciboByWhatsapp(id){
+      const item = getReciboById(id);
+      if (!item) return;
+      if (!String(item.telefono || '').trim()){
+        alert('Este locatario no tiene teléfono cargado.');
+        return;
+      }
+      const link = buildWhatsappLink(item.telefono, buildReceiptShareText(item));
+      if (!link){
+        alert('No se pudo armar el enlace de WhatsApp.');
+        return;
+      }
+      window.open(link, '_blank');
+    }
+
+    function openReciboEmail(){
+      if (!reciboActual) return;
+      shareReciboByEmail(reciboActual.id);
+    }
+
+    function openReciboWhatsapp(){
+      if (!reciboActual) return;
+      shareReciboByWhatsapp(reciboActual.id);
     }
 
     function buildContratoDocumentoNumero(doc){
