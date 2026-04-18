@@ -2445,7 +2445,8 @@
       <div class="recibo-actions">
         <button class="btn" onclick="copyReciboShareText()">Copiar texto</button>
         <button class="btn" onclick="openReciboEmail()">Email + PDF</button>
-        <button class="btn" onclick="openReciboWhatsapp()">WhatsApp + PDF</button>
+        <button class="btn" onclick="openReciboWhatsappQuick()">WhatsApp rápido</button>
+        <button class="btn" onclick="openReciboWhatsappPdf()">WhatsApp + PDF</button>
         <button class="btn primary" onclick="printReciboActual()">Imprimir / Guardar PDF</button>
       </div>
       <div class="toast" id="reciboModalMsg"></div>
@@ -4235,7 +4236,7 @@ function globalSearch(){
       };
 
       const headerY = 38;
-      const headerH = 162;
+      const headerH = 178;
       const centerX = pageWidth / 2;
 
       doc.setFillColor(15, 23, 42);
@@ -4246,16 +4247,15 @@ function globalSearch(){
       centerText((negocio || 'GA').split(/\s+/).map(part => part[0] || '').join('').slice(0,2).toUpperCase() || 'GA', centerX, headerY + 63, 24, 'bold', [15,23,42]);
 
       centerText('Recibo interno', centerX, headerY + 122, 27, 'bold', [255,255,255]);
-      centerText(negocio, centerX, headerY + 144, 12, 'normal', [226,232,240]);
+      centerText(negocio, centerX, headerY + 146, 12, 'normal', [226,232,240]);
 
-      const contactLines = [];
-      if (negocioDireccion) contactLines.push(negocioDireccion);
+      const headerMetaLines = [];
+      const contactLine1 = [negocioDireccion].filter(Boolean).join('');
       const contactLine2 = [negocioTelefono, negocioEmail].filter(Boolean).join(' · ');
-      if (contactLine2) contactLines.push(contactLine2);
-      if (contactLines.length){
-        drawCenteredLines(contactLines.slice(0,2), centerX, headerY + 160, 10, 'normal', [203,213,225], 12);
-      }
-      centerText(`CUIT / identificación: ${cuitNegocio}`, centerX, headerY + headerH - 12, 10, 'normal', [203,213,225]);
+      if (contactLine1) headerMetaLines.push(contactLine1);
+      if (contactLine2) headerMetaLines.push(contactLine2);
+      headerMetaLines.push(`CUIT / identificación: ${cuitNegocio}`);
+      drawCenteredLines(headerMetaLines.slice(0,3), centerX, headerY + 162, 9.5, 'normal', [203,213,225], 11);
 
       const badgeY = headerY + headerH + 18;
       const badgeW1 = 170;
@@ -4287,7 +4287,7 @@ function globalSearch(){
       doc.setLineDashPattern([4, 4], 0);
       doc.line(startX + 12, footerY, startX + contentWidth - 12, footerY);
       doc.setLineDashPattern([], 0);
-      const note = 'Comprobante interno no fiscal. Generado para archivo administrativo y entrega al locatario.';
+      const note = 'Comprobante interno no fiscal · generado para archivo administrativo.';
       drawParagraphCentered(note, centerX, footerY + 18, contentWidth - 56, 10.5, [100,116,139], 14);
 
       return doc.output('blob');
@@ -4598,7 +4598,8 @@ function globalSearch(){
                       <td class="center">
                         <button class="linkBtn" onclick="openReciboModal('${item.id}')">Generar</button>&nbsp;|&nbsp;
                         <button class="linkBtn" onclick="shareReciboByEmail('${item.id}')">Email</button>&nbsp;|&nbsp;
-                        <button class="linkBtn" onclick="shareReciboByWhatsapp('${item.id}')">WhatsApp</button>
+                        <button class="linkBtn" onclick="shareReciboByWhatsappText('${item.id}')">WhatsApp rápido</button>&nbsp;|&nbsp;
+                        <button class="linkBtn" onclick="shareReciboByWhatsappPdf('${item.id}')">WhatsApp + PDF</button>
                       </td>
                     </tr>
                   `).join('') || `<tr><td colspan="9" class="center">Todavía no hay cobros para generar recibos.</td></tr>`}
@@ -4635,7 +4636,8 @@ function globalSearch(){
                 </div>
                 <div class="row" style="margin-top:12px;">
                   <button class="btn" onclick="shareReciboByEmail('${ultimo.id}')">Enviar email + PDF</button>
-                  <button class="btn" onclick="shareReciboByWhatsapp('${ultimo.id}')">Enviar WhatsApp + PDF</button>
+                  <button class="btn" onclick="shareReciboByWhatsappText('${ultimo.id}')">Enviar WhatsApp rápido</button>
+                  <button class="btn" onclick="shareReciboByWhatsappPdf('${ultimo.id}')">Enviar WhatsApp + PDF</button>
                   <button class="btn primary" onclick="openReciboModal('${ultimo.id}')">Abrir recibo</button>
                 </div>
               </div>
@@ -4720,6 +4722,23 @@ function globalSearch(){
         .catch(() => { $('reciboModalMsg').textContent = 'No se pudo copiar el texto.'; });
     }
 
+    function shareReciboByWhatsappText(id){
+      const item = getReciboById(id);
+      if (!item) return;
+      if (!String(item.telefono || '').trim()){
+        alert('Este locatario no tiene teléfono cargado.');
+        return;
+      }
+      const text = buildReceiptShareText(item);
+      const link = buildWhatsappLink(item.telefono, text);
+      if (!link){
+        alert('No se pudo armar el enlace de WhatsApp.');
+        return;
+      }
+      window.open(link, '_blank', 'noopener');
+      if ($('reciboModalMsg')) $('reciboModalMsg').textContent = 'Abrí WhatsApp directo con el texto del recibo.';
+    }
+
     async function shareReciboByEmail(id){
       const item = getReciboById(id);
       if (!item) return;
@@ -4755,7 +4774,7 @@ function globalSearch(){
       }
     }
 
-    async function shareReciboByWhatsapp(id){
+    async function shareReciboByWhatsappPdf(id){
       const item = getReciboById(id);
       if (!item) return;
       if (!String(item.telefono || '').trim()){
@@ -4794,9 +4813,14 @@ function globalSearch(){
       shareReciboByEmail(reciboActual.id);
     }
 
-    function openReciboWhatsapp(){
+    function openReciboWhatsappQuick(){
       if (!reciboActual) return;
-      shareReciboByWhatsapp(reciboActual.id);
+      shareReciboByWhatsappText(reciboActual.id);
+    }
+
+    function openReciboWhatsappPdf(){
+      if (!reciboActual) return;
+      shareReciboByWhatsappPdf(reciboActual.id);
     }
 
     function buildContratoDocumentoNumero(doc){
