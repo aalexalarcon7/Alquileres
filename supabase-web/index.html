@@ -4320,17 +4320,8 @@ function globalSearch(){
         if (error?.name === 'AbortError') return true;
         return false;
       }
-    };
-      if (navigator.canShare && !navigator.canShare({ files: [payload.file] })) return false;
-      try {
-        await navigator.share(shareData);
-        return true;
-      } catch (error) {
-        if (error?.name === 'AbortError') return true;
-        return false;
-      }
+    }
 
-    
     async function downloadReciboPdf(item){
       const payload = await buildReciboPdfPayload(item);
       downloadBlobFile(payload.blob, payload.fileName);
@@ -4797,30 +4788,6 @@ function globalSearch(){
         $('reciboModalMsg').textContent = 'Abrí WhatsApp y descargué el PDF para que lo adjuntes manualmente.';
       }
     }
-      const link = buildWhatsappLink(item.telefono, buildReceiptShareText(item));
-      if (!link){
-        alert('No se pudo armar el enlace de WhatsApp.');
-        return;
-      }
-
-      try {
-        const shared = await tryNativeShareReciboPdf(item, {
-          title: `Recibo ${item.numero_recibo || ''}`,
-          text: buildReceiptShareText(item)
-        });
-        if (shared){
-          $('reciboModalMsg').textContent = 'Se abrió el menú compartir para enviar el PDF por WhatsApp.';
-          return;
-        }
-
-        await downloadReciboPdf(item);
-        window.open(link, '_blank', 'noopener');
-        $('reciboModalMsg').textContent = 'Te descargué el PDF y abrí WhatsApp para que lo adjuntes manualmente.';
-      } catch (error) {
-        console.error(error);
-        window.open(link, '_blank', 'noopener');
-        $('reciboModalMsg').textContent = 'Abrí WhatsApp con el texto del recibo. Si querés adjuntar el PDF, usá el botón Imprimir / Guardar PDF.';
-      }
 
     function openReciboEmail(){
       if (!reciboActual) return;
