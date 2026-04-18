@@ -3054,6 +3054,7 @@
     const SETTINGS_KEY = 'ga_settings_v1';
     const RECEIPT_NUMBER_MAP_KEY = 'ga_receipt_number_map_v1';
     const NAV_COLLAPSE_KEY = 'ga_nav_collapsed_v1';
+    const ROUTE_STORAGE_KEY = 'ga_route_v1';
     const ACCENT_PALETTES = {
       azul: {
         light:{ info:'#2563eb', infoSoft:'rgba(37,99,235,.10)', infoBorder:'rgba(37,99,235,.24)', logoBg:'rgba(37,99,235,.12)', logoFg:'#1d4ed8', brandA:'rgba(37,99,235,.12)', brandB:'rgba(22,163,74,.10)' },
@@ -3102,6 +3103,25 @@
         const label = item.querySelector('.sb-item-label');
         item.title = collapsed && label ? label.textContent.trim() : '';
       });
+    }
+
+    function isValidRouteName(value){
+      return ['inicio','activos','documentos','recibos','informes','balance','config'].includes(String(value || ''));
+    }
+
+    function saveCurrentRoute(value){
+      try {
+        if (isValidRouteName(value)) localStorage.setItem(ROUTE_STORAGE_KEY, value);
+      } catch (e) {}
+    }
+
+    function getSavedRoute(defaultRoute = 'inicio'){
+      try {
+        const saved = localStorage.getItem(ROUTE_STORAGE_KEY) || '';
+        return isValidRouteName(saved) ? saved : defaultRoute;
+      } catch (e) {
+        return defaultRoute;
+      }
     }
 
     function toggleSidebarNav(){
@@ -3435,8 +3455,6 @@
     }
 
     function setRoute(r){
-      route = r;
-      document.querySelectorAll('.sb-item').forEach(b => b.classList.toggle('active', b.dataset.route === r));
       const map = {
         inicio:'viewInicio',
         activos:'viewActivos',
@@ -3446,19 +3464,23 @@
         balance:'viewBalance',
         config:'viewConfig'
       };
-      Object.values(map).forEach(id => $(id).style.display = 'none');
+
       if (!map[r]) r = 'inicio';
       route = r;
-      $(map[r]).style.display = 'block';
-      document.body.classList.toggle('route-config', r === 'config');
+      saveCurrentRoute(route);
+
+      document.querySelectorAll('.sb-item').forEach(b => b.classList.toggle('active', b.dataset.route === route));
+      Object.values(map).forEach(id => $(id).style.display = 'none');
+      $(map[route]).style.display = 'block';
+      document.body.classList.toggle('route-config', route === 'config');
       updateTopSearchUI();
       closeSidebarIfMobile();
 
-      if (r === 'documentos') renderDocumentosPage();
-      if (r === 'recibos') renderRecibosPage();
-      if (r === 'informes') renderInformesPage();
-      if (r === 'balance') renderBalancePage();
-      if (r === 'config') renderConfigPage();
+      if (route === 'documentos') renderDocumentosPage();
+      if (route === 'recibos') renderRecibosPage();
+      if (route === 'informes') renderInformesPage();
+      if (route === 'balance') renderBalancePage();
+      if (route === 'config') renderConfigPage();
     }
 
     function setLoginMessage(message = '', tone = 'default'){
@@ -3991,10 +4013,73 @@ function globalSearch(){
       return { alquiler, impPct, impuesto, total };
     }
 
+    function getContratoLocatarioMeta(contratoId){
+      const contrato = getContratoActivoRow(contratoId);
+      const inq = contrato?.inquilinos || {};
+      return {
+        telefono: inq.telefono || '',
+        email: inq.email || '',
+        documento: inq.documento || '',
+        inquilino_nombre: inq.nombre || '',
+        local_codigo: contrato?.locales?.codigo || ''
+      };
+    }
+
+    async function callRegistrarPagoRpc(payload){
+      const attempts = [
+        {
+          p_contrato_id: payload.p_contrato_id,
+          p_fecha_pago: payload.p_fecha_pago,
+          p_monto: payload.p_monto,
+          p_medio: payload.p_medio,
+          p_referencia: payload.p_referencia,
+          p_monto_alquiler: payload.p_monto_alquiler,
+          p_monto_impuesto: payload.p_monto_impuesto,
+          p_impuesto_porcentaje: payload.p_impuesto_porcentaje
+        },
+        {
+          p_contrato_id: payload.p_contrato_id,
+          p_fecha_pago: payload.p_fecha_pago,
+          p_monto: payload.p_monto,
+          p_medio: payload.p_medio,
+          p_referencia: payload.p_referencia,
+          p_monto_alquiler: payload.p_monto_alquiler,
+          p_impuesto_porcentaje: payload.p_impuesto_porcentaje
+        },
+        {
+          p_contrato_id: payload.p_contrato_id,
+          p_fecha_pago: payload.p_fecha_pago,
+          p_monto: payload.p_monto,
+          p_medio: payload.p_medio,
+          p_referencia: payload.p_referencia
+        }
+      ];
+
+      let lastError = null;
+      for (const args of attempts){
+        const res = await sb.rpc('registrar_pago_y_aplicar', args);
+        if (!res.error) return res;
+        lastError = res.error;
+        const signatureIssue = /Could not find the function|does not exist|No function matches|function public\.registrar_pago_y_aplicar/i.test(String(res.error.message || '')) || String(res.error.code || '') === 'PGRST202';
+        if (!signatureIssue) return res;
+      }
+
+      return { data: null, error: lastError || new Error('No se pudo ejecutar la función de cobro.') };
+    }
+
     function openPagoModal(r){
-      modalContrato = r;
+      const meta = getContratoLocatarioMeta(r?.contrato_id);
+      modalContrato = {
+        ...meta,
+        ...r,
+        telefono: r?.telefono || meta.telefono,
+        email: r?.email || meta.email,
+        documento: r?.documento || meta.documento,
+        inquilino_nombre: r?.inquilino_nombre || meta.inquilino_nombre || '—',
+        local_codigo: r?.local_codigo || meta.local_codigo || '—'
+      };
       $('modalBack').style.display = 'flex';
-      $('modalMeta').textContent = `${r.local_codigo} — ${r.inquilino_nombre} | Deuda: ${fmtARS.format(Number(r.deuda_total||0))}`;
+      $('modalMeta').textContent = `${modalContrato.local_codigo} — ${modalContrato.inquilino_nombre} | Deuda: ${fmtARS.format(Number(modalContrato.deuda_total||0))}`;
       $('mFecha').value = today();
       if ($('mAlquiler')) $('mAlquiler').value = '';
       if ($('mImpPct')) $('mImpPct').value = '';
@@ -4020,6 +4105,16 @@ function globalSearch(){
       try{
         const fecha = $('mFecha').value;
         const medio = $('mMedio').value;
+
+        if (!fecha){
+          msgEl.textContent = 'Elegí una fecha de cobro.';
+          return;
+        }
+
+        if (!medio){
+          msgEl.textContent = 'Elegí un medio de pago.';
+          return;
+        }
         const referencia = String($('mReferencia')?.value || '').trim();
         const reciboFile = $('mRecibo')?.files?.[0];
 
@@ -4054,19 +4149,19 @@ function globalSearch(){
           return;
         }
 
-        const { data, error } = await sb.rpc('registrar_pago_y_aplicar', {
+        const { data, error } = await callRegistrarPagoRpc({
           p_contrato_id: modalContrato.contrato_id,
           p_fecha_pago: fecha,
-          p_monto: montoTotal,
+          p_monto: Number(montoTotal),
           p_medio: medio,
           p_referencia: referencia || null,
-          p_monto_alquiler: montoAlquiler,
-          p_monto_impuesto: montoImpuesto,
-          p_impuesto_porcentaje: impPct
+          p_monto_alquiler: Number(montoAlquiler),
+          p_monto_impuesto: Number(montoImpuesto),
+          p_impuesto_porcentaje: Number(impPct)
         });
 
         if (error){
-          msgEl.textContent = 'Error al registrar pago: ' + error.message;
+          msgEl.textContent = 'Error al registrar pago: ' + (error.message || error.details || 'No se pudo completar el cobro.');
           console.error(error);
           return;
         }
@@ -4133,6 +4228,9 @@ function globalSearch(){
         const archiveNote = archiveResult?.ok ? ' | Recibo archivado en Documentos' : ' | No se pudo archivar el recibo interno';
 
         msgEl.textContent = `Pago registrado ✅ | ${reciboNumero} | Alquiler: ${fmtARS.format(alquilerNum)} | Impuesto: ${fmtARS.format(impuestoNum)} (${impPct}%) | Total: ${fmtARS.format(totalNum)}${archiveNote}${adjuntoEstado}`;
+        setTimeout(() => {
+          if ($('modalBack')?.style.display === 'flex') closePagoModal();
+        }, 900);
       } catch(e){
         console.error(e);
         msgEl.textContent = 'Error inesperado: ' + String(e?.message || e);
@@ -7485,7 +7583,7 @@ function globalSearch(){
       user = data.session?.user || null;
       toggle(!!user, user);
       if (user){
-        setRoute('inicio');
+        setRoute(getSavedRoute('inicio'));
         await refreshAll();
       }
       sb.auth.onAuthStateChange(async (event, session) => {
@@ -7501,7 +7599,7 @@ function globalSearch(){
         if (user){
           setRememberedEmail(user.email || ($('email')?.value || ''), true);
           try{ localStorage.setItem(LOGIN_REMEMBER_KEY, user.email || ($('email')?.value || '')); } catch (e){}
-          setRoute('inicio');
+          setRoute(getSavedRoute('inicio'));
           await refreshAll();
         }
       });
