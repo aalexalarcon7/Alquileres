@@ -2040,6 +2040,71 @@
       margin-top:14px;
       justify-content:flex-end;
     }
+    .recibos-toolbar{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-end;
+      flex-wrap:wrap;
+      margin-top:16px;
+      padding:14px;
+      border:1px solid var(--border);
+      border-radius:20px;
+      background:linear-gradient(180deg, rgba(255,255,255,.52), rgba(255,255,255,.22));
+    }
+    [data-theme="dark"] .recibos-toolbar{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    }
+    .recibos-toolbar-main{
+      display:grid;
+      grid-template-columns:minmax(260px,1.4fr) repeat(2,minmax(150px,.7fr));
+      gap:10px;
+      flex:1;
+    }
+    .recibos-search-wrap,
+    .recibos-filter-wrap{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .recibos-filter-wrap label,
+    .recibos-search-wrap label{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:var(--muted);
+      font-weight:900;
+    }
+    .recibos-search-wrap input,
+    .recibos-filter-wrap input,
+    .recibos-filter-wrap select{
+      width:100%;
+    }
+    .recibos-toolbar-actions{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .recibos-count-pill{
+      display:inline-flex;
+      align-items:center;
+      min-height:46px;
+      padding:0 16px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:var(--surface-soft);
+      font-weight:900;
+      color:var(--text);
+      white-space:nowrap;
+    }
+    .recibos-table table{min-width:1420px}
+    .recibos-cell-title{
+      font-weight:900;
+      line-height:1.25;
+    }
+    .recibos-cell-title strong{font-weight:950}
     .recibos-table td .contact-sub{
       display:block;
       margin-top:4px;
@@ -2047,11 +2112,154 @@
       font-size:12px;
       font-weight:600;
     }
+    .recibos-contact-stack{
+      display:grid;
+      gap:6px;
+    }
+    .recibos-contact-line{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+      font-size:13px;
+    }
+    .recibos-chip{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      min-height:30px;
+      padding:0 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:var(--surface-soft);
+      font-size:12px;
+      font-weight:800;
+      color:var(--text);
+      max-width:100%;
+    }
+    .recibos-chip.muted{color:var(--muted)}
+    .recibos-chip.primary{
+      background:var(--info-soft);
+      border-color:var(--info-border);
+    }
+    .recibos-actions{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:8px;
+    }
+    .action-chip{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:34px;
+      padding:0 12px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:var(--secondary-btn-bg);
+      color:var(--text);
+      font-size:12px;
+      font-weight:900;
+      text-decoration:none;
+      cursor:pointer;
+      transition:transform .18s ease,border-color .18s ease,background-color .18s ease;
+    }
+    .action-chip:hover{
+      transform:translateY(-1px);
+      border-color:var(--border-strong);
+      background:var(--secondary-btn-hover);
+    }
+    .action-chip.primary{
+      background:var(--primary-btn-bg);
+      color:var(--primary-btn-fg);
+      border-color:transparent;
+    }
+    .action-chip.info{
+      background:var(--info-soft);
+      border-color:var(--info-border);
+    }
+    .action-chip.ok{
+      background:var(--ok-soft);
+      border-color:var(--ok-border);
+    }
+    .recibos-side-stack{
+      display:grid;
+      gap:14px;
+    }
+    .recibos-side-card{
+      border:1px solid var(--border);
+      border-radius:22px;
+      padding:16px;
+      background:linear-gradient(180deg, rgba(255,255,255,.56), rgba(255,255,255,.24));
+    }
+    [data-theme="dark"] .recibos-side-card{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    }
+    .recibos-side-head{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+      margin-bottom:12px;
+    }
+    .recibos-side-head h4{
+      margin:0;
+      font-size:18px;
+      letter-spacing:-.02em;
+    }
+    .recibos-side-meta{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+    .recibos-side-meta .item{
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:12px;
+      background:var(--surface-soft);
+    }
+    .recibos-side-meta .label{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:var(--muted);
+      font-weight:900;
+      margin-bottom:6px;
+    }
+    .recibos-side-meta .value{
+      font-size:14px;
+      font-weight:900;
+      line-height:1.3;
+      word-break:break-word;
+    }
+    .recibos-side-actions{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+    .recibos-empty{
+      padding:24px;
+      text-align:center;
+      color:var(--muted);
+      font-weight:700;
+    }
     @media (max-width: 1100px){
       .recibos-grid,
       .recibo-sheet-grid,
       .recibo-amount-grid,
       .recibos-summary-row{grid-template-columns:1fr}
+      .recibos-toolbar-main{grid-template-columns:1fr 1fr}
+      .recibos-side-meta,
+      .recibos-side-actions{grid-template-columns:1fr}
+    }
+    @media (max-width: 720px){
+      .recibos-toolbar-main{grid-template-columns:1fr}
+      .recibos-toolbar-actions{width:100%;justify-content:stretch}
+      .recibos-toolbar-actions .btn,
+      .recibos-toolbar-actions .recibos-count-pill{width:100%;justify-content:center}
+      .recibos-actions{justify-content:flex-start}
     }
   </style>
 
@@ -2444,9 +2652,9 @@
       <div id="reciboPreviewBody" style="margin-top:14px;"></div>
       <div class="recibo-actions">
         <button class="btn" onclick="copyReciboShareText()">Copiar texto</button>
-        <button class="btn" onclick="openReciboEmail()">Email con PDF</button>
-        <button class="btn" onclick="openReciboWhatsappQuick()">WhatsApp con mensaje</button>
-        <button class="btn" onclick="openReciboWhatsappPdf()">WhatsApp con PDF</button>
+        <button class="btn" onclick="openReciboEmail()">Email + PDF</button>
+        <button class="btn" onclick="openReciboWhatsappQuick()">WhatsApp rápido</button>
+        <button class="btn" onclick="openReciboWhatsappPdf()">WhatsApp + PDF</button>
         <button class="btn primary" onclick="printReciboActual()">Imprimir / Guardar PDF</button>
       </div>
       <div class="toast" id="reciboModalMsg"></div>
@@ -2474,6 +2682,7 @@
     let modalContrato = null;
     let recibosInternosCache = [];
     let reciboActual = null;
+    let recibosPageState = { query:'', local:'TODOS', month:'' };
     let proximoVencimientoMap = {};
     const VENCE_PRONTO_DIAS = 7;
 
@@ -3121,7 +3330,7 @@ function globalSearch(){
       $('viewInicio').innerHTML = `
         <div class="card">
           <h2 style="margin:0;">Inicio</h2>
-          <div class="muted">Resumen general .</div>
+          <div class="muted">Resumen general</div>
         </div>
 
         <div class="card">
@@ -4513,6 +4722,94 @@ function globalSearch(){
       };
     }
 
+    function applyRecibosPageFilters(rows){
+      const query = String(recibosPageState.query || '').trim().toLowerCase();
+      const local = String(recibosPageState.local || 'TODOS');
+      const month = String(recibosPageState.month || '');
+
+      return (rows || []).filter(item => {
+        if (local !== 'TODOS' && String(item.local_codigo || '') !== local) return false;
+        if (month && String(item.fecha_pago || item.created_at || '').slice(0,7) !== month) return false;
+        if (!query) return true;
+        return [
+          item.numero_recibo,
+          item.referencia,
+          item.inquilino_nombre,
+          item.documento,
+          item.local_codigo,
+          item.telefono,
+          item.email,
+          item.medio
+        ].some(value => String(value || '').toLowerCase().includes(query));
+      });
+    }
+
+    function updateRecibosFiltersFromUI(){
+      recibosPageState.query = $('recibosSearch')?.value || '';
+      recibosPageState.local = $('recibosLocalFilter')?.value || 'TODOS';
+      recibosPageState.month = $('recibosMonthFilter')?.value || '';
+      renderRecibosPage();
+    }
+
+    function clearRecibosFilters(){
+      recibosPageState = { query:'', local:'TODOS', month:'' };
+      renderRecibosPage();
+    }
+
+    function renderRecibosHistoryRows(rows){
+      if (!rows.length){
+        return `<tr><td colspan="9"><div class="recibos-empty">No hay recibos que coincidan con los filtros aplicados.</div></td></tr>`;
+      }
+
+      return rows.map(item => `
+        <tr>
+          <td>
+            <div class="recibos-cell-title"><strong>${escapeHtml(item.numero_recibo)}</strong></div>
+            <span class="contact-sub">${escapeHtml(item.referencia || 'Sin referencia')}</span>
+          </td>
+          <td>
+            <div class="recibos-cell-title">${formatDateDisplay(item.fecha_pago || item.created_at)}</div>
+            <span class="contact-sub">${escapeHtml(item.medio || '—')}</span>
+          </td>
+          <td>
+            <div class="recibos-cell-title">${escapeHtml(item.inquilino_nombre)}</div>
+            <span class="contact-sub">${escapeHtml(item.documento || 'Sin documento')}</span>
+          </td>
+          <td>
+            <span class="recibos-chip primary">${escapeHtml(item.local_codigo || '—')}</span>
+          </td>
+          <td class="right">
+            <div class="recibos-cell-title">${fmtARS.format(Number(item.monto_alquiler || 0))}</div>
+          </td>
+          <td class="right">
+            <div class="recibos-cell-title">${fmtARS.format(Number(item.monto_impuesto || 0))}</div>
+            <span class="contact-sub">${Number(item.impuesto_porcentaje || 0).toFixed(2)}%</span>
+          </td>
+          <td class="right">
+            <div class="recibos-cell-title"><strong>${fmtARS.format(Number(item.monto_total || 0))}</strong></div>
+          </td>
+          <td>
+            <div class="recibos-contact-stack">
+              <div class="recibos-contact-line">
+                <span class="recibos-chip ${item.telefono ? '' : 'muted'}">${escapeHtml(item.telefono || 'Sin teléfono')}</span>
+              </div>
+              <div class="recibos-contact-line">
+                <span class="recibos-chip ${item.email ? '' : 'muted'}">${escapeHtml(item.email || 'Sin email')}</span>
+              </div>
+            </div>
+          </td>
+          <td class="center">
+            <div class="recibos-actions">
+              <button class="action-chip primary" onclick="openReciboModal('${item.id}')">Generar</button>
+              <button class="action-chip" onclick="shareReciboByEmail('${item.id}')">Email</button>
+              <button class="action-chip ok" onclick="shareReciboByWhatsappText('${item.id}')">WA rápido</button>
+              <button class="action-chip info" onclick="shareReciboByWhatsappPdf('${item.id}')">WA + PDF</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
     async function renderRecibosPage(){
       const el = $('viewRecibos');
       if (!el) return;
@@ -4521,14 +4818,16 @@ function globalSearch(){
       recibosInternosCache = rows;
 
       const summary = renderRecibosKPIs(rows);
-      const ultimo = rows[0];
+      const filteredRows = applyRecibosPageFilters(rows);
+      const ultimo = filteredRows[0] || rows[0] || null;
+      const localOptions = [...new Set(rows.map(item => String(item.local_codigo || '—')).filter(Boolean))].sort((a,b) => a.localeCompare(b));
 
       el.innerHTML = `
         <div class="card">
           <div class="recibos-history-head">
             <div>
               <h2 style="margin:0;">Recibos internos</h2>
-              <div class="muted">Cada cobro registrado genera un recibo interno con historial, datos del locatario y opciones rápidas para compartirlo.</div>
+              <div class="muted">Centralizá el historial, encontrá rápido el locatario correcto y compartí cada comprobante desde una interfaz más ordenada.</div>
             </div>
             <div class="row">
               <button class="btn" onclick="renderRecibosPage()">Actualizar</button>
@@ -4564,13 +4863,37 @@ function globalSearch(){
           <div class="card">
             <div class="row" style="justify-content:space-between;align-items:end;">
               <div>
-                <h3 style="margin:0;">Historial</h3>
-                <div class="muted">Buscá por número de recibo, nombre del locatario, local o contacto.</div>
+                <h3 style="margin:0;">Historial profesional</h3>
+                <div class="muted">Filtrá por locatario, número de recibo, local o mes y accedé a cada acción desde botones claros.</div>
               </div>
-              <span class="badge b-info">${rows.length} registros</span>
             </div>
+
+            <div class="recibos-toolbar">
+              <div class="recibos-toolbar-main">
+                <div class="recibos-search-wrap">
+                  <label>Buscar</label>
+                  <input id="recibosSearch" placeholder="N° recibo, locatario, documento, email..." value="${escapeAttr(recibosPageState.query)}" oninput="updateRecibosFiltersFromUI()">
+                </div>
+                <div class="recibos-filter-wrap">
+                  <label>Local</label>
+                  <select id="recibosLocalFilter" onchange="updateRecibosFiltersFromUI()">
+                    <option value="TODOS">Todos los locales</option>
+                    ${localOptions.map(local => `<option value="${escapeAttr(local)}" ${recibosPageState.local === local ? 'selected' : ''}>${escapeHtml(local)}</option>`).join('')}
+                  </select>
+                </div>
+                <div class="recibos-filter-wrap">
+                  <label>Mes</label>
+                  <input id="recibosMonthFilter" type="month" value="${escapeAttr(recibosPageState.month)}" onchange="updateRecibosFiltersFromUI()">
+                </div>
+              </div>
+              <div class="recibos-toolbar-actions">
+                <span class="recibos-count-pill">${filteredRows.length} visibles</span>
+                <button class="btn" onclick="clearRecibosFilters()">Limpiar filtros</button>
+              </div>
+            </div>
+
             <div class="tableWrap recibos-table" style="margin-top:12px;">
-              <table style="min-width:1400px;">
+              <table>
                 <thead>
                   <tr>
                     <th>N° recibo</th>
@@ -4584,64 +4907,86 @@ function globalSearch(){
                     <th class="center">Acciones</th>
                   </tr>
                 </thead>
-                <tbody id="recibosBody">
-                  ${rows.map(item => `
-                    <tr>
-                      <td><b>${escapeHtml(item.numero_recibo)}</b><span class="contact-sub">${escapeHtml(item.referencia || 'Sin referencia')}</span></td>
-                      <td>${formatDateDisplay(item.fecha_pago || item.created_at)}</td>
-                      <td>${escapeHtml(item.inquilino_nombre)}<span class="contact-sub">${escapeHtml(item.documento || 'Sin documento')}</span></td>
-                      <td>${escapeHtml(item.local_codigo)}</td>
-                      <td class="right">${fmtARS.format(Number(item.monto_alquiler || 0))}</td>
-                      <td class="right">${fmtARS.format(Number(item.monto_impuesto || 0))}<span class="contact-sub">${Number(item.impuesto_porcentaje || 0).toFixed(2)}%</span></td>
-                      <td class="right"><b>${fmtARS.format(Number(item.monto_total || 0))}</b></td>
-                      <td>${escapeHtml(item.telefono || '—')}<span class="contact-sub">${escapeHtml(item.email || 'Sin email')}</span></td>
-                      <td class="center">
-                        <button class="linkBtn" onclick="openReciboModal('${item.id}')">Generar</button>&nbsp;|&nbsp;
-                        <button class="linkBtn" onclick="shareReciboByEmail('${item.id}')">Email</button>&nbsp;|&nbsp;
-                        <button class="linkBtn" onclick="shareReciboByWhatsappText('${item.id}')">WhatsApp rápido</button>&nbsp;|&nbsp;
-                        <button class="linkBtn" onclick="shareReciboByWhatsappPdf('${item.id}')">WhatsApp + PDF</button>
-                      </td>
-                    </tr>
-                  `).join('') || `<tr><td colspan="9" class="center">Todavía no hay cobros para generar recibos.</td></tr>`}
-                </tbody>
+                <tbody id="recibosBody">${renderRecibosHistoryRows(filteredRows)}</tbody>
               </table>
             </div>
           </div>
 
-          <div class="card">
-            <div class="row" style="justify-content:space-between;align-items:end;">
-              <div>
-                <h3 style="margin:0;">Vista rápida del locatario</h3>
-                <div class="muted">Ideal para enviar la copia del recibo por mail o WhatsApp sin salir del sistema.</div>
+          <div class="recibos-side-stack">
+            <div class="card">
+              <div class="row" style="justify-content:space-between;align-items:end;">
+                <div>
+                  <h3 style="margin:0;">Locatario seleccionado</h3>
+                  <div class="muted">Un panel más limpio para copiar datos, revisar contacto y disparar el envío correcto.</div>
+                </div>
               </div>
+              ${ultimo ? `
+                <div class="recibos-side-card" style="margin-top:12px;">
+                  <div class="recibos-side-head">
+                    <div>
+                      <h4>${escapeHtml(ultimo.inquilino_nombre)}</h4>
+                      <div class="muted">Local ${escapeHtml(ultimo.local_codigo)} · ${escapeHtml(ultimo.numero_recibo)}</div>
+                    </div>
+                    <span class="badge b-ok">${fmtARS.format(Number(ultimo.monto_total || 0))}</span>
+                  </div>
+
+                  <div class="recibos-side-meta">
+                    <div class="item">
+                      <div class="label">Documento</div>
+                      <div class="value">${escapeHtml(ultimo.documento || 'No cargado')}</div>
+                    </div>
+                    <div class="item">
+                      <div class="label">Fecha</div>
+                      <div class="value">${formatDateDisplay(ultimo.fecha_pago || ultimo.created_at)}</div>
+                    </div>
+                    <div class="item">
+                      <div class="label">Teléfono</div>
+                      <div class="value">${escapeHtml(ultimo.telefono || 'No cargado')}</div>
+                    </div>
+                    <div class="item">
+                      <div class="label">Email</div>
+                      <div class="value">${escapeHtml(ultimo.email || 'No cargado')}</div>
+                    </div>
+                    <div class="item">
+                      <div class="label">Alquiler</div>
+                      <div class="value">${fmtARS.format(Number(ultimo.monto_alquiler || 0))}</div>
+                    </div>
+                    <div class="item">
+                      <div class="label">Impuesto</div>
+                      <div class="value">${fmtARS.format(Number(ultimo.monto_impuesto || 0))} · ${Number(ultimo.impuesto_porcentaje || 0).toFixed(2)}%</div>
+                    </div>
+                  </div>
+
+                  <div class="recibos-side-actions">
+                    <button class="btn primary" onclick="openReciboModal('${ultimo.id}')">Abrir recibo</button>
+                    <button class="btn" onclick="shareReciboByEmail('${ultimo.id}')">Email + PDF</button>
+                    <button class="btn" onclick="shareReciboByWhatsappText('${ultimo.id}')">WhatsApp rápido</button>
+                    <button class="btn" onclick="shareReciboByWhatsappPdf('${ultimo.id}')">WhatsApp + PDF</button>
+                  </div>
+                </div>
+              ` : `<div class="toast" style="margin-top:12px;">Apenas registres un cobro, vas a ver el recibo interno acá.</div>`}
             </div>
-            ${ultimo ? `
-              <div class="recibo-mini-card" style="margin-top:12px;">
-                <div class="badge b-ok">${escapeHtml(ultimo.numero_recibo)}</div>
-                <h3 style="margin:12px 0 6px;">${escapeHtml(ultimo.inquilino_nombre)}</h3>
-                <div class="muted">Local ${escapeHtml(ultimo.local_codigo)} · Total ${fmtARS.format(Number(ultimo.monto_total || 0))}</div>
+
+            <div class="card">
+              <div class="row" style="justify-content:space-between;align-items:end;">
+                <div>
+                  <h3 style="margin:0;">Criterio visual</h3>
+                  <div class="muted">La tabla ahora prioriza lectura rápida: contacto agrupado, acciones en chips y filtros arriba.</div>
+                </div>
+              </div>
+              <div class="recibos-side-card" style="margin-top:12px;">
                 <div class="recibo-contact-lines">
                   <div class="recibo-contact-item">
-                    <div class="label">Teléfono</div>
-                    <div class="value">${escapeHtml(ultimo.telefono || 'No cargado')}</div>
+                    <div class="label">Qué mejora</div>
+                    <div class="value">Menos ruido visual, acciones claras y contactos más fáciles de ubicar.</div>
                   </div>
                   <div class="recibo-contact-item">
-                    <div class="label">Email</div>
-                    <div class="value">${escapeHtml(ultimo.email || 'No cargado')}</div>
+                    <div class="label">Uso recomendado</div>
+                    <div class="value">Buscá, abrí el recibo y elegí el canal: email, WhatsApp rápido o WhatsApp + PDF.</div>
                   </div>
-                  <div class="recibo-contact-item">
-                    <div class="label">Último recibo</div>
-                    <div class="value">${escapeHtml(ultimo.numero_recibo)} · ${formatDateDisplay(ultimo.fecha_pago || ultimo.created_at)}</div>
-                  </div>
-                </div>
-                <div class="row" style="margin-top:12px;">
-                  <button class="btn" onclick="shareReciboByEmail('${ultimo.id}')">Enviar email con PDF</button>
-                  <button class="btn" onclick="shareReciboByWhatsappText('${ultimo.id}')">Enviar WhatsApp con mensaje rápido</button>
-                  <button class="btn" onclick="shareReciboByWhatsappPdf('${ultimo.id}')">Enviar WhatsApp con PDF</button>
-                  <button class="btn primary" onclick="openReciboModal('${ultimo.id}')">Abrir recibo</button>
                 </div>
               </div>
-            ` : `<div class="toast" style="margin-top:12px;">Apenas registres un cobro, vas a ver el recibo interno acá.</div>`}
+            </div>
           </div>
         </div>
       `;
