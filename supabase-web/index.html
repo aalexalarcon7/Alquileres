@@ -2368,6 +2368,265 @@
     }
   </style>
 
+
+  <style id="docsPremiumStyles">
+    .docs-overview{
+      display:grid;
+      grid-template-columns:repeat(5,minmax(0,1fr));
+      gap:12px;
+      margin-bottom:14px;
+    }
+    .docs-kpi{
+      padding:16px 18px;
+      border:1px solid var(--border);
+      border-radius:22px;
+      background:linear-gradient(180deg, rgba(255,255,255,.54), rgba(255,255,255,.22));
+      box-shadow:0 16px 32px rgba(15,23,42,.06);
+    }
+    [data-theme="dark"] .docs-kpi{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      box-shadow:0 18px 34px rgba(0,0,0,.24);
+    }
+    .docs-kpi .label{
+      color:var(--muted);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.10em;
+      font-weight:900;
+      margin-bottom:8px;
+    }
+    .docs-kpi .value{
+      font-size:24px;
+      font-weight:950;
+      letter-spacing:-.03em;
+    }
+    .docs-kpi .sub{
+      margin-top:6px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .docs-layout{
+      display:grid;
+      grid-template-columns:minmax(0,1.55fr) 360px;
+      gap:14px;
+      align-items:start;
+    }
+    .docs-toolbar{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-end;
+      flex-wrap:wrap;
+      margin-top:16px;
+      padding:14px;
+      border:1px solid var(--border);
+      border-radius:20px;
+      background:linear-gradient(180deg, rgba(255,255,255,.54), rgba(255,255,255,.22));
+    }
+    [data-theme="dark"] .docs-toolbar{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    }
+    .docs-toolbar-main{
+      display:grid;
+      grid-template-columns:minmax(260px,1.3fr) minmax(200px,.85fr) minmax(170px,.6fr);
+      gap:10px;
+      flex:1;
+    }
+    .docs-toolbar-field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .docs-toolbar-field label{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:var(--muted);
+      font-weight:900;
+    }
+    .docs-toolbar-actions{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .docs-count-pill{
+      display:inline-flex;
+      align-items:center;
+      min-height:46px;
+      padding:0 16px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:var(--surface-soft);
+      font-weight:900;
+      color:var(--text);
+      white-space:nowrap;
+    }
+    .docs-table table{min-width:1180px}
+    .docs-record-main{
+      display:grid;
+      gap:4px;
+    }
+    .docs-record-title{
+      font-weight:900;
+      line-height:1.25;
+    }
+    .docs-record-sub{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.4;
+      font-weight:600;
+    }
+    .docs-status-pill{
+      display:inline-flex;
+      align-items:center;
+      min-height:30px;
+      padding:0 12px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:var(--surface-soft);
+      font-size:12px;
+      font-weight:900;
+      white-space:nowrap;
+    }
+    .docs-status-pill.ok{
+      background:var(--ok-soft);
+      border-color:var(--ok-border);
+    }
+    .docs-status-pill.warn{
+      background:var(--warn-soft);
+      border-color:var(--warn-border);
+    }
+    .docs-status-pill.info{
+      background:var(--info-soft);
+      border-color:var(--info-border);
+    }
+    .docs-type-chip{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:32px;
+      padding:0 12px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.02em;
+    }
+    .docs-type-chip.receipt{
+      background:var(--ok-soft);
+      border-color:var(--ok-border);
+    }
+    .docs-type-chip.contract{
+      background:var(--info-soft);
+      border-color:var(--info-border);
+    }
+    .docs-type-chip.other{
+      background:var(--warn-soft);
+      border-color:var(--warn-border);
+    }
+    .docs-actions{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .docs-action-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:36px;
+      padding:0 12px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:var(--surface-soft);
+      color:var(--text);
+      font-size:12px;
+      font-weight:900;
+      cursor:pointer;
+      text-decoration:none;
+    }
+    .docs-action-btn.primary{
+      background:var(--info-soft);
+      border-color:var(--info-border);
+    }
+    .docs-action-btn.danger{
+      background:var(--bad-soft);
+      border-color:var(--bad-border);
+    }
+    .docs-side-card{
+      padding:18px;
+      border:1px solid var(--border);
+      border-radius:22px;
+      background:linear-gradient(180deg, rgba(255,255,255,.52), rgba(255,255,255,.20));
+    }
+    [data-theme="dark"] .docs-side-card{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    }
+    .docs-side-head{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-start;
+      margin-bottom:12px;
+    }
+    .docs-side-head h4{
+      margin:0;
+      font-size:18px;
+    }
+    .docs-side-lines{
+      display:grid;
+      gap:12px;
+      margin-top:12px;
+    }
+    .docs-side-item{
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:12px 14px;
+      background:rgba(255,255,255,.34);
+    }
+    [data-theme="dark"] .docs-side-item{
+      background:rgba(255,255,255,.025);
+    }
+    .docs-side-item .label{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:var(--muted);
+      font-weight:900;
+      margin-bottom:6px;
+    }
+    .docs-side-item .value{
+      font-size:14px;
+      font-weight:800;
+      line-height:1.45;
+      word-break:break-word;
+    }
+    .docs-uploader-grid{
+      display:grid;
+      gap:10px;
+      margin-top:14px;
+    }
+    .docs-empty-state{
+      padding:24px 18px;
+      text-align:center;
+      color:var(--muted);
+      font-weight:700;
+    }
+    @media (max-width: 1180px){
+      .docs-overview{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .docs-layout{grid-template-columns:1fr}
+    }
+    @media (max-width: 760px){
+      .docs-overview,
+      .docs-toolbar-main{grid-template-columns:1fr}
+      .docs-toolbar-actions{width:100%;justify-content:stretch}
+      .docs-toolbar-actions .btn{flex:1}
+    }
+  </style>
+
 </head>
 <body>
 <!-- SPLASH -->
@@ -4286,73 +4545,150 @@ function globalSearch(){
       const el = $('viewDocumentos');
       el.innerHTML = `
         <div class="card">
-          <div class="row" style="justify-content:space-between;">
-            <div>
-              <h2 style="margin:0;">Documentos</h2>
-              <div class="muted">Acá se ve todo lo relacionado con contratos y recibos. Los recibos se generan automáticamente cuando registrás un pago.</div>
-            </div>
-          </div>
-
-          <div class="row" style="margin-top:12px;">
-            <label class="muted">Contrato:</label>
-            <select id="docsContratoSel" style="min-width:420px;" onchange="loadDocsForSelected()"></select>
-            <select id="docsFiltroTipo" style="width:170px" onchange="loadDocsForSelected()">
-              <option value="TODOS">Todo</option>
-              <option value="RECIBO">Recibos</option>
-              <option value="CONTRATO">Contratos</option>
-              <option value="OTRO">Otros</option>
-            </select>
-            <button class="btn" onclick="loadDocsForSelected()">Actualizar</button>
-          </div>
-
-          <div class="row" style="margin-top:12px;">
-            <span class="badge b-info" id="docsResumeTotal">0 movimientos</span>
-            <span class="badge b-ok" id="docsResumeRecibos">0 recibos</span>
-            <span class="badge b-info" id="docsResumeContratos">0 contratos</span>
-            <span class="badge b-warn" id="docsResumeOtros">0 otros</span>
-          </div>
-
-          <div class="hr"></div>
-
           <div class="row" style="justify-content:space-between;align-items:end;">
             <div>
-              <h3 style="margin:0;">Adjuntar archivo</h3>
-              <div class="muted">Podés subir contratos, recibos escaneados u otros archivos al contrato seleccionado.</div>
+              <h2 style="margin:0;">Documentos y comprobantes</h2>
+              <div class="muted">Unificá contratos, recibos y adjuntos en un módulo más claro: buscá rápido, filtrá mejor y revisá el estado de cada archivo sin mezclar tanto documento con cobro.</div>
+            </div>
+            <div class="row">
+              <button class="btn" onclick="loadDocsForSelected()">Actualizar</button>
             </div>
           </div>
-
-          <div class="row" style="margin-top:12px;">
-            <select id="docsTipo" style="width:180px">
-              <option value="CONTRATO">CONTRATO</option>
-              <option value="RECIBO">RECIBO</option>
-              <option value="OTRO">OTRO</option>
-            </select>
-            <input id="docsFile" type="file" style="width:420px" />
-            <button class="btn primary" onclick="uploadDocFromDocs()">Subir</button>
-          </div>
-
-          <div class="toast" id="docsMsg"></div>
         </div>
 
-        <div class="card">
-          <div class="tableWrap">
-            <table style="min-width:1280px;">
-              <thead>
-                <tr>
-                  <th>Tipo</th>
-                  <th>Número</th>
-                  <th>Contrato</th>
-                  <th>Detalle / Archivo</th>
-                  <th>Fecha</th>
-                  <th class="right">Importe</th>
-                  <th>Medio de pago</th>
-                  <th class="center">Acciones</th>
-                </tr>
-              </thead>
-              <tbody id="docsBody"></tbody>
-            </table>
+        <div class="docs-overview">
+          <div class="docs-kpi">
+            <div class="label">Total documentos</div>
+            <div class="value" id="docsResumeTotal">0</div>
+            <div class="sub">Historial consolidado</div>
           </div>
-          <div class="toast" id="docsListMsg"></div>
+          <div class="docs-kpi">
+            <div class="label">Contratos</div>
+            <div class="value" id="docsResumeContratos">0</div>
+            <div class="sub">Base contractual</div>
+          </div>
+          <div class="docs-kpi">
+            <div class="label">Recibos</div>
+            <div class="value" id="docsResumeRecibos">0</div>
+            <div class="sub">Generados por cobro o carga</div>
+          </div>
+          <div class="docs-kpi">
+            <div class="label">Otros archivos</div>
+            <div class="value" id="docsResumeOtros">0</div>
+            <div class="sub">Adjuntos adicionales</div>
+          </div>
+          <div class="docs-kpi">
+            <div class="label">Sin adjunto</div>
+            <div class="value" id="docsResumeSinAdjunto">0</div>
+            <div class="sub">Movimientos sin archivo</div>
+          </div>
+        </div>
+
+        <div class="docs-layout">
+          <div class="card">
+            <div class="row" style="justify-content:space-between;align-items:end;">
+              <div>
+                <h3 style="margin:0;">Historial documental</h3>
+                <div class="muted">Leé rápido qué documento es, a qué unidad corresponde, si tiene archivo y qué acciones están disponibles.</div>
+              </div>
+            </div>
+
+            <div class="docs-toolbar">
+              <div class="docs-toolbar-main">
+                <div class="docs-toolbar-field">
+                  <label>Buscar</label>
+                  <input id="docsSearch" placeholder="Número, unidad, locatario, detalle o referencia..." oninput="loadDocsForSelected()">
+                </div>
+                <div class="docs-toolbar-field">
+                  <label>Contrato / unidad</label>
+                  <select id="docsContratoSel" onchange="loadDocsForSelected()"></select>
+                </div>
+                <div class="docs-toolbar-field">
+                  <label>Tipo</label>
+                  <select id="docsFiltroTipo" onchange="loadDocsForSelected()">
+                    <option value="TODOS">Todos</option>
+                    <option value="RECIBO">Recibos</option>
+                    <option value="CONTRATO">Contratos</option>
+                    <option value="OTRO">Otros</option>
+                  </select>
+                </div>
+              </div>
+              <div class="docs-toolbar-actions">
+                <span class="docs-count-pill" id="docsVisibleCount">0 visibles</span>
+                <button class="btn" onclick="clearDocsFilters()">Limpiar filtros</button>
+              </div>
+            </div>
+
+            <div class="tableWrap docs-table" style="margin-top:12px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tipo</th>
+                    <th>Número</th>
+                    <th>Unidad / locatario</th>
+                    <th>Archivo / detalle</th>
+                    <th>Fecha</th>
+                    <th>Estado archivo</th>
+                    <th class="right">Monto</th>
+                    <th class="center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="docsBody"></tbody>
+              </table>
+            </div>
+            <div class="toast" id="docsListMsg"></div>
+          </div>
+
+          <div class="card">
+            <div class="row" style="justify-content:space-between;align-items:end;">
+              <div>
+                <h3 style="margin:0;">Carga rápida</h3>
+                <div class="muted">Subí contratos, recibos escaneados u otros archivos al contrato seleccionado sin salir del módulo.</div>
+              </div>
+            </div>
+
+            <div class="docs-side-card" style="margin-top:12px;">
+              <div class="docs-side-head">
+                <div>
+                  <h4 id="docsCurrentContract">Todos los contratos</h4>
+                  <div class="muted" id="docsCurrentHint">Elegí una unidad específica para habilitar la carga de archivos.</div>
+                </div>
+                <span class="badge b-info">Gestor</span>
+              </div>
+
+              <div class="docs-side-lines">
+                <div class="docs-side-item">
+                  <div class="label">Tipo de archivo</div>
+                  <div class="value">
+                    <select id="docsTipo" style="width:100%;">
+                      <option value="CONTRATO">CONTRATO</option>
+                      <option value="RECIBO">RECIBO</option>
+                      <option value="OTRO">OTRO</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="docs-side-item">
+                  <div class="label">Archivo</div>
+                  <div class="value">
+                    <input id="docsFile" type="file" style="width:100%;" />
+                  </div>
+                </div>
+
+                <div class="docs-side-item">
+                  <div class="label">Estado de carga</div>
+                  <div class="value" id="docsUploadState">Listo para adjuntar un documento nuevo.</div>
+                </div>
+              </div>
+
+              <div class="docs-uploader-grid">
+                <button class="btn primary" onclick="uploadDocFromDocs()">Subir archivo</button>
+                <button class="btn" onclick="openDocumentosFromDetalle()">Abrir desde detalle actual</button>
+              </div>
+
+              <div class="toast" id="docsMsg" style="margin-top:12px;"></div>
+            </div>
+          </div>
         </div>
       `;
 
@@ -4382,6 +4718,7 @@ function globalSearch(){
         sel.value = '__ALL__';
       }
 
+      updateDocsSidePanel();
       await loadDocsForSelected();
     }
 
@@ -5105,6 +5442,23 @@ function globalSearch(){
 
             <div class="card">
               <div class="row" style="justify-content:space-between;align-items:end;">
+                <div>
+                  <h3 style="margin:0;">Criterio visual</h3>
+                  <div class="muted">La tabla ahora prioriza lectura rápida: contacto agrupado, acciones en chips y filtros arriba.</div>
+                </div>
+              </div>
+              <div class="recibos-side-card" style="margin-top:12px;">
+                <div class="recibo-contact-lines">
+                  <div class="recibo-contact-item">
+                    <div class="label">Qué mejora</div>
+                    <div class="value">Menos ruido visual, acciones claras y contactos más fáciles de ubicar.</div>
+                  </div>
+                  <div class="recibo-contact-item">
+                    <div class="label">Uso recomendado</div>
+                    <div class="value">Buscá, abrí el recibo y elegí el canal: email, WhatsApp rápido o WhatsApp + PDF.</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -6285,11 +6639,42 @@ function globalSearch(){
       const recibos = rows.filter(r => r.rowType === 'RECIBO').length;
       const contratos = rows.filter(r => r.rowType === 'CONTRATO').length;
       const otros = rows.filter(r => r.rowType === 'OTRO').length;
+      const sinAdjunto = rows.filter(r => !r.downloadUrl).length;
 
-      if ($('docsResumeTotal')) $('docsResumeTotal').textContent = `${total} movimientos`;
-      if ($('docsResumeRecibos')) $('docsResumeRecibos').textContent = `${recibos} recibos`;
-      if ($('docsResumeContratos')) $('docsResumeContratos').textContent = `${contratos} contratos`;
-      if ($('docsResumeOtros')) $('docsResumeOtros').textContent = `${otros} otros`;
+      if ($('docsResumeTotal')) $('docsResumeTotal').textContent = String(total);
+      if ($('docsResumeRecibos')) $('docsResumeRecibos').textContent = String(recibos);
+      if ($('docsResumeContratos')) $('docsResumeContratos').textContent = String(contratos);
+      if ($('docsResumeOtros')) $('docsResumeOtros').textContent = String(otros);
+      if ($('docsResumeSinAdjunto')) $('docsResumeSinAdjunto').textContent = String(sinAdjunto);
+    }
+
+    function clearDocsFilters(){
+      if ($('docsSearch')) $('docsSearch').value = '';
+      if ($('docsFiltroTipo')) $('docsFiltroTipo').value = 'TODOS';
+      if ($('docsContratoSel')) $('docsContratoSel').value = '__ALL__';
+      docsContratoId = '__ALL__';
+      updateDocsSidePanel();
+      loadDocsForSelected();
+    }
+
+    function updateDocsSidePanel(){
+      const sel = $('docsContratoSel');
+      const currentName = $('docsCurrentContract');
+      const currentHint = $('docsCurrentHint');
+      const uploadState = $('docsUploadState');
+      if (!currentName || !currentHint || !uploadState) return;
+
+      const value = sel?.value || docsContratoId || '__ALL__';
+      const label = sel?.selectedOptions?.[0]?.textContent || 'Todos los contratos';
+      if (value === '__ALL__'){
+        currentName.textContent = 'Todos los contratos';
+        currentHint.textContent = 'Elegí una unidad específica para habilitar la carga de archivos.';
+        uploadState.textContent = 'Para subir un archivo primero seleccioná un contrato puntual.';
+      } else {
+        currentName.textContent = label;
+        currentHint.textContent = 'La carga nueva quedará asociada directamente a esta unidad.';
+        uploadState.textContent = 'Listo para adjuntar un documento nuevo a este contrato.';
+      }
     }
 
     async function loadDocsListInto(tbodyId, msgId, contratoId, includeContratoCol){
@@ -6298,6 +6683,8 @@ function globalSearch(){
       const tb = $(tbodyId);
       if (tb) tb.innerHTML = '';
 
+      updateDocsSidePanel();
+
       const { rows, error } = await buildCombinedDocumentRows(contratoId);
 
       if (tbodyId === 'docsBody'){
@@ -6305,7 +6692,28 @@ function globalSearch(){
       }
 
       const filtroTipo = tbodyId === 'docsBody' ? ($('docsFiltroTipo')?.value || 'TODOS') : 'TODOS';
-      const filtered = filtroTipo === 'TODOS' ? rows : rows.filter(r => r.rowType === filtroTipo);
+      const search = tbodyId === 'docsBody' ? String($('docsSearch')?.value || '').trim().toLowerCase() : '';
+
+      let filtered = filtroTipo === 'TODOS' ? rows : rows.filter(r => r.rowType === filtroTipo);
+
+      if (search){
+        filtered = filtered.filter(row => {
+          const haystack = [
+            row.rowType,
+            row.numero,
+            row.detalle,
+            row.referencia,
+            row.medio,
+            row.contrato_id ? contratoLabelById(row.contrato_id) : '',
+            row.downloadUrl ? 'adjunto disponible' : 'sin adjunto'
+          ].join(' ').toLowerCase();
+          return haystack.includes(search);
+        });
+      }
+
+      if ($('docsVisibleCount') && tbodyId === 'docsBody'){
+        $('docsVisibleCount').textContent = `${filtered.length} visibles`;
+      }
 
       if (error && !filtered.length){
         if (msgEl) msgEl.textContent = error;
@@ -6313,37 +6721,103 @@ function globalSearch(){
       }
 
       if (!filtered.length){
-        if (msgEl) msgEl.textContent = 'Sin movimientos para mostrar.';
+        if (tbodyId === 'docsBody'){
+          tb.innerHTML = `<tr><td colspan="8"><div class="docs-empty-state">No hay movimientos para mostrar con esos filtros.</div></td></tr>`;
+        } else if (msgEl){
+          msgEl.textContent = 'Sin movimientos para mostrar.';
+        }
         return;
       }
 
       for (const row of filtered){
         const tr = document.createElement('tr');
-        const detailExtra = row.referencia ? `<div class="muted">Ref.: ${row.referencia}</div>` : '';
-        const actions = [];
+        const detailExtra = row.referencia ? `<div class="docs-record-sub">Referencia: ${row.referencia}</div>` : '';
+        const contractLabel = row.contrato_id ? contratoLabelById(row.contrato_id) : 'Sin contrato';
+        const typeClass = row.rowType === 'RECIBO' ? 'receipt' : (row.rowType === 'CONTRATO' ? 'contract' : 'other');
 
+        let stateLabel = 'Sin adjunto';
+        let stateClass = 'warn';
         if (row.downloadUrl){
-          actions.push(`<a class="linkBtn" href="${row.downloadUrl}" target="_blank">Descargar</a>`);
+          stateLabel = row.rowType === 'RECIBO' ? 'Adjunto disponible' : 'Archivo disponible';
+          stateClass = 'ok';
         } else if (row.rowType === 'RECIBO'){
-          actions.push(`<span class="muted">Sin adjunto</span>`);
+          stateLabel = 'Generado sin adjunto';
+          stateClass = 'info';
+        }
+
+        if (tbodyId === 'docsBody'){
+          const actions = [];
+          if (row.downloadUrl){
+            actions.push(`<a class="docs-action-btn primary" href="${row.downloadUrl}" target="_blank">Ver archivo</a>`);
+            actions.push(`<a class="docs-action-btn" href="${row.downloadUrl}" download>Descargar</a>`);
+          }
+          if (row.docId && row.docPath){
+            actions.push(`<button class="docs-action-btn danger" onclick="deleteDoc('${row.docId}','${row.docPath}','${contratoId}','${tbodyId}','${msgId}', ${includeContratoCol})">Eliminar</button>`);
+          }
+          if (!actions.length){
+            actions.push(`<span class="docs-action-btn">Sin acción</span>`);
+          }
+
+          tr.innerHTML = `
+            <td><span class="docs-type-chip ${typeClass}">${row.rowType}</span></td>
+            <td>
+              <div class="docs-record-main">
+                <div class="docs-record-title">${row.numero || '—'}</div>
+                <div class="docs-record-sub">${row.rowType === 'RECIBO' ? 'Comprobante de cobro' : row.rowType === 'CONTRATO' ? 'Documento contractual' : 'Archivo adicional'}</div>
+              </div>
+            </td>
+            <td>
+              <div class="docs-record-main">
+                <div class="docs-record-title">${escapeHtml(contractLabel)}</div>
+                <div class="docs-record-sub">${row.contrato_id || 'Sin referencia de contrato'}</div>
+              </div>
+            </td>
+            <td>
+              <div class="docs-record-main">
+                <div class="docs-record-title">${escapeHtml(row.detalle || '—')}</div>
+                ${detailExtra || `<div class="docs-record-sub">${row.medio || 'Sin medio de pago'}</div>`}
+              </div>
+            </td>
+            <td>
+              <div class="docs-record-main">
+                <div class="docs-record-title">${formatDateDisplay(row.fecha_hora || row.fecha)}</div>
+                <div class="docs-record-sub">${formatDateTimeDisplay(row.fecha_hora || row.fecha)}</div>
+              </div>
+            </td>
+            <td><span class="docs-status-pill ${stateClass}">${stateLabel}</span></td>
+            <td class="right">
+              <div class="docs-record-main" style="align-items:flex-end;">
+                <div class="docs-record-title">${row.monto == null ? '—' : fmtARS.format(Number(row.monto || 0))}</div>
+                <div class="docs-record-sub">${row.medio || '—'}</div>
+              </div>
+            </td>
+            <td class="center"><div class="docs-actions">${actions.join('')}</div></td>
+          `;
         } else {
-          actions.push(`<span class="muted">—</span>`);
-        }
+          const actions = [];
+          if (row.downloadUrl){
+            actions.push(`<a class="linkBtn" href="${row.downloadUrl}" target="_blank">Descargar</a>`);
+          } else if (row.rowType === 'RECIBO'){
+            actions.push(`<span class="muted">Sin adjunto</span>`);
+          } else {
+            actions.push(`<span class="muted">—</span>`);
+          }
 
-        if (row.docId && row.docPath){
-          actions.push(`<button class="linkBtn" onclick="deleteDoc('${row.docId}','${row.docPath}','${contratoId}','${tbodyId}','${msgId}', ${includeContratoCol})">Eliminar archivo</button>`);
-        }
+          if (row.docId && row.docPath){
+            actions.push(`<button class="linkBtn" onclick="deleteDoc('${row.docId}','${row.docPath}','${contratoId}','${tbodyId}','${msgId}', ${includeContratoCol})">Eliminar archivo</button>`);
+          }
 
-        tr.innerHTML = `
-          <td><span class="badge ${row.badgeClass}">${row.rowType}</span></td>
-          <td><b>${row.numero || '—'}</b></td>
-          ${includeContratoCol ? `<td>${row.contrato_id ? contratoLabelById(row.contrato_id) : '—'}</td>` : ''}
-          <td>${row.detalle || '—'}${detailExtra}</td>
-          <td>${formatDateTimeDisplay(row.fecha_hora || row.fecha)}</td>
-          <td class="right">${row.monto == null ? '—' : fmtARS.format(Number(row.monto || 0))}</td>
-          <td>${row.medio || '—'}</td>
-          <td class="center">${actions.join('&nbsp;|&nbsp;')}</td>
-        `;
+          tr.innerHTML = `
+            <td><span class="badge ${row.badgeClass}">${row.rowType}</span></td>
+            <td><b>${row.numero || '—'}</b></td>
+            ${includeContratoCol ? `<td>${escapeHtml(contractLabel)}</td>` : ''}
+            <td>${escapeHtml(row.detalle || '—')}${row.referencia ? `<div class="muted">Ref.: ${escapeHtml(row.referencia)}</div>` : ''}</td>
+            <td>${formatDateTimeDisplay(row.fecha_hora || row.fecha)}</td>
+            <td class="right">${row.monto == null ? '—' : fmtARS.format(Number(row.monto || 0))}</td>
+            <td>${row.medio || '—'}</td>
+            <td class="center">${actions.join('&nbsp;|&nbsp;')}</td>
+          `;
+        }
         tb.appendChild(tr);
       }
 
@@ -6430,17 +6904,21 @@ function globalSearch(){
 
   if (!contratoId || contratoId === '__ALL__') {
     $('docsMsg').textContent = 'Elegí un contrato específico para adjuntar un archivo.';
+    if ($('docsUploadState')) $('docsUploadState').textContent = 'Falta elegir una unidad puntual para subir el archivo.';
     return;
   }
   if (!file) {
     $('docsMsg').textContent = 'Seleccioná un archivo.';
+    if ($('docsUploadState')) $('docsUploadState').textContent = 'Todavía no hay archivo seleccionado para cargar.';
     return;
   }
 
+  if ($('docsUploadState')) $('docsUploadState').textContent = `Subiendo ${file.name}...`;
   const ok = await uploadDocCore({ contratoId, tipo, file }, 'docsMsg');
 
   if (ok) {
     $('docsFile').value = '';
+    if ($('docsUploadState')) $('docsUploadState').textContent = `Archivo cargado correctamente como ${tipo}.`;
     await loadDocsForSelected();
 
     if (selected?.contrato_id === contratoId) {
