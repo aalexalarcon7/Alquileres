@@ -2144,43 +2144,148 @@
     }
     .recibos-actions{
       display:flex;
-      flex-wrap:wrap;
+      align-items:center;
       justify-content:center;
-      gap:8px;
     }
-    .action-chip{
+    .recibos-action-panel{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      width:100%;
+      flex-wrap:nowrap;
+    }
+    .recibos-primary-action,
+    .recibos-share-summary,
+    .recibos-share-action{
+      border:1px solid var(--border);
+      cursor:pointer;
+      transition:transform .18s ease,border-color .18s ease,background-color .18s ease,box-shadow .18s ease;
+      font:inherit;
+    }
+    .recibos-primary-action{
+      min-width:124px;
+      min-height:42px;
+      padding:0 16px;
+      border-radius:16px;
+      background:linear-gradient(180deg, var(--primary-btn-bg), color-mix(in srgb, var(--primary-btn-bg) 88%, #000 12%));
+      color:var(--primary-btn-fg);
+      font-size:13px;
+      font-weight:950;
+      letter-spacing:.01em;
+      box-shadow:0 14px 26px rgba(15,23,42,.12);
+    }
+    .recibos-primary-action:hover,
+    .recibos-share-summary:hover,
+    .recibos-share-action:hover{
+      transform:translateY(-1px);
+      border-color:var(--border-strong);
+    }
+    .recibos-share-menu{
+      position:relative;
+    }
+    .recibos-share-menu[open]{z-index:6}
+    .recibos-share-summary{
+      list-style:none;
+      min-height:42px;
+      min-width:126px;
+      padding:0 14px;
+      border-radius:16px;
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      min-height:34px;
-      padding:0 12px;
-      border-radius:999px;
-      border:1px solid var(--border);
-      background:var(--secondary-btn-bg);
+      gap:8px;
+      background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.72));
       color:var(--text);
       font-size:12px;
       font-weight:900;
-      text-decoration:none;
-      cursor:pointer;
-      transition:transform .18s ease,border-color .18s ease,background-color .18s ease;
+      box-shadow:0 10px 20px rgba(15,23,42,.06);
+      user-select:none;
     }
-    .action-chip:hover{
-      transform:translateY(-1px);
-      border-color:var(--border-strong);
-      background:var(--secondary-btn-hover);
+    [data-theme="dark"] .recibos-share-summary{
+      background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      box-shadow:0 12px 22px rgba(0,0,0,.22);
     }
-    .action-chip.primary{
-      background:var(--primary-btn-bg);
-      color:var(--primary-btn-fg);
-      border-color:transparent;
+    .recibos-share-summary::-webkit-details-marker{display:none}
+    .recibos-share-summary::after{
+      content:'▾';
+      font-size:11px;
+      opacity:.72;
     }
-    .action-chip.info{
+    .recibos-share-dropdown{
+      position:absolute;
+      top:calc(100% + 8px);
+      right:0;
+      width:220px;
+      padding:10px;
+      border-radius:18px;
+      border:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.92));
+      box-shadow:0 24px 38px rgba(15,23,42,.14);
+      display:grid;
+      gap:8px;
+    }
+    [data-theme="dark"] .recibos-share-dropdown{
+      background:linear-gradient(180deg, rgba(18,26,39,.98), rgba(15,23,36,.96));
+      box-shadow:0 24px 42px rgba(0,0,0,.30);
+    }
+    .recibos-share-label{
+      font-size:10px;
+      font-weight:900;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      color:var(--muted);
+      padding:2px 4px 0;
+    }
+    .recibos-share-action{
+      min-height:44px;
+      padding:10px 12px;
+      border-radius:14px;
+      background:var(--secondary-btn-bg);
+      color:var(--text);
+      display:flex;
+      align-items:center;
+      gap:10px;
+      text-align:left;
+    }
+    .recibos-share-action .icon{
+      width:34px;
+      height:34px;
+      border-radius:12px;
+      display:grid;
+      place-items:center;
+      font-size:15px;
+      font-weight:900;
+      flex:0 0 34px;
+      background:var(--surface-soft);
+      border:1px solid var(--border);
+    }
+    .recibos-share-action .meta{
+      display:grid;
+      gap:2px;
+      min-width:0;
+    }
+    .recibos-share-action .title{
+      font-size:12px;
+      font-weight:900;
+      line-height:1.15;
+    }
+    .recibos-share-action .sub{
+      font-size:11px;
+      color:var(--muted);
+      line-height:1.15;
+    }
+    .recibos-share-action.email .icon{
       background:var(--info-soft);
       border-color:var(--info-border);
     }
-    .action-chip.ok{
+    .recibos-share-action.whatsapp .icon{
       background:var(--ok-soft);
       border-color:var(--ok-border);
+    }
+    .recibos-share-action.pdf .icon{
+      background:rgba(124,58,237,.10);
+      border-color:rgba(124,58,237,.22);
     }
     .recibos-side-stack{
       display:grid;
@@ -2259,7 +2364,7 @@
       .recibos-toolbar-actions{width:100%;justify-content:stretch}
       .recibos-toolbar-actions .btn,
       .recibos-toolbar-actions .recibos-count-pill{width:100%;justify-content:center}
-      .recibos-actions{justify-content:flex-start}
+      .recibos-actions{justify-content:center}
     }
   </style>
 
@@ -4756,6 +4861,11 @@ function globalSearch(){
       renderRecibosPage();
     }
 
+    function closeShareMenu(node){
+      const details = node?.closest?.('details');
+      if (details) details.open = false;
+    }
+
     function renderRecibosHistoryRows(rows){
       if (!rows.length){
         return `<tr><td colspan="9"><div class="recibos-empty">No hay recibos que coincidan con los filtros aplicados.</div></td></tr>`;
@@ -4800,10 +4910,36 @@ function globalSearch(){
           </td>
           <td class="center">
             <div class="recibos-actions">
-              <button class="action-chip primary" onclick="openReciboModal('${item.id}')">Generar</button>
-              <button class="action-chip" onclick="shareReciboByEmail('${item.id}')">Email</button>
-              <button class="action-chip ok" onclick="shareReciboByWhatsappText('${item.id}')">WA rápido</button>
-              <button class="action-chip info" onclick="shareReciboByWhatsappPdf('${item.id}')">WA + PDF</button>
+              <div class="recibos-action-panel">
+                <button class="recibos-primary-action" onclick="openReciboModal('${item.id}')">Ver recibo</button>
+                <details class="recibos-share-menu">
+                  <summary class="recibos-share-summary">Compartir</summary>
+                  <div class="recibos-share-dropdown">
+                    <div class="recibos-share-label">Canales disponibles</div>
+                    <button class="recibos-share-action email" onclick="event.preventDefault(); event.stopPropagation(); closeShareMenu(this); shareReciboByEmail('${item.id}')">
+                      <span class="icon">✉</span>
+                      <span class="meta">
+                        <span class="title">Email</span>
+                        <span class="sub">Abrir envío por correo</span>
+                      </span>
+                    </button>
+                    <button class="recibos-share-action whatsapp" onclick="event.preventDefault(); event.stopPropagation(); closeShareMenu(this); shareReciboByWhatsappText('${item.id}')">
+                      <span class="icon">WA</span>
+                      <span class="meta">
+                        <span class="title">WhatsApp rápido</span>
+                        <span class="sub">Mensaje listo para enviar</span>
+                      </span>
+                    </button>
+                    <button class="recibos-share-action pdf" onclick="event.preventDefault(); event.stopPropagation(); closeShareMenu(this); shareReciboByWhatsappPdf('${item.id}')">
+                      <span class="icon">PDF</span>
+                      <span class="meta">
+                        <span class="title">WhatsApp + PDF</span>
+                        <span class="sub">Compartir el recibo adjunto</span>
+                      </span>
+                    </button>
+                  </div>
+                </details>
+              </div>
             </div>
           </td>
         </tr>
