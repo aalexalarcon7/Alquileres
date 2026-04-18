@@ -1938,6 +1938,14 @@
     .recibo-sheet-title{font-size:34px;font-weight:950;letter-spacing:-.03em;margin:0}
     .recibo-sheet-sub{margin-top:6px;font-size:13px;color:#475569}
     .recibo-sheet-head .recibo-sheet-sub{color:#cbd5e1}
+    .recibo-sheet-head-meta{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:2px;
+      text-align:center;
+    }
+    .recibo-sheet-head-meta .recibo-sheet-sub{margin-top:0}
     .recibo-sheet-badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
     .recibo-sheet-badge{
       border:1px solid rgba(255,255,255,.18);
@@ -2017,13 +2025,12 @@
     }
     .recibo-amount-card.total .label{color:#cbd5e1}
     .recibo-note{
-      border:1px dashed rgba(15,23,42,.18);
-      border-radius:22px;
-      padding:18px 20px;
-      background:#fff;
-      font-size:13px;
-      line-height:1.65;
-      color:#475569;
+      margin-top:4px;
+      padding-top:14px;
+      border-top:1px dashed rgba(15,23,42,.18);
+      font-size:12.5px;
+      line-height:1.6;
+      color:#64748b;
       text-align:center;
     }
     .recibo-actions{
@@ -3113,7 +3120,7 @@ function globalSearch(){
       $('viewInicio').innerHTML = `
         <div class="card">
           <h2 style="margin:0;">Inicio</h2>
-          <div class="muted">Resumen general</div>
+          <div class="muted">Resumen general .</div>
         </div>
 
         <div class="card">
@@ -4154,14 +4161,15 @@ function globalSearch(){
 
       const doc = new jsPDFCtor({ unit: 'pt', format: 'a4' });
       const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 42;
       const contentWidth = 512;
       const startX = (pageWidth - contentWidth) / 2;
 
       const negocio = appSettings?.negocio?.nombre || 'Gestión de Alquileres';
-      const contactoNegocio = [appSettings?.negocio?.direccion, appSettings?.negocio?.telefono, appSettings?.negocio?.email].filter(Boolean).join(' · ');
+      const negocioDireccion = appSettings?.negocio?.direccion || '';
+      const negocioTelefono = appSettings?.negocio?.telefono || '';
+      const negocioEmail = appSettings?.negocio?.email || '';
       const cuitNegocio = appSettings?.negocio?.cuit || '—';
+
       const numero = item?.numero_recibo || '—';
       const fecha = formatDateDisplay(item?.fecha_pago || item?.created_at);
       const impuestoPct = Number(item?.impuesto_porcentaje || 0);
@@ -4177,27 +4185,35 @@ function globalSearch(){
         doc.text(String(value || ''), xCenter - width / 2, y);
       };
 
-      const drawWrappedCentered = (value, topY, size = 11, weight = 'normal', color = [203,213,225], maxWidth = contentWidth - 60, lineHeight = 15) => {
+      const drawCenteredLines = (lines, xCenter, startY, size = 11, weight = 'normal', color = [71,85,105], lineHeight = 14) => {
         doc.setFont('helvetica', weight);
         doc.setFontSize(size);
         doc.setTextColor(color[0], color[1], color[2]);
-        const lines = doc.splitTextToSize(String(value || ''), maxWidth);
-        const center = pageWidth / 2;
-        lines.forEach((line, idx) => {
-          const width = doc.getTextWidth(line);
-          doc.text(line, center - width / 2, topY + (idx * lineHeight));
+        lines.filter(Boolean).forEach((line, idx) => {
+          const w = doc.getTextWidth(String(line));
+          doc.text(String(line), xCenter - (w / 2), startY + (idx * lineHeight));
         });
-        return lines.length * lineHeight;
+      };
+
+      const drawParagraphCentered = (value, xCenter, startY, maxWidth, size = 10.5, color = [100,116,139], lineHeight = 14) => {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(size);
+        doc.setTextColor(color[0], color[1], color[2]);
+        const lines = doc.splitTextToSize(String(value || ''), maxWidth);
+        lines.forEach((line, idx) => {
+          const w = doc.getTextWidth(String(line));
+          doc.text(String(line), xCenter - (w / 2), startY + (idx * lineHeight));
+        });
       };
 
       const drawInfoBox = (x, y, w, h, label, main, sub1 = '', sub2 = '') => {
         doc.setDrawColor(203, 213, 225);
         doc.setFillColor(248, 250, 252);
         doc.roundedRect(x, y, w, h, 18, 18, 'FD');
-        centerText(label.toUpperCase(), x + (w/2), y + 22, 10, 'bold', [100,116,139]);
-        centerText(main, x + (w/2), y + 48, 16, 'bold', [15,23,42]);
-        if (sub1) centerText(sub1, x + (w/2), y + 68, 10, 'normal', [71,85,105]);
-        if (sub2) centerText(sub2, x + (w/2), y + 84, 10, 'normal', [71,85,105]);
+        centerText(label.toUpperCase(), x + (w/2), y + 24, 10, 'bold', [100,116,139]);
+        centerText(main, x + (w/2), y + 58, 16, 'bold', [15,23,42]);
+        if (sub1) centerText(sub1, x + (w/2), y + 82, 10, 'normal', [71,85,105]);
+        if (sub2) centerText(sub2, x + (w/2), y + 102, 10, 'normal', [71,85,105]);
       };
 
       const drawAmountCard = (x, y, w, h, label, value, secondary = '', dark = false) => {
@@ -4207,34 +4223,40 @@ function globalSearch(){
           doc.roundedRect(x, y, w, h, 18, 18, 'FD');
           centerText(label.toUpperCase(), x + (w/2), y + 24, 10, 'bold', [203,213,225]);
           centerText(value, x + (w/2), y + 58, 19, 'bold', [255,255,255]);
-          if (secondary) centerText(secondary, x + (w/2), y + 78, 10, 'normal', [226,232,240]);
+          if (secondary) centerText(secondary, x + (w/2), y + 80, 10, 'normal', [226,232,240]);
         } else {
           doc.setFillColor(248,250,252);
           doc.setDrawColor(203,213,225);
           doc.roundedRect(x, y, w, h, 18, 18, 'FD');
           centerText(label.toUpperCase(), x + (w/2), y + 24, 10, 'bold', [100,116,139]);
           centerText(value, x + (w/2), y + 58, 18, 'bold', [15,23,42]);
-          if (secondary) centerText(secondary, x + (w/2), y + 78, 10, 'normal', [71,85,105]);
+          if (secondary) centerText(secondary, x + (w/2), y + 80, 10, 'normal', [71,85,105]);
         }
       };
 
-      // Header
       const headerY = 38;
-      const headerH = 148;
+      const headerH = 162;
+      const centerX = pageWidth / 2;
+
       doc.setFillColor(15, 23, 42);
       doc.roundedRect(startX, headerY, contentWidth, headerH, 24, 24, 'F');
 
       doc.setFillColor(255,255,255);
-      doc.roundedRect((pageWidth/2) - 36, headerY + 18, 72, 72, 22, 22, 'F');
-      centerText((negocio || 'GA').split(/\s+/).map(part => part[0] || '').join('').slice(0,2).toUpperCase() || 'GA', pageWidth/2, headerY + 63, 24, 'bold', [15,23,42]);
+      doc.roundedRect(centerX - 36, headerY + 18, 72, 72, 22, 22, 'F');
+      centerText((negocio || 'GA').split(/\s+/).map(part => part[0] || '').join('').slice(0,2).toUpperCase() || 'GA', centerX, headerY + 63, 24, 'bold', [15,23,42]);
 
-      centerText('Recibo interno', pageWidth / 2, headerY + 114, 27, 'bold', [255,255,255]);
-      centerText(negocio, pageWidth / 2, headerY + 132, 11, 'normal', [226,232,240]);
-      let contactY = headerY + 148;
-      contactY += drawWrappedCentered(contactoNegocio || '—', headerY + 148, 10, 'normal', [203,213,225], contentWidth - 70, 13);
-      centerText(`CUIT / identificación: ${cuitNegocio}`, pageWidth / 2, headerY + headerH - 12, 10, 'normal', [203,213,225]);
+      centerText('Recibo interno', centerX, headerY + 122, 27, 'bold', [255,255,255]);
+      centerText(negocio, centerX, headerY + 144, 12, 'normal', [226,232,240]);
 
-      // badges
+      const contactLines = [];
+      if (negocioDireccion) contactLines.push(negocioDireccion);
+      const contactLine2 = [negocioTelefono, negocioEmail].filter(Boolean).join(' · ');
+      if (contactLine2) contactLines.push(contactLine2);
+      if (contactLines.length){
+        drawCenteredLines(contactLines.slice(0,2), centerX, headerY + 160, 10, 'normal', [203,213,225], 12);
+      }
+      centerText(`CUIT / identificación: ${cuitNegocio}`, centerX, headerY + headerH - 12, 10, 'normal', [203,213,225]);
+
       const badgeY = headerY + headerH + 18;
       const badgeW1 = 170;
       const badgeW2 = 120;
@@ -4247,37 +4269,26 @@ function globalSearch(){
       centerText(`N° ${numero}`, badgesX + badgeW1/2, badgeY + 18, 10, 'bold', [15,23,42]);
       centerText(fecha, badgesX + badgeW1 + 12 + badgeW2/2, badgeY + 18, 10, 'bold', [15,23,42]);
 
-      // Info boxes
       const boxY = badgeY + 48;
       const gap = 14;
       const boxW = (contentWidth - gap) / 2;
-      drawInfoBox(startX, boxY, boxW, 110, 'Locatario', item?.inquilino_nombre || '—', `Documento: ${item?.documento || '—'}`, `${item?.telefono || '—'} · ${item?.email || '—'}`);
-      drawInfoBox(startX + boxW + gap, boxY, boxW, 110, 'Detalle del cobro', `Unidad ${item?.local_codigo || '—'}`, `Medio de pago: ${item?.medio || '—'}`, `Referencia: ${item?.referencia || '—'}`);
+      drawInfoBox(startX, boxY, boxW, 118, 'Locatario', item?.inquilino_nombre || '—', `Documento: ${item?.documento || '—'}`, `${item?.telefono || '—'} · ${item?.email || '—'}`);
+      drawInfoBox(startX + boxW + gap, boxY, boxW, 118, 'Detalle del cobro', `Unidad ${item?.local_codigo || '—'}`, `Medio de pago: ${item?.medio || '—'}`, `Referencia: ${item?.referencia || '—'}`);
 
-      // Amount cards
-      const amountY = boxY + 130;
+      const amountY = boxY + 138;
       const amountGap = 12;
       const amountW = (contentWidth - (amountGap * 2)) / 3;
-      drawAmountCard(startX, amountY, amountW, 102, 'Alquiler', alquiler);
-      drawAmountCard(startX + amountW + amountGap, amountY, amountW, 102, 'Impuesto', impuesto, `${impuestoPct.toFixed(2)}%`);
-      drawAmountCard(startX + (amountW + amountGap) * 2, amountY, amountW, 102, 'Total recibido', total, '', true);
+      drawAmountCard(startX, amountY, amountW, 104, 'Alquiler', alquiler);
+      drawAmountCard(startX + amountW + amountGap, amountY, amountW, 104, 'Impuesto', impuesto, `${impuestoPct.toFixed(2)}%`);
+      drawAmountCard(startX + (amountW + amountGap) * 2, amountY, amountW, 104, 'Total recibido', total, '', true);
 
-      // Note
-      const noteY = amountY + 124;
+      const footerY = amountY + 128;
       doc.setDrawColor(148,163,184);
       doc.setLineDashPattern([4, 4], 0);
-      doc.roundedRect(startX, noteY, contentWidth, 72, 18, 18);
+      doc.line(startX + 12, footerY, startX + contentWidth - 12, footerY);
       doc.setLineDashPattern([], 0);
-      const note = 'Este recibo interno deja constancia del cobro registrado en el sistema y puede compartirse como PDF o imprimirse para archivo administrativo.';
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(11);
-      doc.setTextColor(71,85,105);
-      const noteLines = doc.splitTextToSize(note, contentWidth - 42);
-      let noteTextY = noteY + 28;
-      noteLines.forEach((line, idx) => {
-        const width = doc.getTextWidth(line);
-        doc.text(line, (pageWidth / 2) - (width / 2), noteTextY + (idx * 15));
-      });
+      const note = 'Comprobante interno no fiscal. Generado para archivo administrativo y entrega al locatario.';
+      drawParagraphCentered(note, centerX, footerY + 18, contentWidth - 56, 10.5, [100,116,139], 14);
 
       return doc.output('blob');
     }
@@ -4293,10 +4304,23 @@ function globalSearch(){
       if (!window.isSecureContext || !navigator.share) return false;
       const payload = await buildReciboPdfPayload(item);
       const shareData = {
-        title: extra.title || buildEmailSubject(item),
-        text: extra.text || buildReceiptShareText(item),
+        title: extra.title ?? buildEmailSubject(item),
         files: [payload.file]
       };
+      if (Object.prototype.hasOwnProperty.call(extra, 'text')) {
+        if (extra.text) shareData.text = extra.text;
+      } else {
+        shareData.text = buildReceiptShareText(item);
+      }
+      if (navigator.canShare && !navigator.canShare({ files: [payload.file] })) return false;
+      try {
+        await navigator.share(shareData);
+        return true;
+      } catch (error) {
+        if (error?.name === 'AbortError') return true;
+        return false;
+      }
+    };
       if (navigator.canShare && !navigator.canShare({ files: [payload.file] })) return false;
       try {
         await navigator.share(shareData);
@@ -4317,7 +4341,8 @@ function globalSearch(){
       const digits = String(phone || '').replace(/\D/g, '');
       if (!digits) return '';
       const normalized = digits.startsWith('54') ? digits : `54${digits}`;
-      return `https://wa.me/${normalized}?text=${encodeURIComponent(text || '')}`;
+      const base = `https://wa.me/${normalized}`;
+      return text ? `${base}?text=${encodeURIComponent(text)}` : base;
     }
 
     function buildReceiptShareText(item){
@@ -4362,10 +4387,11 @@ function globalSearch(){
         <div class="recibo-sheet" id="reciboSheetPrintable">
           <div class="recibo-sheet-head">
             <div class="recibo-sheet-logo">${initials}</div>
-            <div>
+            <div class="recibo-sheet-head-meta">
               <h2 class="recibo-sheet-title">Recibo interno</h2>
               <div class="recibo-sheet-sub">${negocio}</div>
-              <div class="recibo-sheet-sub">${direccion} · ${telefono} · ${email}</div>
+              <div class="recibo-sheet-sub">${direccion}</div>
+              <div class="recibo-sheet-sub">${telefono} · ${email}</div>
               <div class="recibo-sheet-sub">CUIT / identificación: ${cuit}</div>
             </div>
             <div class="recibo-sheet-badges">
@@ -4406,7 +4432,7 @@ function globalSearch(){
           </div>
 
           <div class="recibo-note">
-            Este recibo interno deja constancia del cobro registrado en el sistema y puede compartirse como PDF o imprimirse para archivo administrativo.
+            Comprobante interno no fiscal. Generado para archivo administrativo y entrega al locatario.
           </div>
         </div>
       `;
@@ -4664,23 +4690,26 @@ function globalSearch(){
               body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f8fafc;margin:0;padding:24px}
               .recibo-sheet{max-width:820px;margin:0 auto;border:1px solid rgba(15,23,42,.10);border-radius:24px;background:#fff;color:#0f172a;padding:24px}
               .recibo-sheet *{box-sizing:border-box}
-              .recibo-sheet-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}
-              .recibo-sheet-logo{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;font-weight:900;color:#fff;background:#0f172a;flex:0 0 56px}
-              .recibo-sheet-title{font-size:28px;font-weight:950;letter-spacing:-.03em;margin:0}
+              .recibo-sheet-head{display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;text-align:center;margin-bottom:20px;padding:28px 24px;border-radius:26px;background:#0f172a;color:#fff}
+              .recibo-sheet-logo{width:72px;height:72px;border-radius:22px;display:grid;place-items:center;font-weight:900;font-size:24px;color:#0f172a;background:#fff;flex:0 0 72px}
+              .recibo-sheet-title{font-size:34px;font-weight:950;letter-spacing:-.03em;margin:0}
               .recibo-sheet-sub{margin-top:6px;font-size:13px;color:#475569}
-              .recibo-sheet-badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-              .recibo-sheet-badge{border:1px solid rgba(15,23,42,.12);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:900;background:#f8fafc}
+              .recibo-sheet-head .recibo-sheet-sub{color:#cbd5e1}
+              .recibo-sheet-head-meta{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+              .recibo-sheet-head-meta .recibo-sheet-sub{margin-top:0}
+              .recibo-sheet-badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+              .recibo-sheet-badge{border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:8px 14px;font-size:12px;font-weight:900;background:rgba(255,255,255,.10);color:#fff}
               .recibo-sheet-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:16px}
-              .recibo-sheet-box{border:1px solid rgba(15,23,42,.10);border-radius:18px;padding:14px 16px;background:#f8fafc;min-height:94px}
-              .recibo-sheet-box .label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-bottom:8px}
-              .recibo-sheet-box .value{font-size:16px;font-weight:900;line-height:1.3}
+              .recibo-sheet-box{border:1px solid rgba(15,23,42,.10);border-radius:22px;padding:18px 20px;background:#f8fafc;min-height:118px;text-align:center;display:flex;flex-direction:column;justify-content:center}
+              .recibo-sheet-box .label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.10em;color:#64748b;margin-bottom:10px}
+              .recibo-sheet-box .value{font-size:18px;font-weight:950;line-height:1.35}
               .recibo-amount-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
               .recibo-amount-card{border:1px solid rgba(15,23,42,.10);border-radius:18px;padding:16px;background:#f8fafc;text-align:center}
               .recibo-amount-card .label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#64748b;font-weight:900;margin-bottom:8px}
               .recibo-amount-card .value{font-size:22px;font-weight:950;letter-spacing:-.03em}
               .recibo-amount-card.total{background:#0f172a;border-color:#0f172a;color:#fff}
               .recibo-amount-card.total .label{color:#cbd5e1}
-              .recibo-note{border:1px dashed rgba(15,23,42,.18);border-radius:18px;padding:14px 16px;background:#fff;font-size:13px;line-height:1.55;color:#475569}
+              .recibo-note{margin-top:4px;padding-top:14px;border-top:1px dashed rgba(15,23,42,.18);font-size:12.5px;line-height:1.6;color:#64748b;text-align:center}
               @media print{body{padding:0;background:#fff}.recibo-sheet{border:none;border-radius:0;box-shadow:none;max-width:none}}
             </style>
           </head>
@@ -4742,6 +4771,32 @@ function globalSearch(){
         alert('Este locatario no tiene teléfono cargado.');
         return;
       }
+      const link = buildWhatsappLink(item.telefono, '');
+      if (!link){
+        alert('No se pudo armar el enlace de WhatsApp.');
+        return;
+      }
+
+      try {
+        const shared = await tryNativeShareReciboPdf(item, {
+          title: `Recibo ${item.numero_recibo || ''}`,
+          text: ''
+        });
+        if (shared){
+          $('reciboModalMsg').textContent = 'Se abrió el menú compartir para enviar solo el PDF por WhatsApp.';
+          return;
+        }
+
+        await downloadReciboPdf(item);
+        window.open(link, '_blank', 'noopener');
+        $('reciboModalMsg').textContent = 'Te descargué el PDF y abrí WhatsApp para adjuntarlo manualmente, sin mensaje extra.';
+      } catch (error) {
+        console.error(error);
+        await downloadReciboPdf(item).catch(() => {});
+        window.open(link, '_blank', 'noopener');
+        $('reciboModalMsg').textContent = 'Abrí WhatsApp y descargué el PDF para que lo adjuntes manualmente.';
+      }
+    }
       const link = buildWhatsappLink(item.telefono, buildReceiptShareText(item));
       if (!link){
         alert('No se pudo armar el enlace de WhatsApp.');
