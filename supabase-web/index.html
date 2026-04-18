@@ -2398,6 +2398,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <!-- MODAL RECIBO INTERNO -->
   <div class="modalBack" id="modalReciboBack">
@@ -2412,8 +2413,8 @@
       <div id="reciboPreviewBody" style="margin-top:14px;"></div>
       <div class="recibo-actions">
         <button class="btn" onclick="copyReciboShareText()">Copiar texto</button>
-        <button class="btn" onclick="openReciboEmail()">Email</button>
-        <button class="btn" onclick="openReciboWhatsapp()">WhatsApp</button>
+        <button class="btn" onclick="openReciboEmail()">Email + PDF</button>
+        <button class="btn" onclick="openReciboWhatsapp()">WhatsApp + PDF</button>
         <button class="btn primary" onclick="printReciboActual()">Imprimir / Guardar PDF</button>
       </div>
       <div class="toast" id="reciboModalMsg"></div>
@@ -3088,7 +3089,7 @@ function globalSearch(){
       $('viewInicio').innerHTML = `
         <div class="card">
           <h2 style="margin:0;">Inicio</h2>
-          <div class="muted">Resumen general</div>
+          <div class="muted">Resumen general .</div>
         </div>
 
         <div class="card">
@@ -4072,6 +4073,194 @@ function globalSearch(){
     }
 
 
+    function sanitizeDownloadFileName(value, fallback='recibo'){
+      const base = String(value || fallback).normalize('NFD').replace(/[̀-ͯ]/g, '');
+      return base.replace(/[^a-zA-Z0-9._-]+/g, '_').replace(/^_+|_+$/g, '') || fallback;
+    }
+
+    function downloadBlobFile(blob, fileName){
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1200);
+    }
+
+    function buildEmailSubject(item){
+      return `Recibo ${item?.numero_recibo || 'interno'} · ${appSettings?.negocio?.nombre || 'Gestión de Alquileres'}`;
+    }
+
+    function buildEmailBody(item){
+      const negocio = appSettings?.negocio?.nombre || 'Gestión de Alquileres';
+      const saludo = item?.inquilino_nombre ? `Hola ${item.inquilino_nombre},` : 'Hola,';
+      return [
+        saludo,
+        '',
+        `Te compartimos la copia del recibo ${item?.numero_recibo || 'interno'} correspondiente a la unidad ${item?.local_codigo || '—'}.`,
+        '',
+        buildReceiptShareText(item),
+        '',
+        `Saludos,`,
+        negocio
+      ].join('\n');
+    }
+
+    function buildGmailComposeLink(email, subject, body){
+      const params = new URLSearchParams({
+        view: 'cm',
+        fs: '1',
+        tf: '1',
+        to: email || '',
+        su: subject || '',
+        body: body || ''
+      });
+      return `https://mail.google.com/mail/?${params.toString()}`;
+    }
+
+    function buildReciboPdfFileName(item){
+      return `${sanitizeDownloadFileName(item?.numero_recibo || 'recibo')}.pdf`;
+    }
+
+    async function buildReciboPdfBlob(item){
+      const jsPDFCtor = window.jspdf?.jsPDF;
+      if (!jsPDFCtor) throw new Error('No se pudo cargar el generador de PDF.');
+
+      const doc = new jsPDFCtor({ unit: 'pt', format: 'a4' });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 42;
+      const usableWidth = pageWidth - (margin * 2);
+      let y = 56;
+
+      const ensureSpace = (spaceNeeded = 18) => {
+        if (y + spaceNeeded > pageHeight - 48) {
+          doc.addPage();
+          y = 56;
+        }
+      };
+
+      const drawText = (textValue, options = {}) => {
+        if (textValue == null || textValue === '') return;
+        const size = options.size ?? 11;
+        const weight = options.bold ? 'bold' : 'normal';
+        const color = options.color || [15, 23, 42];
+        const indent = options.indent || 0;
+        const after = options.after ?? 14;
+        const lineHeight = options.lineHeight || (size + 4);
+        doc.setFont('helvetica', weight);
+        doc.setFontSize(size);
+        doc.setTextColor(color[0], color[1], color[2]);
+        const lines = doc.splitTextToSize(String(textValue), usableWidth - indent);
+        ensureSpace(lines.length * lineHeight + after);
+        doc.text(lines, margin + indent, y);
+        y += lines.length * lineHeight + after;
+      };
+
+      const negocio = appSettings?.negocio?.nombre || 'Gestión de Alquileres';
+      const contactoNegocio = [appSettings?.negocio?.direccion, appSettings?.negocio?.telefono, appSettings?.negocio?.email].filter(Boolean).join(' · ');
+
+      doc.setFillColor(15, 23, 42);
+      doc.roundedRect(margin, 38, usableWidth, 84, 18, 18, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(24);
+      doc.text('Recibo interno', margin + 18, 74);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.text(negocio, margin + 18, 95);
+      if (contactoNegocio) {
+        doc.text(contactoNegocio, margin + 18, 112);
+      }
+      y = 150;
+
+      drawText(`Número: ${item?.numero_recibo || '—'}`, { size: 14, bold: true, after: 8 });
+      drawText(`Fecha: ${formatDateDisplay(item?.fecha_pago || item?.created_at)}`, { size: 11, after: 16 });
+
+      doc.setDrawColor(203, 213, 225);
+      doc.roundedRect(margin, y - 4, usableWidth, 104, 16, 16);
+      drawText('Locatario', { size: 10, bold: true, color: [100, 116, 139], after: 6 });
+      drawText(item?.inquilino_nombre || '—', { size: 15, bold: true, after: 6 });
+      drawText(`Documento: ${item?.documento || '—'}`, { after: 4 });
+      drawText(`Teléfono: ${item?.telefono || '—'} · Email: ${item?.email || '—'}`, { after: 18 });
+
+      doc.roundedRect(margin, y - 4, usableWidth, 96, 16, 16);
+      drawText('Detalle del cobro', { size: 10, bold: true, color: [100, 116, 139], after: 6 });
+      drawText(`Unidad: ${item?.local_codigo || '—'}`, { size: 14, bold: true, after: 6 });
+      drawText(`Medio de pago: ${item?.medio || '—'}`, { after: 4 });
+      drawText(`Referencia: ${item?.referencia || '—'}`, { after: 18 });
+
+      const boxW = (usableWidth - 24) / 3;
+      const startY = y;
+      const values = [
+        { label: 'Alquiler', value: fmtARS.format(Number(item?.monto_alquiler || 0)), dark: false },
+        { label: 'Impuesto', value: `${fmtARS.format(Number(item?.monto_impuesto || 0))} (${Number(item?.impuesto_porcentaje || 0).toFixed(2)}%)`, dark: false },
+        { label: 'Total recibido', value: fmtARS.format(Number(item?.monto_total || item?.monto || 0)), dark: true }
+      ];
+      values.forEach((entry, index) => {
+        const x = margin + index * (boxW + 12);
+        if (entry.dark) {
+          doc.setFillColor(15, 23, 42);
+          doc.roundedRect(x, startY, boxW, 82, 16, 16, 'F');
+          doc.setTextColor(203, 213, 225);
+        } else {
+          doc.setDrawColor(203, 213, 225);
+          doc.roundedRect(x, startY, boxW, 82, 16, 16);
+          doc.setTextColor(100, 116, 139);
+        }
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.text(entry.label.toUpperCase(), x + 14, startY + 22);
+        doc.setTextColor(entry.dark ? 255 : 15, entry.dark ? 255 : 23, entry.dark ? 255 : 42);
+        doc.setFontSize(entry.dark ? 18 : 16);
+        const amountLines = doc.splitTextToSize(entry.value, boxW - 28);
+        doc.text(amountLines, x + 14, startY + 48);
+      });
+      y = startY + 104;
+
+      doc.setDrawColor(148, 163, 184);
+      doc.setLineDashPattern([3, 3], 0);
+      doc.roundedRect(margin, y, usableWidth, 80, 16, 16);
+      doc.setLineDashPattern([], 0);
+      y += 18;
+      drawText('Este recibo interno deja constancia del cobro registrado en el sistema. Puede compartirse como PDF o imprimirse para su archivo administrativo.', { size: 11, color: [71, 85, 105], after: 10 });
+
+      return doc.output('blob');
+    }
+
+    async function buildReciboPdfPayload(item){
+      const blob = await buildReciboPdfBlob(item);
+      const fileName = buildReciboPdfFileName(item);
+      const file = new File([blob], fileName, { type: 'application/pdf' });
+      return { blob, file, fileName };
+    }
+
+    async function tryNativeShareReciboPdf(item, extra = {}){
+      if (!window.isSecureContext || !navigator.share) return false;
+      const payload = await buildReciboPdfPayload(item);
+      const shareData = {
+        title: extra.title || buildEmailSubject(item),
+        text: extra.text || buildReceiptShareText(item),
+        files: [payload.file]
+      };
+      if (navigator.canShare && !navigator.canShare({ files: [payload.file] })) return false;
+      try {
+        await navigator.share(shareData);
+        return true;
+      } catch (error) {
+        if (error?.name === 'AbortError') return true;
+        return false;
+      }
+    }
+
+    async function downloadReciboPdf(item){
+      const payload = await buildReciboPdfPayload(item);
+      downloadBlobFile(payload.blob, payload.fileName);
+      return payload;
+    }
+
     function buildWhatsappLink(phone, text){
       const digits = String(phone || '').replace(/\D/g, '');
       if (!digits) return '';
@@ -4378,8 +4567,8 @@ function globalSearch(){
                   </div>
                 </div>
                 <div class="row" style="margin-top:12px;">
-                  <button class="btn" onclick="shareReciboByEmail('${ultimo.id}')">Enviar por email</button>
-                  <button class="btn" onclick="shareReciboByWhatsapp('${ultimo.id}')">Enviar por WhatsApp</button>
+                  <button class="btn" onclick="shareReciboByEmail('${ultimo.id}')">Enviar email + PDF</button>
+                  <button class="btn" onclick="shareReciboByWhatsapp('${ultimo.id}')">Enviar WhatsApp + PDF</button>
                   <button class="btn primary" onclick="openReciboModal('${ultimo.id}')">Abrir recibo</button>
                 </div>
               </div>
@@ -4461,7 +4650,7 @@ function globalSearch(){
         .catch(() => { $('reciboModalMsg').textContent = 'No se pudo copiar el texto.'; });
     }
 
-    function shareReciboByEmail(id){
+    async function shareReciboByEmail(id){
       const item = getReciboById(id);
       if (!item) return;
       const email = String(item.email || '').trim();
@@ -4469,12 +4658,34 @@ function globalSearch(){
         alert('Este locatario no tiene email cargado.');
         return;
       }
-      const subject = encodeURIComponent(`Recibo interno ${item.numero_recibo}`);
-      const body = encodeURIComponent(buildReceiptShareText(item));
-      window.open(`mailto:${email}?subject=${subject}&body=${body}`, '_self');
+
+      const subject = buildEmailSubject(item);
+      const body = buildEmailBody(item);
+      const gmailLink = buildGmailComposeLink(email, subject, body);
+      const mailtoLink = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+      try {
+        const shared = await tryNativeShareReciboPdf(item, { title: subject, text: body });
+        if (shared){
+          $('reciboModalMsg').textContent = 'Se abrió el menú compartir para enviar el PDF por email.';
+          return;
+        }
+
+        await downloadReciboPdf(item);
+        const popup = window.open(gmailLink, '_blank', 'noopener');
+        if (!popup) {
+          window.location.href = mailtoLink;
+        }
+        $('reciboModalMsg').textContent = 'Te abrí el correo y descargué el PDF para adjuntarlo.';
+      } catch (error) {
+        console.error(error);
+        const popup = window.open(gmailLink, '_blank', 'noopener');
+        if (!popup) window.location.href = mailtoLink;
+        $('reciboModalMsg').textContent = 'No pude preparar el PDF automático, pero abrí el correo para que lo envíes manualmente.';
+      }
     }
 
-    function shareReciboByWhatsapp(id){
+    async function shareReciboByWhatsapp(id){
       const item = getReciboById(id);
       if (!item) return;
       if (!String(item.telefono || '').trim()){
@@ -4486,7 +4697,25 @@ function globalSearch(){
         alert('No se pudo armar el enlace de WhatsApp.');
         return;
       }
-      window.open(link, '_blank');
+
+      try {
+        const shared = await tryNativeShareReciboPdf(item, {
+          title: `Recibo ${item.numero_recibo || ''}`,
+          text: buildReceiptShareText(item)
+        });
+        if (shared){
+          $('reciboModalMsg').textContent = 'Se abrió el menú compartir para enviar el PDF por WhatsApp.';
+          return;
+        }
+
+        await downloadReciboPdf(item);
+        window.open(link, '_blank', 'noopener');
+        $('reciboModalMsg').textContent = 'Te descargué el PDF y abrí WhatsApp para que lo adjuntes manualmente.';
+      } catch (error) {
+        console.error(error);
+        window.open(link, '_blank', 'noopener');
+        $('reciboModalMsg').textContent = 'Abrí WhatsApp con el texto del recibo. Si querés adjuntar el PDF, usá el botón Imprimir / Guardar PDF.';
+      }
     }
 
     function openReciboEmail(){
