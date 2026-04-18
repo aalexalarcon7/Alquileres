@@ -1896,10 +1896,13 @@
     }
     .recibo-sheet{
       border:1px solid var(--border);
-      border-radius:24px;
-      background:linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.88));
+      border-radius:30px;
+      background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.92));
       color:#0f172a;
-      padding:24px;
+      padding:34px 32px;
+      max-width:690px;
+      margin:0 auto;
+      box-shadow:0 24px 44px rgba(15,23,42,.08);
     }
     [data-theme="dark"] .recibo-sheet{
       background:linear-gradient(180deg, #ffffff, #f8fafc);
@@ -1908,84 +1911,104 @@
     .recibo-sheet *{color:inherit}
     .recibo-sheet-head{
       display:flex;
-      justify-content:space-between;
+      flex-direction:column;
       gap:16px;
-      align-items:flex-start;
-      margin-bottom:18px;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      margin:0 auto 24px auto;
+      padding:28px 24px;
+      border-radius:26px;
+      background:#0f172a;
+      color:#fff;
     }
     .recibo-sheet-logo{
-      width:56px;
-      height:56px;
-      border-radius:18px;
+      width:72px;
+      height:72px;
+      border-radius:22px;
       display:grid;
       place-items:center;
       font-weight:900;
-      color:#fff;
-      background:#0f172a;
-      flex:0 0 56px;
+      font-size:24px;
+      color:#0f172a;
+      background:#ffffff;
+      flex:0 0 72px;
+      box-shadow:0 12px 24px rgba(255,255,255,.18);
     }
-    .recibo-sheet-title{font-size:28px;font-weight:950;letter-spacing:-.03em;margin:0}
+    .recibo-sheet-title{font-size:34px;font-weight:950;letter-spacing:-.03em;margin:0}
     .recibo-sheet-sub{margin-top:6px;font-size:13px;color:#475569}
-    .recibo-sheet-badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .recibo-sheet-head .recibo-sheet-sub{color:#cbd5e1}
+    .recibo-sheet-badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
     .recibo-sheet-badge{
-      border:1px solid rgba(15,23,42,.12);
+      border:1px solid rgba(255,255,255,.18);
       border-radius:999px;
-      padding:6px 12px;
+      padding:8px 14px;
       font-size:12px;
       font-weight:900;
-      background:#f8fafc;
+      background:rgba(255,255,255,.10);
+      color:#fff;
+      backdrop-filter:blur(10px);
     }
     .recibo-sheet-grid{
       display:grid;
       grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:12px;
-      margin-bottom:16px;
+      gap:14px;
+      margin-bottom:18px;
     }
     .recibo-sheet-box{
       border:1px solid rgba(15,23,42,.10);
-      border-radius:18px;
-      padding:14px 16px;
+      border-radius:22px;
+      padding:18px 20px;
       background:#f8fafc;
-      min-height:94px;
+      min-height:118px;
+      text-align:center;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
     }
     .recibo-sheet-box .label{
       font-size:11px;
       font-weight:900;
       text-transform:uppercase;
-      letter-spacing:.08em;
+      letter-spacing:.10em;
       color:#64748b;
-      margin-bottom:8px;
+      margin-bottom:10px;
     }
     .recibo-sheet-box .value{
-      font-size:16px;
-      font-weight:900;
-      line-height:1.3;
+      font-size:18px;
+      font-weight:950;
+      line-height:1.35;
     }
     .recibo-amount-grid{
       display:grid;
       grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:12px;
-      margin-bottom:16px;
+      gap:14px;
+      margin:4px 0 20px;
     }
     .recibo-amount-card{
       border:1px solid rgba(15,23,42,.10);
-      border-radius:18px;
-      padding:16px;
+      border-radius:22px;
+      padding:18px 16px;
       background:#f8fafc;
       text-align:center;
+      min-height:112px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
     }
     .recibo-amount-card .label{
       font-size:11px;
       text-transform:uppercase;
-      letter-spacing:.08em;
+      letter-spacing:.10em;
       color:#64748b;
       font-weight:900;
-      margin-bottom:8px;
+      margin-bottom:10px;
     }
     .recibo-amount-card .value{
-      font-size:22px;
+      font-size:24px;
       font-weight:950;
       letter-spacing:-.03em;
+      line-height:1.25;
     }
     .recibo-amount-card.total{
       background:#0f172a;
@@ -1995,12 +2018,13 @@
     .recibo-amount-card.total .label{color:#cbd5e1}
     .recibo-note{
       border:1px dashed rgba(15,23,42,.18);
-      border-radius:18px;
-      padding:14px 16px;
+      border-radius:22px;
+      padding:18px 20px;
       background:#fff;
       font-size:13px;
-      line-height:1.55;
+      line-height:1.65;
       color:#475569;
+      text-align:center;
     }
     .recibo-actions{
       display:flex;
@@ -3089,7 +3113,7 @@ function globalSearch(){
       $('viewInicio').innerHTML = `
         <div class="card">
           <h2 style="margin:0;">Inicio</h2>
-          <div class="muted">Resumen general</div>
+          <div class="muted">Resumen general .</div>
         </div>
 
         <div class="card">
@@ -4132,100 +4156,128 @@ function globalSearch(){
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
       const margin = 42;
-      const usableWidth = pageWidth - (margin * 2);
-      let y = 56;
-
-      const ensureSpace = (spaceNeeded = 18) => {
-        if (y + spaceNeeded > pageHeight - 48) {
-          doc.addPage();
-          y = 56;
-        }
-      };
-
-      const drawText = (textValue, options = {}) => {
-        if (textValue == null || textValue === '') return;
-        const size = options.size ?? 11;
-        const weight = options.bold ? 'bold' : 'normal';
-        const color = options.color || [15, 23, 42];
-        const indent = options.indent || 0;
-        const after = options.after ?? 14;
-        const lineHeight = options.lineHeight || (size + 4);
-        doc.setFont('helvetica', weight);
-        doc.setFontSize(size);
-        doc.setTextColor(color[0], color[1], color[2]);
-        const lines = doc.splitTextToSize(String(textValue), usableWidth - indent);
-        ensureSpace(lines.length * lineHeight + after);
-        doc.text(lines, margin + indent, y);
-        y += lines.length * lineHeight + after;
-      };
+      const contentWidth = 512;
+      const startX = (pageWidth - contentWidth) / 2;
 
       const negocio = appSettings?.negocio?.nombre || 'Gestión de Alquileres';
       const contactoNegocio = [appSettings?.negocio?.direccion, appSettings?.negocio?.telefono, appSettings?.negocio?.email].filter(Boolean).join(' · ');
+      const cuitNegocio = appSettings?.negocio?.cuit || '—';
+      const numero = item?.numero_recibo || '—';
+      const fecha = formatDateDisplay(item?.fecha_pago || item?.created_at);
+      const impuestoPct = Number(item?.impuesto_porcentaje || 0);
+      const alquiler = fmtARS.format(Number(item?.monto_alquiler || 0));
+      const impuesto = fmtARS.format(Number(item?.monto_impuesto || 0));
+      const total = fmtARS.format(Number(item?.monto_total || item?.monto || 0));
 
+      const centerText = (value, xCenter, y, size = 12, weight = 'normal', color = [15,23,42]) => {
+        doc.setFont('helvetica', weight);
+        doc.setFontSize(size);
+        doc.setTextColor(color[0], color[1], color[2]);
+        const width = doc.getTextWidth(String(value || ''));
+        doc.text(String(value || ''), xCenter - width / 2, y);
+      };
+
+      const drawWrappedCentered = (value, topY, size = 11, weight = 'normal', color = [203,213,225], maxWidth = contentWidth - 60, lineHeight = 15) => {
+        doc.setFont('helvetica', weight);
+        doc.setFontSize(size);
+        doc.setTextColor(color[0], color[1], color[2]);
+        const lines = doc.splitTextToSize(String(value || ''), maxWidth);
+        const center = pageWidth / 2;
+        lines.forEach((line, idx) => {
+          const width = doc.getTextWidth(line);
+          doc.text(line, center - width / 2, topY + (idx * lineHeight));
+        });
+        return lines.length * lineHeight;
+      };
+
+      const drawInfoBox = (x, y, w, h, label, main, sub1 = '', sub2 = '') => {
+        doc.setDrawColor(203, 213, 225);
+        doc.setFillColor(248, 250, 252);
+        doc.roundedRect(x, y, w, h, 18, 18, 'FD');
+        centerText(label.toUpperCase(), x + (w/2), y + 22, 10, 'bold', [100,116,139]);
+        centerText(main, x + (w/2), y + 48, 16, 'bold', [15,23,42]);
+        if (sub1) centerText(sub1, x + (w/2), y + 68, 10, 'normal', [71,85,105]);
+        if (sub2) centerText(sub2, x + (w/2), y + 84, 10, 'normal', [71,85,105]);
+      };
+
+      const drawAmountCard = (x, y, w, h, label, value, secondary = '', dark = false) => {
+        if (dark){
+          doc.setFillColor(15,23,42);
+          doc.setDrawColor(15,23,42);
+          doc.roundedRect(x, y, w, h, 18, 18, 'FD');
+          centerText(label.toUpperCase(), x + (w/2), y + 24, 10, 'bold', [203,213,225]);
+          centerText(value, x + (w/2), y + 58, 19, 'bold', [255,255,255]);
+          if (secondary) centerText(secondary, x + (w/2), y + 78, 10, 'normal', [226,232,240]);
+        } else {
+          doc.setFillColor(248,250,252);
+          doc.setDrawColor(203,213,225);
+          doc.roundedRect(x, y, w, h, 18, 18, 'FD');
+          centerText(label.toUpperCase(), x + (w/2), y + 24, 10, 'bold', [100,116,139]);
+          centerText(value, x + (w/2), y + 58, 18, 'bold', [15,23,42]);
+          if (secondary) centerText(secondary, x + (w/2), y + 78, 10, 'normal', [71,85,105]);
+        }
+      };
+
+      // Header
+      const headerY = 38;
+      const headerH = 148;
       doc.setFillColor(15, 23, 42);
-      doc.roundedRect(margin, 38, usableWidth, 84, 18, 18, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(24);
-      doc.text('Recibo interno', margin + 18, 74);
+      doc.roundedRect(startX, headerY, contentWidth, headerH, 24, 24, 'F');
+
+      doc.setFillColor(255,255,255);
+      doc.roundedRect((pageWidth/2) - 36, headerY + 18, 72, 72, 22, 22, 'F');
+      centerText((negocio || 'GA').split(/\s+/).map(part => part[0] || '').join('').slice(0,2).toUpperCase() || 'GA', pageWidth/2, headerY + 63, 24, 'bold', [15,23,42]);
+
+      centerText('Recibo interno', pageWidth / 2, headerY + 114, 27, 'bold', [255,255,255]);
+      centerText(negocio, pageWidth / 2, headerY + 132, 11, 'normal', [226,232,240]);
+      let contactY = headerY + 148;
+      contactY += drawWrappedCentered(contactoNegocio || '—', headerY + 148, 10, 'normal', [203,213,225], contentWidth - 70, 13);
+      centerText(`CUIT / identificación: ${cuitNegocio}`, pageWidth / 2, headerY + headerH - 12, 10, 'normal', [203,213,225]);
+
+      // badges
+      const badgeY = headerY + headerH + 18;
+      const badgeW1 = 170;
+      const badgeW2 = 120;
+      const totalBadgesW = badgeW1 + badgeW2 + 12;
+      const badgesX = (pageWidth - totalBadgesW) / 2;
+      doc.setFillColor(248,250,252);
+      doc.setDrawColor(203,213,225);
+      doc.roundedRect(badgesX, badgeY, badgeW1, 28, 14, 14, 'FD');
+      doc.roundedRect(badgesX + badgeW1 + 12, badgeY, badgeW2, 28, 14, 14, 'FD');
+      centerText(`N° ${numero}`, badgesX + badgeW1/2, badgeY + 18, 10, 'bold', [15,23,42]);
+      centerText(fecha, badgesX + badgeW1 + 12 + badgeW2/2, badgeY + 18, 10, 'bold', [15,23,42]);
+
+      // Info boxes
+      const boxY = badgeY + 48;
+      const gap = 14;
+      const boxW = (contentWidth - gap) / 2;
+      drawInfoBox(startX, boxY, boxW, 110, 'Locatario', item?.inquilino_nombre || '—', `Documento: ${item?.documento || '—'}`, `${item?.telefono || '—'} · ${item?.email || '—'}`);
+      drawInfoBox(startX + boxW + gap, boxY, boxW, 110, 'Detalle del cobro', `Unidad ${item?.local_codigo || '—'}`, `Medio de pago: ${item?.medio || '—'}`, `Referencia: ${item?.referencia || '—'}`);
+
+      // Amount cards
+      const amountY = boxY + 130;
+      const amountGap = 12;
+      const amountW = (contentWidth - (amountGap * 2)) / 3;
+      drawAmountCard(startX, amountY, amountW, 102, 'Alquiler', alquiler);
+      drawAmountCard(startX + amountW + amountGap, amountY, amountW, 102, 'Impuesto', impuesto, `${impuestoPct.toFixed(2)}%`);
+      drawAmountCard(startX + (amountW + amountGap) * 2, amountY, amountW, 102, 'Total recibido', total, '', true);
+
+      // Note
+      const noteY = amountY + 124;
+      doc.setDrawColor(148,163,184);
+      doc.setLineDashPattern([4, 4], 0);
+      doc.roundedRect(startX, noteY, contentWidth, 72, 18, 18);
+      doc.setLineDashPattern([], 0);
+      const note = 'Este recibo interno deja constancia del cobro registrado en el sistema y puede compartirse como PDF o imprimirse para archivo administrativo.';
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(11);
-      doc.text(negocio, margin + 18, 95);
-      if (contactoNegocio) {
-        doc.text(contactoNegocio, margin + 18, 112);
-      }
-      y = 150;
-
-      drawText(`Número: ${item?.numero_recibo || '—'}`, { size: 14, bold: true, after: 8 });
-      drawText(`Fecha: ${formatDateDisplay(item?.fecha_pago || item?.created_at)}`, { size: 11, after: 16 });
-
-      doc.setDrawColor(203, 213, 225);
-      doc.roundedRect(margin, y - 4, usableWidth, 104, 16, 16);
-      drawText('Locatario', { size: 10, bold: true, color: [100, 116, 139], after: 6 });
-      drawText(item?.inquilino_nombre || '—', { size: 15, bold: true, after: 6 });
-      drawText(`Documento: ${item?.documento || '—'}`, { after: 4 });
-      drawText(`Teléfono: ${item?.telefono || '—'} · Email: ${item?.email || '—'}`, { after: 18 });
-
-      doc.roundedRect(margin, y - 4, usableWidth, 96, 16, 16);
-      drawText('Detalle del cobro', { size: 10, bold: true, color: [100, 116, 139], after: 6 });
-      drawText(`Unidad: ${item?.local_codigo || '—'}`, { size: 14, bold: true, after: 6 });
-      drawText(`Medio de pago: ${item?.medio || '—'}`, { after: 4 });
-      drawText(`Referencia: ${item?.referencia || '—'}`, { after: 18 });
-
-      const boxW = (usableWidth - 24) / 3;
-      const startY = y;
-      const values = [
-        { label: 'Alquiler', value: fmtARS.format(Number(item?.monto_alquiler || 0)), dark: false },
-        { label: 'Impuesto', value: `${fmtARS.format(Number(item?.monto_impuesto || 0))} (${Number(item?.impuesto_porcentaje || 0).toFixed(2)}%)`, dark: false },
-        { label: 'Total recibido', value: fmtARS.format(Number(item?.monto_total || item?.monto || 0)), dark: true }
-      ];
-      values.forEach((entry, index) => {
-        const x = margin + index * (boxW + 12);
-        if (entry.dark) {
-          doc.setFillColor(15, 23, 42);
-          doc.roundedRect(x, startY, boxW, 82, 16, 16, 'F');
-          doc.setTextColor(203, 213, 225);
-        } else {
-          doc.setDrawColor(203, 213, 225);
-          doc.roundedRect(x, startY, boxW, 82, 16, 16);
-          doc.setTextColor(100, 116, 139);
-        }
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.text(entry.label.toUpperCase(), x + 14, startY + 22);
-        doc.setTextColor(entry.dark ? 255 : 15, entry.dark ? 255 : 23, entry.dark ? 255 : 42);
-        doc.setFontSize(entry.dark ? 18 : 16);
-        const amountLines = doc.splitTextToSize(entry.value, boxW - 28);
-        doc.text(amountLines, x + 14, startY + 48);
+      doc.setTextColor(71,85,105);
+      const noteLines = doc.splitTextToSize(note, contentWidth - 42);
+      let noteTextY = noteY + 28;
+      noteLines.forEach((line, idx) => {
+        const width = doc.getTextWidth(line);
+        doc.text(line, (pageWidth / 2) - (width / 2), noteTextY + (idx * 15));
       });
-      y = startY + 104;
-
-      doc.setDrawColor(148, 163, 184);
-      doc.setLineDashPattern([3, 3], 0);
-      doc.roundedRect(margin, y, usableWidth, 80, 16, 16);
-      doc.setLineDashPattern([], 0);
-      y += 18;
-      drawText('Este recibo interno deja constancia del cobro registrado en el sistema. Puede compartirse como PDF o imprimirse para su archivo administrativo.', { size: 11, color: [71, 85, 105], after: 10 });
 
       return doc.output('blob');
     }
@@ -4309,14 +4361,12 @@ function globalSearch(){
       return `
         <div class="recibo-sheet" id="reciboSheetPrintable">
           <div class="recibo-sheet-head">
-            <div style="display:flex;gap:14px;align-items:flex-start;">
-              <div class="recibo-sheet-logo">${initials}</div>
-              <div>
-                <h2 class="recibo-sheet-title">Recibo interno</h2>
-                <div class="recibo-sheet-sub">${negocio}</div>
-                <div class="recibo-sheet-sub">${direccion} · ${telefono} · ${email}</div>
-                <div class="recibo-sheet-sub">CUIT / identificación: ${cuit}</div>
-              </div>
+            <div class="recibo-sheet-logo">${initials}</div>
+            <div>
+              <h2 class="recibo-sheet-title">Recibo interno</h2>
+              <div class="recibo-sheet-sub">${negocio}</div>
+              <div class="recibo-sheet-sub">${direccion} · ${telefono} · ${email}</div>
+              <div class="recibo-sheet-sub">CUIT / identificación: ${cuit}</div>
             </div>
             <div class="recibo-sheet-badges">
               <span class="recibo-sheet-badge">N° ${numero}</span>
@@ -4328,12 +4378,12 @@ function globalSearch(){
             <div class="recibo-sheet-box">
               <div class="label">Locatario</div>
               <div class="value">${locatario}</div>
-              <div class="recibo-sheet-sub">${documento}</div>
+              <div class="recibo-sheet-sub">Documento: ${documento}</div>
               <div class="recibo-sheet-sub">${tel} · ${mail}</div>
             </div>
             <div class="recibo-sheet-box">
-              <div class="label">Unidad / local</div>
-              <div class="value">${local}</div>
+              <div class="label">Detalle del cobro</div>
+              <div class="value">Unidad ${local}</div>
               <div class="recibo-sheet-sub">Medio de pago: ${medio}</div>
               <div class="recibo-sheet-sub">Referencia: ${referencia}</div>
             </div>
@@ -4356,7 +4406,7 @@ function globalSearch(){
           </div>
 
           <div class="recibo-note">
-            Este recibo interno deja constancia del cobro registrado en el sistema. Puede enviarse por email o WhatsApp como copia administrativa al locatario.
+            Este recibo interno deja constancia del cobro registrado en el sistema y puede compartirse como PDF o imprimirse para archivo administrativo.
           </div>
         </div>
       `;
