@@ -6700,7 +6700,7 @@ function globalSearch(){
       const label = sel?.selectedOptions?.[0]?.textContent || 'Todos los contratos';
       if (value === '__ALL__'){
         currentName.textContent = 'Todos los contratos';
-        currentHint.textContent = 'Elegí una unidad específica para habilitar la carga de archivos.';
+        currentHint.textContent = '';
         uploadState.textContent = 'Para subir un archivo primero seleccioná un contrato puntual.';
       } else {
         currentName.textContent = label;
