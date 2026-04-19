@@ -4604,8 +4604,902 @@ function globalSearch(){
     async function renderDocumentosPage(){
       const el = $('viewDocumentos');
       el.innerHTML = `
+        <div class="card">
+          <div class="row" style="justify-content:space-between;align-items:end;">
+            <div>
+              <h2 style="margin:0;">Documentos y comprobantes</h2>
+              <div class="muted">Unificá contratos, recibos y adjuntos en un módulo más claro: buscá rápido, filtrá mejor y revisá el estado de cada archivo sin mezclar tanto documento con cobro.</div>
+            </div>
+            <div class="row">
+              <button class="btn" onclick="loadDocsForSelected()">Actualizar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="docs-overview">
+          <div class="docs-kpi">
+            <div class="label">Total documentos</div>
+            <div class="value" id="docsResumeTotal">0</div>
+            <div class="sub">Historial consolidado</div>
+          </div>
+          <div class="docs-kpi">
+            <div class="label">Contratos</div>
+            <div class="value" id="docsResumeContratos">0</div>
+            <div class="sub">Base contractual</div>
+          </div>
+          <div class="docs-kpi">
+            <div class="label">Recibos</div>
+            <div class="value" id="docsResumeRecibos">0</div>
+            <div class="sub">Generados por cobro o carga</div>
+          </div>
+          <div class="docs-kpi">
+            <div class="label">Otros archivos</div>
+            <div class="value" id="docsResumeOtros">0</div>
+            <div class="sub">Adjuntos adicionales</div>
+          </div>
+          <div class="docs-kpi">
+            <div class="label">Sin adjunto</div>
+            <div class="value" id="docsResumeSinAdjunto">0</div>
+            <div class="sub">Movimientos sin archivo</div>
+          </div>
+        </div>
+
+        <div class="docs-layout">
+          <div class="card">
+            <div class="row" style="justify-content:space-between;align-items:end;">
+              <div>
+                <h3 style="margin:0;">Historial documental</h3>
+                <div class="muted">Leé rápido qué documento es, a qué unidad corresponde, si tiene archivo y qué acciones están disponibles.</div>
               </div>
             </div>
+
+            <div class="docs-toolbar">
+              <div class="docs-toolbar-main">
+                <div class="docs-toolbar-field">
+                  <label>Buscar</label>
+                  <input id="docsSearch" placeholder="Número, unidad, locatario, detalle o referencia..." oninput="loadDocsForSelected()">
+                </div>
+                <div class="docs-toolbar-field">
+                  <label>Contrato / unidad</label>
+                  <select id="docsContratoSel" onchange="loadDocsForSelected()"></select>
+                </div>
+                <div class="docs-toolbar-field">
+                  <label>Tipo</label>
+                  <select id="docsFiltroTipo" onchange="loadDocsForSelected()">
+                    <option value="TODOS">Todos</option>
+                    <option value="RECIBO">Recibos</option>
+                    <option value="CONTRATO">Contratos</option>
+                    <option value="OTRO">Otros</option>
+                  </select>
+                </div>
+              </div>
+              <div class="docs-toolbar-actions">
+                <span class="docs-count-pill" id="docsVisibleCount">0 visibles</span>
+                <button class="btn" onclick="clearDocsFilters()">Limpiar filtros</button>
+              </div>
+            </div>
+
+            <div class="tableWrap docs-table" style="margin-top:12px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tipo</th>
+                    <th>Número</th>
+                    <th>Unidad / locatario</th>
+                    <th>Archivo / detalle</th>
+                    <th>Fecha</th>
+                    <th>Estado archivo</th>
+                    <th class="right">Monto</th>
+                    <th class="center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="docsBody"></tbody>
+              </table>
+            </div>
+            <div class="toast" id="docsListMsg"></div>
+          </div>
+
+          <div class="card">
+            <div class="row" style="justify-content:space-between;align-items:end;">
+              <div>
+                <h3 style="margin:0;">Carga rápida</h3>
+                <div class="muted">Subí contratos, recibos escaneados u otros archivos al contrato seleccionado sin salir del módulo.</div>
+              </div>
+            </div>
+
+            <div class="docs-side-card" style="margin-top:12px;">
+              <div class="docs-side-head">
+                <div>
+                  <h4 id="docsCurrentContract">Todos los contratos</h4>
+                  <div class="muted" id="docsCurrentHint">Elegí una unidad específica para habilitar la carga de archivos.</div>
+                </div>
+                <span class="badge b-info">Gestor</span>
+              </div>
+
+              <div class="docs-side-lines">
+                <div class="docs-side-item">
+                  <div class="label">Tipo de archivo</div>
+                  <div class="value">
+                    <select id="docsTipo" style="width:100%;">
+                      <option value="CONTRATO">CONTRATO</option>
+                      <option value="RECIBO">RECIBO</option>
+                      <option value="OTRO">OTRO</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="docs-side-item">
+                  <div class="label">Archivo</div>
+                  <div class="value">
+                    <input id="docsFile" type="file" style="width:100%;" />
+                  </div>
+                </div>
+
+                <div class="docs-side-item">
+                  <div class="label">Estado de carga</div>
+                  <div class="value" id="docsUploadState">Listo para adjuntar un documento nuevo.</div>
+                </div>
+              </div>
+
+              <div class="docs-uploader-grid">
+                <button class="btn primary" onclick="uploadDocFromDocs()">Subir archivo</button>
+                <button class="btn" onclick="openDocumentosFromDetalle()">Abrir desde detalle actual</button>
+              </div>
+
+              <div class="toast" id="docsMsg" style="margin-top:12px;"></div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const sel = $('docsContratoSel');
+      sel.innerHTML = '';
+
+      const allOpt = document.createElement('option');
+      allOpt.value = '__ALL__';
+      allOpt.textContent = 'Todos los contratos';
+      sel.appendChild(allOpt);
+
+      const opts = [...unidades]
+        .sort((a,b)=>String(a.local_codigo).localeCompare(String(b.local_codigo)))
+        .map(u => ({ id:u.contrato_id, label:`${u.local_codigo} — ${u.inquilino_nombre}`}));
+
+      for (const o of opts){
+        const op = document.createElement('option');
+        op.value = o.id;
+        op.textContent = o.label;
+        sel.appendChild(op);
+      }
+
+      if (docsContratoId && [...sel.options].some(o => o.value === docsContratoId)){
+        sel.value = docsContratoId;
+      } else {
+        docsContratoId = '__ALL__';
+        sel.value = '__ALL__';
+      }
+
+      updateDocsSidePanel();
+      await loadDocsForSelected();
+    }
+
+    async function loadDocsForSelected(){
+      const sel = $('docsContratoSel');
+      docsContratoId = sel?.value || docsContratoId || '__ALL__';
+      await loadDocsListInto('docsBody', 'docsListMsg', docsContratoId, true);
+    }
+
+    function isAllContratos(value){
+      return !value || value === '__ALL__';
+    }
+
+    function formatDateDisplay(value){
+      if (!value) return '—';
+      return String(value).slice(0, 10);
+    }
+
+    function formatDateTimeDisplay(value){
+      if (!value) return '—';
+      return String(value).slice(0, 19).replace('T', ' ');
+    }
+
+    function buildReciboNumero(pago, createIfMissing=false){
+      const ref = pago?.referencia || pago?.numero_recibo || pago?.nro_recibo || pago?.recibo_numero;
+      if (ref) return String(ref);
+      const paymentId = String(pago?.id || pago?.pago_id || '').trim();
+      if (paymentId && receiptNumberMap[paymentId]) return receiptNumberMap[paymentId];
+      if (createIfMissing && paymentId) return allocateReciboNumero(paymentId);
+      const prefix = sanitizePrefix(appSettings?.pagos?.reciboPrefijo, 'REC');
+      const datePart = String(pago?.fecha_pago || pago?.created_at || today()).slice(0,10).replace(/-/g,'');
+      const rawId = String(pago?.id || pago?.pago_id || '').replace(/-/g,'').toUpperCase();
+      const suffix = rawId ? rawId.slice(-6) : 'SN';
+      return `${prefix}-${datePart}-${suffix}`;
+    }
+
+
+    function sanitizeDownloadFileName(value, fallback='recibo'){
+      const base = String(value || fallback).normalize('NFD').replace(/[̀-ͯ]/g, '');
+      return base.replace(/[^a-zA-Z0-9._-]+/g, '_').replace(/^_+|_+$/g, '') || fallback;
+    }
+
+    function downloadBlobFile(blob, fileName){
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1200);
+    }
+
+    function buildEmailSubject(item){
+      return `Recibo ${item?.numero_recibo || 'interno'} · ${appSettings?.negocio?.nombre || 'Gestión de Alquileres'}`;
+    }
+
+    function buildEmailBody(item){
+      const negocio = appSettings?.negocio?.nombre || 'Gestión de Alquileres';
+      const saludo = item?.inquilino_nombre ? `Hola ${item.inquilino_nombre},` : 'Hola,';
+      return [
+        saludo,
+        '',
+        `Te compartimos la copia del recibo ${item?.numero_recibo || 'interno'} correspondiente a la unidad ${item?.local_codigo || '—'}.`,
+        '',
+        buildReceiptShareText(item),
+        '',
+        `Saludos,`,
+        negocio
+      ].join('\n');
+    }
+
+    function buildGmailComposeLink(email, subject, body){
+      const params = new URLSearchParams({
+        view: 'cm',
+        fs: '1',
+        tf: '1',
+        to: email || '',
+        su: subject || '',
+        body: body || ''
+      });
+      return `https://mail.google.com/mail/?${params.toString()}`;
+    }
+
+    function buildReciboPdfFileName(item){
+      return `${sanitizeDownloadFileName(item?.numero_recibo || 'recibo')}.pdf`;
+    }
+
+    async function buildReciboPdfBlob(item){
+      const jsPDFCtor = window.jspdf?.jsPDF;
+      if (!jsPDFCtor) throw new Error('No se pudo cargar el generador de PDF.');
+
+      const doc = new jsPDFCtor({ unit: 'pt', format: 'a4' });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const contentWidth = 512;
+      const startX = (pageWidth - contentWidth) / 2;
+
+      const negocio = appSettings?.negocio?.nombre || 'Gestión de Alquileres';
+      const negocioDireccion = appSettings?.negocio?.direccion || '';
+      const negocioTelefono = appSettings?.negocio?.telefono || '';
+      const negocioEmail = appSettings?.negocio?.email || '';
+      const cuitNegocio = appSettings?.negocio?.cuit || '—';
+
+      const numero = item?.numero_recibo || '—';
+      const fecha = formatDateDisplay(item?.fecha_pago || item?.created_at);
+      const impuestoPct = Number(item?.impuesto_porcentaje || 0);
+      const alquiler = fmtARS.format(Number(item?.monto_alquiler || 0));
+      const impuesto = fmtARS.format(Number(item?.monto_impuesto || 0));
+      const total = fmtARS.format(Number(item?.monto_total || item?.monto || 0));
+
+      const centerText = (value, xCenter, y, size = 12, weight = 'normal', color = [15,23,42]) => {
+        doc.setFont('helvetica', weight);
+        doc.setFontSize(size);
+        doc.setTextColor(color[0], color[1], color[2]);
+        const width = doc.getTextWidth(String(value || ''));
+        doc.text(String(value || ''), xCenter - width / 2, y);
+      };
+
+      const drawCenteredLines = (lines, xCenter, startY, size = 11, weight = 'normal', color = [71,85,105], lineHeight = 14) => {
+        doc.setFont('helvetica', weight);
+        doc.setFontSize(size);
+        doc.setTextColor(color[0], color[1], color[2]);
+        lines.filter(Boolean).forEach((line, idx) => {
+          const w = doc.getTextWidth(String(line));
+          doc.text(String(line), xCenter - (w / 2), startY + (idx * lineHeight));
+        });
+      };
+
+      const drawParagraphCentered = (value, xCenter, startY, maxWidth, size = 10.5, color = [100,116,139], lineHeight = 14) => {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(size);
+        doc.setTextColor(color[0], color[1], color[2]);
+        const lines = doc.splitTextToSize(String(value || ''), maxWidth);
+        lines.forEach((line, idx) => {
+          const w = doc.getTextWidth(String(line));
+          doc.text(String(line), xCenter - (w / 2), startY + (idx * lineHeight));
+        });
+      };
+
+      const drawInfoBox = (x, y, w, h, label, main, sub1 = '', sub2 = '') => {
+        doc.setDrawColor(203, 213, 225);
+        doc.setFillColor(248, 250, 252);
+        doc.roundedRect(x, y, w, h, 18, 18, 'FD');
+        centerText(label.toUpperCase(), x + (w/2), y + 24, 10, 'bold', [100,116,139]);
+        centerText(main, x + (w/2), y + 58, 16, 'bold', [15,23,42]);
+        if (sub1) centerText(sub1, x + (w/2), y + 82, 10, 'normal', [71,85,105]);
+        if (sub2) centerText(sub2, x + (w/2), y + 102, 10, 'normal', [71,85,105]);
+      };
+
+      const drawAmountCard = (x, y, w, h, label, value, secondary = '', dark = false) => {
+        if (dark){
+          doc.setFillColor(15,23,42);
+          doc.setDrawColor(15,23,42);
+          doc.roundedRect(x, y, w, h, 18, 18, 'FD');
+          centerText(label.toUpperCase(), x + (w/2), y + 24, 10, 'bold', [203,213,225]);
+          centerText(value, x + (w/2), y + 58, 19, 'bold', [255,255,255]);
+          if (secondary) centerText(secondary, x + (w/2), y + 80, 10, 'normal', [226,232,240]);
+        } else {
+          doc.setFillColor(248,250,252);
+          doc.setDrawColor(203,213,225);
+          doc.roundedRect(x, y, w, h, 18, 18, 'FD');
+          centerText(label.toUpperCase(), x + (w/2), y + 24, 10, 'bold', [100,116,139]);
+          centerText(value, x + (w/2), y + 58, 18, 'bold', [15,23,42]);
+          if (secondary) centerText(secondary, x + (w/2), y + 80, 10, 'normal', [71,85,105]);
+        }
+      };
+
+      const headerY = 38;
+      const headerH = 178;
+      const centerX = pageWidth / 2;
+
+      doc.setFillColor(15, 23, 42);
+      doc.roundedRect(startX, headerY, contentWidth, headerH, 24, 24, 'F');
+
+      doc.setFillColor(255,255,255);
+      doc.roundedRect(centerX - 36, headerY + 18, 72, 72, 22, 22, 'F');
+      centerText((negocio || 'GA').split(/\s+/).map(part => part[0] || '').join('').slice(0,2).toUpperCase() || 'GA', centerX, headerY + 63, 24, 'bold', [15,23,42]);
+
+      centerText('Recibo interno', centerX, headerY + 122, 27, 'bold', [255,255,255]);
+      centerText(negocio, centerX, headerY + 146, 12, 'normal', [226,232,240]);
+
+      const headerMetaLines = [];
+      const contactLine1 = [negocioDireccion].filter(Boolean).join('');
+      const contactLine2 = [negocioTelefono, negocioEmail].filter(Boolean).join(' · ');
+      if (contactLine1) headerMetaLines.push(contactLine1);
+      if (contactLine2) headerMetaLines.push(contactLine2);
+      headerMetaLines.push(`CUIT / identificación: ${cuitNegocio}`);
+      drawCenteredLines(headerMetaLines.slice(0,3), centerX, headerY + 162, 9.5, 'normal', [203,213,225], 11);
+
+      const badgeY = headerY + headerH + 18;
+      const badgeW1 = 170;
+      const badgeW2 = 120;
+      const totalBadgesW = badgeW1 + badgeW2 + 12;
+      const badgesX = (pageWidth - totalBadgesW) / 2;
+      doc.setFillColor(248,250,252);
+      doc.setDrawColor(203,213,225);
+      doc.roundedRect(badgesX, badgeY, badgeW1, 28, 14, 14, 'FD');
+      doc.roundedRect(badgesX + badgeW1 + 12, badgeY, badgeW2, 28, 14, 14, 'FD');
+      centerText(`N° ${numero}`, badgesX + badgeW1/2, badgeY + 18, 10, 'bold', [15,23,42]);
+      centerText(fecha, badgesX + badgeW1 + 12 + badgeW2/2, badgeY + 18, 10, 'bold', [15,23,42]);
+
+      const boxY = badgeY + 48;
+      const gap = 14;
+      const boxW = (contentWidth - gap) / 2;
+      drawInfoBox(startX, boxY, boxW, 118, 'Locatario', item?.inquilino_nombre || '—', `Documento: ${item?.documento || '—'}`, `${item?.telefono || '—'} · ${item?.email || '—'}`);
+      drawInfoBox(startX + boxW + gap, boxY, boxW, 118, 'Detalle del cobro', `Unidad ${item?.local_codigo || '—'}`, `Medio de pago: ${item?.medio || '—'}`, `Referencia: ${item?.referencia || '—'}`);
+
+      const amountY = boxY + 138;
+      const amountGap = 12;
+      const amountW = (contentWidth - (amountGap * 2)) / 3;
+      drawAmountCard(startX, amountY, amountW, 104, 'Alquiler', alquiler);
+      drawAmountCard(startX + amountW + amountGap, amountY, amountW, 104, 'Impuesto', impuesto, `${impuestoPct.toFixed(2)}%`);
+      drawAmountCard(startX + (amountW + amountGap) * 2, amountY, amountW, 104, 'Total recibido', total, '', true);
+
+      const footerY = amountY + 128;
+      doc.setDrawColor(148,163,184);
+      doc.setLineDashPattern([4, 4], 0);
+      doc.line(startX + 12, footerY, startX + contentWidth - 12, footerY);
+      doc.setLineDashPattern([], 0);
+      const note = 'Comprobante interno no fiscal · generado para archivo administrativo.';
+      drawParagraphCentered(note, centerX, footerY + 18, contentWidth - 56, 10.5, [100,116,139], 14);
+
+      return doc.output('blob');
+    }
+
+    async function buildReciboPdfPayload(item){
+      const blob = await buildReciboPdfBlob(item);
+      const fileName = buildReciboPdfFileName(item);
+      const file = new File([blob], fileName, { type: 'application/pdf' });
+      return { blob, file, fileName };
+    }
+
+    async function tryNativeShareReciboPdf(item, extra = {}){
+      if (!window.isSecureContext || !navigator.share) return false;
+      const payload = await buildReciboPdfPayload(item);
+      const shareData = {
+        title: extra.title ?? buildEmailSubject(item),
+        files: [payload.file]
+      };
+      if (Object.prototype.hasOwnProperty.call(extra, 'text')) {
+        if (extra.text) shareData.text = extra.text;
+      } else {
+        shareData.text = buildReceiptShareText(item);
+      }
+      if (navigator.canShare && !navigator.canShare({ files: [payload.file] })) return false;
+      try {
+        await navigator.share(shareData);
+        return true;
+      } catch (error) {
+        if (error?.name === 'AbortError') return true;
+        return false;
+      }
+    }
+
+    async function downloadReciboPdf(item){
+      const payload = await buildReciboPdfPayload(item);
+      downloadBlobFile(payload.blob, payload.fileName);
+      return payload;
+    }
+
+    function buildWhatsappLink(phone, text){
+      const digits = String(phone || '').replace(/\D/g, '');
+      if (!digits) return '';
+      const normalized = digits.startsWith('54') ? digits : `54${digits}`;
+      const base = `https://wa.me/${normalized}`;
+      return text ? `${base}?text=${encodeURIComponent(text)}` : base;
+    }
+
+    function buildReceiptShareText(item){
+      if (!item) return '';
+      const negocio = appSettings?.negocio?.nombre || 'Gestión de Alquileres';
+      const lines = [
+        `${negocio}`,
+        `Recibo interno: ${item.numero_recibo || '—'}`,
+        `Locatario: ${item.inquilino_nombre || '—'}`,
+        `Unidad: ${item.local_codigo || '—'}`,
+        `Fecha: ${formatDateDisplay(item.fecha_pago || item.created_at)}`,
+        `Alquiler: ${fmtARS.format(Number(item.monto_alquiler || 0))}`,
+        `Impuesto: ${fmtARS.format(Number(item.monto_impuesto || 0))}${item.impuesto_porcentaje != null ? ` (${Number(item.impuesto_porcentaje || 0).toFixed(2)}%)` : ''}`,
+        `Total: ${fmtARS.format(Number(item.monto_total || item.monto || 0))}`,
+        `Medio de pago: ${item.medio || '—'}`,
+        item.referencia ? `N° recibo / referencia: ${item.referencia}` : null
+      ].filter(Boolean);
+      return lines.join('\n');
+    }
+
+    function buildReceiptPrintHtml(item){
+      const negocio = escapeHtml(appSettings?.negocio?.nombre || 'Gestión de Alquileres');
+      const initials = escapeHtml((appSettings?.negocio?.nombre || 'GA').split(/\s+/).map(part => part[0] || '').join('').slice(0,2).toUpperCase() || 'GA');
+      const email = escapeHtml(appSettings?.negocio?.email || '—');
+      const telefono = escapeHtml(appSettings?.negocio?.telefono || '—');
+      const direccion = escapeHtml(appSettings?.negocio?.direccion || '—');
+      const cuit = escapeHtml(appSettings?.negocio?.cuit || '—');
+      const numero = escapeHtml(item.numero_recibo || '—');
+      const locatario = escapeHtml(item.inquilino_nombre || '—');
+      const documento = escapeHtml(item.documento || '—');
+      const tel = escapeHtml(item.telefono || '—');
+      const mail = escapeHtml(item.email || '—');
+      const local = escapeHtml(item.local_codigo || '—');
+      const fecha = escapeHtml(formatDateDisplay(item.fecha_pago || item.created_at));
+      const medio = escapeHtml(item.medio || '—');
+      const referencia = escapeHtml(item.referencia || '—');
+      const impuestoPct = Number(item.impuesto_porcentaje || 0);
+      const alquiler = fmtARS.format(Number(item.monto_alquiler || 0));
+      const impuesto = fmtARS.format(Number(item.monto_impuesto || 0));
+      const total = fmtARS.format(Number(item.monto_total || item.monto || 0));
+      return `
+        <div class="recibo-sheet" id="reciboSheetPrintable">
+          <div class="recibo-sheet-head">
+            <div class="recibo-sheet-logo">${initials}</div>
+            <div class="recibo-sheet-head-meta">
+              <h2 class="recibo-sheet-title">Recibo interno</h2>
+              <div class="recibo-sheet-sub">${negocio}</div>
+              <div class="recibo-sheet-sub">${direccion}</div>
+              <div class="recibo-sheet-sub">${telefono} · ${email}</div>
+              <div class="recibo-sheet-sub">CUIT / identificación: ${cuit}</div>
+            </div>
+            <div class="recibo-sheet-badges">
+              <span class="recibo-sheet-badge">N° ${numero}</span>
+              <span class="recibo-sheet-badge">${fecha}</span>
+            </div>
+          </div>
+
+          <div class="recibo-sheet-grid">
+            <div class="recibo-sheet-box">
+              <div class="label">Locatario</div>
+              <div class="value">${locatario}</div>
+              <div class="recibo-sheet-sub">Documento: ${documento}</div>
+              <div class="recibo-sheet-sub">${tel} · ${mail}</div>
+            </div>
+            <div class="recibo-sheet-box">
+              <div class="label">Detalle del cobro</div>
+              <div class="value">Unidad ${local}</div>
+              <div class="recibo-sheet-sub">Medio de pago: ${medio}</div>
+              <div class="recibo-sheet-sub">Referencia: ${referencia}</div>
+            </div>
+          </div>
+
+          <div class="recibo-amount-grid">
+            <div class="recibo-amount-card">
+              <div class="label">Alquiler</div>
+              <div class="value">${alquiler}</div>
+            </div>
+            <div class="recibo-amount-card">
+              <div class="label">Impuesto</div>
+              <div class="value">${impuesto}</div>
+              <div class="recibo-sheet-sub">${impuestoPct.toFixed(2)}%</div>
+            </div>
+            <div class="recibo-amount-card total">
+              <div class="label">Total recibido</div>
+              <div class="value">${total}</div>
+            </div>
+          </div>
+
+          <div class="recibo-note">
+            Comprobante interno no fiscal. Generado para archivo administrativo y entrega al locatario.
+          </div>
+        </div>
+      `;
+    }
+
+    async function fetchRecibosInternosData(){
+      const query = ($('globalSearch')?.value || '').trim().toLowerCase();
+      let pagos = [];
+      let pagosError = null;
+
+      const tries = [
+        () => sb.from('v_pagos_detallados').select('id, contrato_id, fecha_pago, medio, referencia, created_at, monto_alquiler, monto_impuesto, monto_total, impuesto_porcentaje').order('fecha_pago', { ascending:false }),
+        () => sb.from('pagos').select('id, contrato_id, fecha_pago, medio, referencia, created_at, monto, monto_alquiler, monto_impuesto, impuesto_porcentaje').order('fecha_pago', { ascending:false }),
+        () => sb.from('pagos').select('id, contrato_id, fecha_pago, medio, referencia, created_at, monto').order('fecha_pago', { ascending:false })
+      ];
+
+      for (const getQuery of tries){
+        const { data, error } = await getQuery();
+        if (!error){
+          pagos = data || [];
+          pagosError = null;
+          break;
+        }
+        pagosError = error;
+      }
+
+      const contratoIds = [...new Set((pagos || []).map(x => String(x.contrato_id || '')).filter(Boolean))];
+      let contratosMeta = [];
+      let contratosError = null;
+      if (contratoIds.length){
+        const { data, error } = await sb
+          .from('contratos')
+          .select('id, locales(codigo), inquilinos(nombre,telefono,email,documento)')
+          .in('id', contratoIds);
+        contratosMeta = data || [];
+        contratosError = error;
+      }
+
+      const metaMap = new Map((contratosMeta || []).map(item => [String(item.id), item]));
+      const rows = (pagos || []).map(item => {
+        const meta = metaMap.get(String(item.contrato_id || '')) || {};
+        const inq = meta.inquilinos || {};
+        const local = meta.locales || {};
+        const montoTotal = Number(item.monto_total ?? item.monto ?? ((Number(item.monto_alquiler || 0) + Number(item.monto_impuesto || 0))));
+        return {
+          ...item,
+          monto_total: montoTotal,
+          monto_alquiler: Number(item.monto_alquiler || (item.monto && !item.monto_impuesto ? item.monto : 0) || 0),
+          monto_impuesto: Number(item.monto_impuesto || 0),
+          impuesto_porcentaje: Number(item.impuesto_porcentaje || 0),
+          numero_recibo: buildReciboNumero(item, true),
+          inquilino_nombre: inq.nombre || '—',
+          telefono: inq.telefono || '',
+          email: inq.email || '',
+          documento: inq.documento || '',
+          local_codigo: local.codigo || '—'
+        };
+      }).filter(item => {
+        if (!query) return true;
+        return [
+          item.numero_recibo,
+          item.inquilino_nombre,
+          item.local_codigo,
+          item.telefono,
+          item.email,
+          item.referencia
+        ].some(value => String(value || '').toLowerCase().includes(query));
+      });
+
+      rows.sort((a,b) => String(b.fecha_pago || b.created_at || '').localeCompare(String(a.fecha_pago || a.created_at || '')));
+
+      return { rows, pagosError, contratosError };
+    }
+
+    function renderRecibosKPIs(rows){
+      const total = rows.length;
+      const totalMonto = rows.reduce((acc, item) => acc + Number(item.monto_total || 0), 0);
+      const monthKey = today().slice(0,7);
+      const delMes = rows.filter(item => String(item.fecha_pago || item.created_at || '').slice(0,7) === monthKey);
+      const ultimo = rows[0];
+      return {
+        total,
+        totalMonto,
+        delMesCantidad: delMes.length,
+        delMesMonto: delMes.reduce((acc, item) => acc + Number(item.monto_total || 0), 0),
+        ultimoNumero: ultimo?.numero_recibo || '—'
+      };
+    }
+
+    function applyRecibosPageFilters(rows){
+      const query = String(recibosPageState.query || '').trim().toLowerCase();
+      const local = String(recibosPageState.local || 'TODOS');
+      const month = String(recibosPageState.month || '');
+
+      return (rows || []).filter(item => {
+        if (local !== 'TODOS' && String(item.local_codigo || '') !== local) return false;
+        if (month && String(item.fecha_pago || item.created_at || '').slice(0,7) !== month) return false;
+        if (!query) return true;
+        return [
+          item.numero_recibo,
+          item.referencia,
+          item.inquilino_nombre,
+          item.documento,
+          item.local_codigo,
+          item.telefono,
+          item.email,
+          item.medio
+        ].some(value => String(value || '').toLowerCase().includes(query));
+      });
+    }
+
+    function updateRecibosFiltersFromUI(){
+      recibosPageState.query = $('recibosSearch')?.value || '';
+      recibosPageState.local = $('recibosLocalFilter')?.value || 'TODOS';
+      recibosPageState.month = $('recibosMonthFilter')?.value || '';
+      renderRecibosPage();
+    }
+
+    function clearRecibosFilters(){
+      recibosPageState = { query:'', local:'TODOS', month:'' };
+      renderRecibosPage();
+    }
+
+    function closeShareMenu(node){
+      const details = node?.closest?.('details');
+      if (details) details.open = false;
+    }
+
+    function renderRecibosHistoryRows(rows){
+      if (!rows.length){
+        return `<tr><td colspan="9"><div class="recibos-empty">No hay recibos que coincidan con los filtros aplicados.</div></td></tr>`;
+      }
+
+      return rows.map(item => `
+        <tr>
+          <td>
+            <div class="recibos-cell-title"><strong>${escapeHtml(item.numero_recibo)}</strong></div>
+            <span class="contact-sub">${escapeHtml(item.referencia || 'Sin referencia')}</span>
+          </td>
+          <td>
+            <div class="recibos-cell-title">${formatDateDisplay(item.fecha_pago || item.created_at)}</div>
+            <span class="contact-sub">${escapeHtml(item.medio || '—')}</span>
+          </td>
+          <td>
+            <div class="recibos-cell-title">${escapeHtml(item.inquilino_nombre)}</div>
+            <span class="contact-sub">${escapeHtml(item.documento || 'Sin documento')}</span>
+          </td>
+          <td>
+            <span class="recibos-chip primary">${escapeHtml(item.local_codigo || '—')}</span>
+          </td>
+          <td class="right">
+            <div class="recibos-cell-title">${fmtARS.format(Number(item.monto_alquiler || 0))}</div>
+          </td>
+          <td class="right">
+            <div class="recibos-cell-title">${fmtARS.format(Number(item.monto_impuesto || 0))}</div>
+            <span class="contact-sub">${Number(item.impuesto_porcentaje || 0).toFixed(2)}%</span>
+          </td>
+          <td class="right">
+            <div class="recibos-cell-title"><strong>${fmtARS.format(Number(item.monto_total || 0))}</strong></div>
+          </td>
+          <td>
+            <div class="recibos-contact-stack">
+              <div class="recibos-contact-line">
+                <span class="recibos-chip ${item.telefono ? '' : 'muted'}">${escapeHtml(item.telefono || 'Sin teléfono')}</span>
+              </div>
+              <div class="recibos-contact-line">
+                <span class="recibos-chip ${item.email ? '' : 'muted'}">${escapeHtml(item.email || 'Sin email')}</span>
+              </div>
+            </div>
+          </td>
+          <td class="center">
+            <div class="recibos-actions">
+              <div class="recibos-action-panel">
+                <button class="recibos-primary-action" onclick="openReciboModal('${item.id}')">Ver recibo</button>
+                <details class="recibos-share-menu">
+                  <summary class="recibos-share-summary">Compartir</summary>
+                  <div class="recibos-share-dropdown">
+                    <div class="recibos-share-label">Canales disponibles</div>
+                    <button class="recibos-share-action email" onclick="event.preventDefault(); event.stopPropagation(); closeShareMenu(this); shareReciboByEmail('${item.id}')">
+                      <span class="icon">✉</span>
+                      <span class="meta">
+                        <span class="title">Email</span>
+                        <span class="sub">Abrir envío por correo</span>
+                      </span>
+                    </button>
+                    <button class="recibos-share-action whatsapp" onclick="event.preventDefault(); event.stopPropagation(); closeShareMenu(this); shareReciboByWhatsappText('${item.id}')">
+                      <span class="icon">WA</span>
+                      <span class="meta">
+                        <span class="title">WhatsApp rápido</span>
+                        <span class="sub">Mensaje listo para enviar</span>
+                      </span>
+                    </button>
+                    <button class="recibos-share-action pdf" onclick="event.preventDefault(); event.stopPropagation(); closeShareMenu(this); shareReciboByWhatsappPdf('${item.id}')">
+                      <span class="icon">PDF</span>
+                      <span class="meta">
+                        <span class="title">WhatsApp + PDF</span>
+                        <span class="sub">Compartir el recibo adjunto</span>
+                      </span>
+                    </button>
+                  </div>
+                </details>
+              </div>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function renderRecibosPage(){
+      const el = $('viewRecibos');
+      if (!el) return;
+
+      const { rows, pagosError, contratosError } = await fetchRecibosInternosData();
+      recibosInternosCache = rows;
+
+      const summary = renderRecibosKPIs(rows);
+      const filteredRows = applyRecibosPageFilters(rows);
+      const ultimo = filteredRows[0] || rows[0] || null;
+      const localOptions = [...new Set(rows.map(item => String(item.local_codigo || '—')).filter(Boolean))].sort((a,b) => a.localeCompare(b));
+
+      el.innerHTML = `
+        <div class="card">
+          <div class="recibos-history-head">
+            <div>
+              <h2 style="margin:0;">Recibos internos</h2>
+              <div class="muted">Centralizá el historial, encontrá rápido el locatario correcto y compartí cada comprobante desde una interfaz más ordenada.</div>
+            </div>
+            <div class="row">
+              <button class="btn" onclick="renderRecibosPage()">Actualizar</button>
+            </div>
+          </div>
+
+          <div class="recibos-summary-row">
+            <div class="kpi recibos-kpi">
+              <div class="label">Recibos generados</div>
+              <div class="value">${summary.total}</div>
+              <div class="muted">Historial completo</div>
+            </div>
+            <div class="kpi recibos-kpi">
+              <div class="label">Monto histórico</div>
+              <div class="value">${fmtARS.format(summary.totalMonto)}</div>
+              <div class="muted">Suma de todos los recibos</div>
+            </div>
+            <div class="kpi recibos-kpi">
+              <div class="label">Recibos del mes</div>
+              <div class="value">${summary.delMesCantidad}</div>
+              <div class="muted">${fmtARS.format(summary.delMesMonto)}</div>
+            </div>
+            <div class="kpi recibos-kpi">
+              <div class="label">Último número</div>
+              <div class="value">${summary.ultimoNumero}</div>
+              <div class="muted">${ultimo ? `${ultimo.inquilino_nombre} · ${ultimo.local_codigo}` : 'Sin movimientos'}</div>
+            </div>
+          </div>
+          <div class="toast" id="recibosMsg" style="margin-top:12px;">${[pagosError?.message, contratosError?.message].filter(Boolean).join(' | ')}</div>
+        </div>
+
+        <div class="recibos-grid">
+          <div class="card">
+            <div class="row" style="justify-content:space-between;align-items:end;">
+              <div>
+                <h3 style="margin:0;">Historial profesional</h3>
+                <div class="muted">Filtrá por locatario, número de recibo, local o mes y accedé a cada acción desde botones claros.</div>
+              </div>
+            </div>
+
+            <div class="recibos-toolbar">
+              <div class="recibos-toolbar-main">
+                <div class="recibos-search-wrap">
+                  <label>Buscar</label>
+                  <input id="recibosSearch" placeholder="N° recibo, locatario, documento, email..." value="${escapeAttr(recibosPageState.query)}" oninput="updateRecibosFiltersFromUI()">
+                </div>
+                <div class="recibos-filter-wrap">
+                  <label>Local</label>
+                  <select id="recibosLocalFilter" onchange="updateRecibosFiltersFromUI()">
+                    <option value="TODOS">Todos los locales</option>
+                    ${localOptions.map(local => `<option value="${escapeAttr(local)}" ${recibosPageState.local === local ? 'selected' : ''}>${escapeHtml(local)}</option>`).join('')}
+                  </select>
+                </div>
+                <div class="recibos-filter-wrap">
+                  <label>Mes</label>
+                  <input id="recibosMonthFilter" type="month" value="${escapeAttr(recibosPageState.month)}" onchange="updateRecibosFiltersFromUI()">
+                </div>
+              </div>
+              <div class="recibos-toolbar-actions">
+                <span class="recibos-count-pill">${filteredRows.length} visibles</span>
+                <button class="btn" onclick="clearRecibosFilters()">Limpiar filtros</button>
+              </div>
+            </div>
+
+            <div class="tableWrap recibos-table" style="margin-top:12px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>N° recibo</th>
+                    <th>Fecha</th>
+                    <th>Locatario</th>
+                    <th>Local</th>
+                    <th class="right">Alquiler</th>
+                    <th class="right">Impuesto</th>
+                    <th class="right">Total</th>
+                    <th>Contacto</th>
+                    <th class="center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="recibosBody">${renderRecibosHistoryRows(filteredRows)}</tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="recibos-side-stack">
+            <div class="card">
+              <div class="row" style="justify-content:space-between;align-items:end;">
+                <div>
+                  <h3 style="margin:0;">Locatario seleccionado</h3>
+                  <div class="muted">Un panel más limpio para copiar datos, revisar contacto y disparar el envío correcto.</div>
+                </div>
+              </div>
+              ${ultimo ? `
+                <div class="recibos-side-card" style="margin-top:12px;">
+                  <div class="recibos-side-head">
+                    <div>
+                      <h4>${escapeHtml(ultimo.inquilino_nombre)}</h4>
+                      <div class="muted">Local ${escapeHtml(ultimo.local_codigo)} · ${escapeHtml(ultimo.numero_recibo)}</div>
+                    </div>
+                    <span class="badge b-ok">${fmtARS.format(Number(ultimo.monto_total || 0))}</span>
+                  </div>
+
+                  <div class="recibos-side-meta">
+                    <div class="item">
+                      <div class="label">Documento</div>
+                      <div class="value">${escapeHtml(ultimo.documento || 'No cargado')}</div>
+                    </div>
+                    <div class="item">
+                      <div class="label">Fecha</div>
+                      <div class="value">${formatDateDisplay(ultimo.fecha_pago || ultimo.created_at)}</div>
+                    </div>
+                    <div class="item">
+                      <div class="label">Teléfono</div>
+                      <div class="value">${escapeHtml(ultimo.telefono || 'No cargado')}</div>
+                    </div>
+                    <div class="item">
+                      <div class="label">Email</div>
+                      <div class="value">${escapeHtml(ultimo.email || 'No cargado')}</div>
+                    </div>
+                    <div class="item">
+                      <div class="label">Alquiler</div>
+                      <div class="value">${fmtARS.format(Number(ultimo.monto_alquiler || 0))}</div>
+                    </div>
+                    <div class="item">
+                      <div class="label">Impuesto</div>
+                      <div class="value">${fmtARS.format(Number(ultimo.monto_impuesto || 0))} · ${Number(ultimo.impuesto_porcentaje || 0).toFixed(2)}%</div>
+                    </div>
+                  </div>
+
+                  <div class="recibos-side-actions">
+                    <button class="btn primary" onclick="openReciboModal('${ultimo.id}')">Abrir recibo</button>
+                    <button class="btn" onclick="shareReciboByEmail('${ultimo.id}')">Email + PDF</button>
+                    <button class="btn" onclick="shareReciboByWhatsappText('${ultimo.id}')">WhatsApp rápido</button>
+                    <button class="btn" onclick="shareReciboByWhatsappPdf('${ultimo.id}')">WhatsApp + PDF</button>
+                  </div>
+                </div>
+              ` : `<div class="toast" style="margin-top:12px;">Apenas registres un cobro, vas a ver el recibo interno acá.</div>`}
+            </div>
+
           </div>
         </div>
       `;
