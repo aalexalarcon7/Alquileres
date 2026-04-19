@@ -1968,13 +1968,11 @@
       border-radius:22px;
       padding:18px 20px;
       background:#f8fafc;
-      min-height:138px;
+      min-height:118px;
       text-align:center;
       display:flex;
       flex-direction:column;
       justify-content:center;
-      gap:6px;
-      overflow:hidden;
     }
     .recibo-sheet-box .label{
       font-size:11px;
@@ -1982,24 +1980,12 @@
       text-transform:uppercase;
       letter-spacing:.10em;
       color:#64748b;
-      margin-bottom:6px;
+      margin-bottom:10px;
     }
     .recibo-sheet-box .value{
-      font-size:16px;
+      font-size:18px;
       font-weight:950;
-      line-height:1.28;
-      white-space:normal;
-      overflow-wrap:anywhere;
-      word-break:break-word;
-      max-width:100%;
-      margin:0 auto;
-    }
-    .recibo-sheet-box .value.value-strong{
-      font-size:17px;
-    }
-    .recibo-sheet-box .value.value-long{
-      font-size:14px;
-      line-height:1.22;
+      line-height:1.35;
     }
     .recibo-amount-grid{
       display:grid;
@@ -2488,8 +2474,8 @@
     }
     .docs-record-sub{
       color:var(--muted);
-      font-size:11px;
-      line-height:1.3;
+      font-size:12px;
+      line-height:1.4;
       font-weight:600;
     }
     .docs-status-pill{
@@ -2686,7 +2672,7 @@
       <header class="top">
         <div class="top-left">
           <button class="icon-btn nav-trigger" type="button" onclick="toggleSidebarNav()" aria-label="Abrir menú">☰</button>
-          <div class="search">
+          <div class="search" id="topSearchWrap">
             <input id="globalSearch" placeholder="Buscar unidad, código o inquilino..." oninput="globalSearch()" />
           </div>
         </div>
@@ -3068,7 +3054,6 @@
     const SETTINGS_KEY = 'ga_settings_v1';
     const RECEIPT_NUMBER_MAP_KEY = 'ga_receipt_number_map_v1';
     const NAV_COLLAPSE_KEY = 'ga_nav_collapsed_v1';
-    const ROUTE_STORAGE_KEY = 'ga_route_v1';
     const ACCENT_PALETTES = {
       azul: {
         light:{ info:'#2563eb', infoSoft:'rgba(37,99,235,.10)', infoBorder:'rgba(37,99,235,.24)', logoBg:'rgba(37,99,235,.12)', logoFg:'#1d4ed8', brandA:'rgba(37,99,235,.12)', brandB:'rgba(22,163,74,.10)' },
@@ -3117,25 +3102,6 @@
         const label = item.querySelector('.sb-item-label');
         item.title = collapsed && label ? label.textContent.trim() : '';
       });
-    }
-
-    function isValidRouteName(value){
-      return ['inicio','activos','documentos','recibos','informes','balance','config'].includes(String(value || ''));
-    }
-
-    function saveCurrentRoute(value){
-      try {
-        if (isValidRouteName(value)) localStorage.setItem(ROUTE_STORAGE_KEY, value);
-      } catch (e) {}
-    }
-
-    function getSavedRoute(defaultRoute = 'inicio'){
-      try {
-        const saved = localStorage.getItem(ROUTE_STORAGE_KEY) || '';
-        return isValidRouteName(saved) ? saved : defaultRoute;
-      } catch (e) {
-        return defaultRoute;
-      }
     }
 
     function toggleSidebarNav(){
@@ -3455,6 +3421,7 @@
 
     function updateTopSearchUI(){
       const input = $('globalSearch');
+      const wrap = $('topSearchWrap');
       if (!input) return;
       const placeholders = {
         inicio: 'Buscar unidad, código o inquilino...',
@@ -3465,10 +3432,14 @@
         balance: 'Buscar en balance...',
         config: 'Ajustes del sistema'
       };
+      const hideTopSearchRoutes = new Set(['documentos','recibos','informes']);
+      if (wrap) wrap.style.display = hideTopSearchRoutes.has(route) ? 'none' : '';
       input.placeholder = placeholders[route] || 'Buscar...';
     }
 
     function setRoute(r){
+      route = r;
+      document.querySelectorAll('.sb-item').forEach(b => b.classList.toggle('active', b.dataset.route === r));
       const map = {
         inicio:'viewInicio',
         activos:'viewActivos',
@@ -3478,23 +3449,19 @@
         balance:'viewBalance',
         config:'viewConfig'
       };
-
+      Object.values(map).forEach(id => $(id).style.display = 'none');
       if (!map[r]) r = 'inicio';
       route = r;
-      saveCurrentRoute(route);
-
-      document.querySelectorAll('.sb-item').forEach(b => b.classList.toggle('active', b.dataset.route === route));
-      Object.values(map).forEach(id => $(id).style.display = 'none');
-      $(map[route]).style.display = 'block';
-      document.body.classList.toggle('route-config', route === 'config');
+      $(map[r]).style.display = 'block';
+      document.body.classList.toggle('route-config', r === 'config');
       updateTopSearchUI();
       closeSidebarIfMobile();
 
-      if (route === 'documentos') renderDocumentosPage();
-      if (route === 'recibos') renderRecibosPage();
-      if (route === 'informes') renderInformesPage();
-      if (route === 'balance') renderBalancePage();
-      if (route === 'config') renderConfigPage();
+      if (r === 'documentos') renderDocumentosPage();
+      if (r === 'recibos') renderRecibosPage();
+      if (r === 'informes') renderInformesPage();
+      if (r === 'balance') renderBalancePage();
+      if (r === 'config') renderConfigPage();
     }
 
     function setLoginMessage(message = '', tone = 'default'){
@@ -4027,73 +3994,10 @@ function globalSearch(){
       return { alquiler, impPct, impuesto, total };
     }
 
-    function getContratoLocatarioMeta(contratoId){
-      const contrato = getContratoActivoRow(contratoId);
-      const inq = contrato?.inquilinos || {};
-      return {
-        telefono: inq.telefono || '',
-        email: inq.email || '',
-        documento: inq.documento || '',
-        inquilino_nombre: inq.nombre || '',
-        local_codigo: contrato?.locales?.codigo || ''
-      };
-    }
-
-    async function callRegistrarPagoRpc(payload){
-      const attempts = [
-        {
-          p_contrato_id: payload.p_contrato_id,
-          p_fecha_pago: payload.p_fecha_pago,
-          p_monto: payload.p_monto,
-          p_medio: payload.p_medio,
-          p_referencia: payload.p_referencia,
-          p_monto_alquiler: payload.p_monto_alquiler,
-          p_monto_impuesto: payload.p_monto_impuesto,
-          p_impuesto_porcentaje: payload.p_impuesto_porcentaje
-        },
-        {
-          p_contrato_id: payload.p_contrato_id,
-          p_fecha_pago: payload.p_fecha_pago,
-          p_monto: payload.p_monto,
-          p_medio: payload.p_medio,
-          p_referencia: payload.p_referencia,
-          p_monto_alquiler: payload.p_monto_alquiler,
-          p_impuesto_porcentaje: payload.p_impuesto_porcentaje
-        },
-        {
-          p_contrato_id: payload.p_contrato_id,
-          p_fecha_pago: payload.p_fecha_pago,
-          p_monto: payload.p_monto,
-          p_medio: payload.p_medio,
-          p_referencia: payload.p_referencia
-        }
-      ];
-
-      let lastError = null;
-      for (const args of attempts){
-        const res = await sb.rpc('registrar_pago_y_aplicar', args);
-        if (!res.error) return res;
-        lastError = res.error;
-        const signatureIssue = /Could not find the function|does not exist|No function matches|function public\.registrar_pago_y_aplicar/i.test(String(res.error.message || '')) || String(res.error.code || '') === 'PGRST202';
-        if (!signatureIssue) return res;
-      }
-
-      return { data: null, error: lastError || new Error('No se pudo ejecutar la función de cobro.') };
-    }
-
     function openPagoModal(r){
-      const meta = getContratoLocatarioMeta(r?.contrato_id);
-      modalContrato = {
-        ...meta,
-        ...r,
-        telefono: r?.telefono || meta.telefono,
-        email: r?.email || meta.email,
-        documento: r?.documento || meta.documento,
-        inquilino_nombre: r?.inquilino_nombre || meta.inquilino_nombre || '—',
-        local_codigo: r?.local_codigo || meta.local_codigo || '—'
-      };
+      modalContrato = r;
       $('modalBack').style.display = 'flex';
-      $('modalMeta').textContent = `${modalContrato.local_codigo} — ${modalContrato.inquilino_nombre} | Deuda: ${fmtARS.format(Number(modalContrato.deuda_total||0))}`;
+      $('modalMeta').textContent = `${r.local_codigo} — ${r.inquilino_nombre} | Deuda: ${fmtARS.format(Number(r.deuda_total||0))}`;
       $('mFecha').value = today();
       if ($('mAlquiler')) $('mAlquiler').value = '';
       if ($('mImpPct')) $('mImpPct').value = '';
@@ -4119,16 +4023,6 @@ function globalSearch(){
       try{
         const fecha = $('mFecha').value;
         const medio = $('mMedio').value;
-
-        if (!fecha){
-          msgEl.textContent = 'Elegí una fecha de cobro.';
-          return;
-        }
-
-        if (!medio){
-          msgEl.textContent = 'Elegí un medio de pago.';
-          return;
-        }
         const referencia = String($('mReferencia')?.value || '').trim();
         const reciboFile = $('mRecibo')?.files?.[0];
 
@@ -4163,19 +4057,19 @@ function globalSearch(){
           return;
         }
 
-        const { data, error } = await callRegistrarPagoRpc({
+        const { data, error } = await sb.rpc('registrar_pago_y_aplicar', {
           p_contrato_id: modalContrato.contrato_id,
           p_fecha_pago: fecha,
-          p_monto: Number(montoTotal),
+          p_monto: montoTotal,
           p_medio: medio,
           p_referencia: referencia || null,
-          p_monto_alquiler: Number(montoAlquiler),
-          p_monto_impuesto: Number(montoImpuesto),
-          p_impuesto_porcentaje: Number(impPct)
+          p_monto_alquiler: montoAlquiler,
+          p_monto_impuesto: montoImpuesto,
+          p_impuesto_porcentaje: impPct
         });
 
         if (error){
-          msgEl.textContent = 'Error al registrar pago: ' + (error.message || error.details || 'No se pudo completar el cobro.');
+          msgEl.textContent = 'Error al registrar pago: ' + error.message;
           console.error(error);
           return;
         }
@@ -4196,7 +4090,6 @@ function globalSearch(){
 
         await refreshAll();
 
-        let adjuntoEstado = '';
         if (reciboFile && r?.pago_id){
           msgEl.textContent = `Pago registrado. Subiendo adjunto del ${reciboNumero}...`;
 
@@ -4206,7 +4099,7 @@ function globalSearch(){
           );
 
           if (ok){
-            adjuntoEstado = ' | Adjunto manual guardado';
+            msgEl.textContent = `Pago OK | ${reciboNumero} | Alquiler: ${fmtARS.format(alquilerNum)} | Impuesto: ${fmtARS.format(impuestoNum)} (${impPct}%) | Total: ${fmtARS.format(totalNum)} ✅`;
             $('mRecibo').value = '';
 
             if (selected?.contrato_id === modalContrato.contrato_id){
@@ -4214,37 +4107,11 @@ function globalSearch(){
             }
           } else {
             const extra = window.__lastDocError ? ` (${window.__lastDocError})` : '';
-            adjuntoEstado = ` | No se pudo subir el adjunto manual${extra}`;
+            msgEl.textContent = `Pago OK | ${reciboNumero} | Total: ${fmtARS.format(totalNum)}, pero NO se pudo subir el archivo.` + extra;
           }
+        } else {
+          msgEl.textContent = `Pago registrado ✅ | ${reciboNumero} | Alquiler: ${fmtARS.format(alquilerNum)} | Impuesto: ${fmtARS.format(impuestoNum)} (${impPct}%) | Total: ${fmtARS.format(totalNum)}`;
         }
-
-        const internalReciboItem = {
-          id: r?.pago_id,
-          contrato_id: modalContrato.contrato_id,
-          fecha_pago: fecha,
-          medio,
-          referencia: referencia || reciboNumero,
-          created_at: new Date().toISOString(),
-          monto_alquiler: alquilerNum,
-          monto_impuesto: impuestoNum,
-          impuesto_porcentaje: impPct,
-          monto_total: totalNum,
-          monto: totalNum,
-          numero_recibo: reciboNumero,
-          inquilino_nombre: modalContrato.inquilino_nombre || '—',
-          telefono: modalContrato.telefono || '',
-          email: modalContrato.email || '',
-          documento: modalContrato.documento || '',
-          local_codigo: modalContrato.local_codigo || '—'
-        };
-
-        const archiveResult = await ensureInternalReciboArchived(internalReciboItem, { silent:true });
-        const archiveNote = archiveResult?.ok ? ' | Recibo archivado en Documentos' : ' | No se pudo archivar el recibo interno';
-
-        msgEl.textContent = `Pago registrado ✅ | ${reciboNumero} | Alquiler: ${fmtARS.format(alquilerNum)} | Impuesto: ${fmtARS.format(impuestoNum)} (${impPct}%) | Total: ${fmtARS.format(totalNum)}${archiveNote}${adjuntoEstado}`;
-        setTimeout(() => {
-          if ($('modalBack')?.style.display === 'flex') closePagoModal();
-        }, 900);
       } catch(e){
         console.error(e);
         msgEl.textContent = 'Error inesperado: ' + String(e?.message || e);
@@ -4684,7 +4551,7 @@ function globalSearch(){
           <div class="row" style="justify-content:space-between;align-items:end;">
             <div>
               <h2 style="margin:0;">Documentos y comprobantes</h2>
-              <div class="muted">Archivo central de contratos, recibos y adjuntos.</div>
+              <div class="muted">Unificá contratos, recibos y adjuntos en un módulo más claro: buscá rápido, filtrá mejor y revisá el estado de cada archivo sin mezclar tanto documento con cobro.</div>
             </div>
             <div class="row">
               <button class="btn" onclick="loadDocsForSelected()">Actualizar</button>
@@ -4696,27 +4563,27 @@ function globalSearch(){
           <div class="docs-kpi">
             <div class="label">Total documentos</div>
             <div class="value" id="docsResumeTotal">0</div>
-            <div class="sub">Archivo</div>
+            <div class="sub">Historial consolidado</div>
           </div>
           <div class="docs-kpi">
             <div class="label">Contratos</div>
             <div class="value" id="docsResumeContratos">0</div>
-            <div class="sub">Base</div>
+            <div class="sub">Base contractual</div>
           </div>
           <div class="docs-kpi">
             <div class="label">Recibos</div>
             <div class="value" id="docsResumeRecibos">0</div>
-            <div class="sub">Cobro</div>
+            <div class="sub">Generados por cobro o carga</div>
           </div>
           <div class="docs-kpi">
             <div class="label">Otros archivos</div>
             <div class="value" id="docsResumeOtros">0</div>
-            <div class="sub">Extra</div>
+            <div class="sub">Adjuntos adicionales</div>
           </div>
           <div class="docs-kpi">
             <div class="label">Sin adjunto</div>
             <div class="value" id="docsResumeSinAdjunto">0</div>
-            <div class="sub">Pendientes</div>
+            <div class="sub">Movimientos sin archivo</div>
           </div>
         </div>
 
@@ -4725,7 +4592,7 @@ function globalSearch(){
             <div class="row" style="justify-content:space-between;align-items:end;">
               <div>
                 <h3 style="margin:0;">Historial documental</h3>
-                
+                <div class="muted">Leé rápido qué documento es, a qué unidad corresponde, si tiene archivo y qué acciones están disponibles.</div>
               </div>
             </div>
 
@@ -4733,7 +4600,7 @@ function globalSearch(){
               <div class="docs-toolbar-main">
                 <div class="docs-toolbar-field">
                   <label>Buscar</label>
-                  <input id="docsSearch" placeholder="Número, unidad o locatario" oninput="loadDocsForSelected()">
+                  <input id="docsSearch" placeholder="Número, unidad, locatario, detalle o referencia..." oninput="loadDocsForSelected()">
                 </div>
                 <div class="docs-toolbar-field">
                   <label>Contrato / unidad</label>
@@ -4750,7 +4617,7 @@ function globalSearch(){
                 </div>
               </div>
               <div class="docs-toolbar-actions">
-                <span class="docs-count-pill" id="docsVisibleCount">0</span>
+                <span class="docs-count-pill" id="docsVisibleCount">0 visibles</span>
                 <button class="btn" onclick="clearDocsFilters()">Limpiar filtros</button>
               </div>
             </div>
@@ -4779,7 +4646,7 @@ function globalSearch(){
             <div class="row" style="justify-content:space-between;align-items:end;">
               <div>
                 <h3 style="margin:0;">Carga rápida</h3>
-                <div class="muted">Subida manual al contrato seleccionado.</div>
+                <div class="muted">Subí contratos, recibos escaneados u otros archivos al contrato seleccionado sin salir del módulo.</div>
               </div>
             </div>
 
@@ -4787,7 +4654,7 @@ function globalSearch(){
               <div class="docs-side-head">
                 <div>
                   <h4 id="docsCurrentContract">Todos los contratos</h4>
-                  <div class="muted" id="docsCurrentHint">Seleccioná una unidad para cargar.</div>
+                  <div class="muted" id="docsCurrentHint">Elegí una unidad específica para habilitar la carga de archivos.</div>
                 </div>
                 <span class="badge b-info">Gestor</span>
               </div>
@@ -4813,13 +4680,13 @@ function globalSearch(){
 
                 <div class="docs-side-item">
                   <div class="label">Estado de carga</div>
-                  <div class="value" id="docsUploadState">Sin archivo cargado.</div>
+                  <div class="value" id="docsUploadState">Listo para adjuntar un documento nuevo.</div>
                 </div>
               </div>
 
               <div class="docs-uploader-grid">
                 <button class="btn primary" onclick="uploadDocFromDocs()">Subir archivo</button>
-                <button class="btn" onclick="openDocumentosFromDetalle()">Usar detalle actual</button>
+                <button class="btn" onclick="openDocumentosFromDetalle()">Abrir desde detalle actual</button>
               </div>
 
               <div class="toast" id="docsMsg" style="margin-top:12px;"></div>
@@ -4943,81 +4810,6 @@ function globalSearch(){
       return `${sanitizeDownloadFileName(item?.numero_recibo || 'recibo')}.pdf`;
     }
 
-    const INTERNAL_RECIBO_FILENAME_PREFIX = 'recibo_interno_';
-
-    function buildInternalReciboFileName(item){
-      const numero = sanitizeDownloadFileName(item?.numero_recibo || buildReciboNumero(item, true), 'recibo');
-      return `${INTERNAL_RECIBO_FILENAME_PREFIX}${numero}.pdf`;
-    }
-
-    function isInternalReciboDoc(doc){
-      return String(doc?.nombre_archivo || '').toLowerCase().startsWith(INTERNAL_RECIBO_FILENAME_PREFIX);
-    }
-
-    async function ensureInternalReciboArchived(item, options = {}){
-      if (!item?.id || !item?.contrato_id) {
-        return { ok:false, skipped:true, reason:'missing_payment_or_contract' };
-      }
-
-      try {
-        const existingRes = await sb
-          .from('documentos')
-          .select('id, nombre_archivo, path, pago_id, created_at')
-          .eq('tipo', 'RECIBO')
-          .eq('pago_id', item.id)
-          .order('created_at', { ascending:false });
-
-        if (!existingRes.error) {
-          const existingInternal = (existingRes.data || []).find(isInternalReciboDoc);
-          if (existingInternal) {
-            return { ok:true, skipped:true, existing:existingInternal };
-          }
-        }
-
-        const pdfPayload = await buildReciboPdfPayload({
-          ...item,
-          numero_recibo: item.numero_recibo || buildReciboNumero(item, true)
-        });
-
-        const internalName = buildInternalReciboFileName(item);
-        const uploadFile = new File([pdfPayload.blob], internalName, { type:'application/pdf' });
-        const storagePath = `contratos/${item.contrato_id}/recibos-internos/${Date.now()}_${safeFileName(internalName)}`;
-
-        const up = await sb.storage.from('documentos').upload(storagePath, uploadFile, {
-          upsert: false,
-          contentType: 'application/pdf'
-        });
-
-        if (up.error) throw up.error;
-
-        const payload = {
-          contrato_id: item.contrato_id,
-          tipo: 'RECIBO',
-          nombre_archivo: internalName,
-          path: storagePath,
-          mime_type: 'application/pdf',
-          size_bytes: uploadFile.size,
-          pago_id: item.id
-        };
-
-        let ins = await sb.from('documentos').insert(payload).select('id, nombre_archivo, path, pago_id').single();
-        if (ins.error && String(ins.error.message || '').toLowerCase().includes('pago_id')) {
-          delete payload.pago_id;
-          ins = await sb.from('documentos').insert(payload).select('id, nombre_archivo, path').single();
-        }
-
-        if (ins.error) {
-          await sb.storage.from('documentos').remove([storagePath]);
-          throw ins.error;
-        }
-
-        return { ok:true, skipped:false, doc:ins.data || null };
-      } catch (error) {
-        if (!options?.silent) console.warn('No se pudo archivar el recibo interno:', error);
-        return { ok:false, skipped:false, error };
-      }
-    }
-
     async function buildReciboPdfBlob(item){
       const jsPDFCtor = window.jspdf?.jsPDF;
       if (!jsPDFCtor) throw new Error('No se pudo cargar el generador de PDF.');
@@ -5040,30 +4832,28 @@ function globalSearch(){
       const impuesto = fmtARS.format(Number(item?.monto_impuesto || 0));
       const total = fmtARS.format(Number(item?.monto_total || item?.monto || 0));
 
-      const setFont = (size = 12, weight = 'normal', color = [15,23,42]) => {
+      const centerText = (value, xCenter, y, size = 12, weight = 'normal', color = [15,23,42]) => {
         doc.setFont('helvetica', weight);
         doc.setFontSize(size);
         doc.setTextColor(color[0], color[1], color[2]);
-      };
-
-      const centerText = (value, xCenter, y, size = 12, weight = 'normal', color = [15,23,42]) => {
-        setFont(size, weight, color);
         const width = doc.getTextWidth(String(value || ''));
         doc.text(String(value || ''), xCenter - width / 2, y);
       };
 
-      const drawCenteredWrapped = (value, xCenter, startY, maxWidth, size = 11, weight = 'normal', color = [71,85,105], lineHeight = 14, maxLines = 3) => {
-        setFont(size, weight, color);
-        const lines = doc.splitTextToSize(String(value || ''), maxWidth).slice(0, maxLines);
-        lines.forEach((line, idx) => {
-          const width = doc.getTextWidth(String(line));
-          doc.text(String(line), xCenter - width / 2, startY + (idx * lineHeight));
+      const drawCenteredLines = (lines, xCenter, startY, size = 11, weight = 'normal', color = [71,85,105], lineHeight = 14) => {
+        doc.setFont('helvetica', weight);
+        doc.setFontSize(size);
+        doc.setTextColor(color[0], color[1], color[2]);
+        lines.filter(Boolean).forEach((line, idx) => {
+          const w = doc.getTextWidth(String(line));
+          doc.text(String(line), xCenter - (w / 2), startY + (idx * lineHeight));
         });
-        return lines.length;
       };
 
       const drawParagraphCentered = (value, xCenter, startY, maxWidth, size = 10.5, color = [100,116,139], lineHeight = 14) => {
-        setFont(size, 'normal', color);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(size);
+        doc.setTextColor(color[0], color[1], color[2]);
         const lines = doc.splitTextToSize(String(value || ''), maxWidth);
         lines.forEach((line, idx) => {
           const w = doc.getTextWidth(String(line));
@@ -5071,21 +4861,14 @@ function globalSearch(){
         });
       };
 
-      const drawInfoBox = (x, y, w, h, label, main, sub1 = '', sub2 = '', opts = {}) => {
-        const maxMainWidth = opts.maxMainWidth || (w - 34);
-        const mainSize = opts.mainSize || (String(main || '').length >= 28 ? 13 : 16);
-        const mainLineHeight = opts.mainLineHeight || (mainSize <= 13 ? 15 : 18);
+      const drawInfoBox = (x, y, w, h, label, main, sub1 = '', sub2 = '') => {
         doc.setDrawColor(203, 213, 225);
         doc.setFillColor(248, 250, 252);
         doc.roundedRect(x, y, w, h, 18, 18, 'FD');
         centerText(label.toUpperCase(), x + (w/2), y + 24, 10, 'bold', [100,116,139]);
-        const mainLines = drawCenteredWrapped(main, x + (w/2), y + 54, maxMainWidth, mainSize, 'bold', [15,23,42], mainLineHeight, 3);
-        let cursorY = y + 54 + (mainLines * mainLineHeight) + 8;
-        if (sub1) {
-          const sub1Lines = drawCenteredWrapped(sub1, x + (w/2), cursorY, w - 34, 10, 'normal', [71,85,105], 12, 2);
-          cursorY += sub1Lines * 12 + 6;
-        }
-        if (sub2) drawCenteredWrapped(sub2, x + (w/2), cursorY, w - 34, 10, 'normal', [71,85,105], 12, 2);
+        centerText(main, x + (w/2), y + 58, 16, 'bold', [15,23,42]);
+        if (sub1) centerText(sub1, x + (w/2), y + 82, 10, 'normal', [71,85,105]);
+        if (sub2) centerText(sub2, x + (w/2), y + 102, 10, 'normal', [71,85,105]);
       };
 
       const drawAmountCard = (x, y, w, h, label, value, secondary = '', dark = false) => {
@@ -5121,19 +4904,12 @@ function globalSearch(){
       centerText(negocio, centerX, headerY + 146, 12, 'normal', [226,232,240]);
 
       const headerMetaLines = [];
-      if (negocioDireccion) headerMetaLines.push(negocioDireccion);
-      const contactLine = [negocioTelefono, negocioEmail].filter(Boolean).join(' · ');
-      if (contactLine) headerMetaLines.push(contactLine);
+      const contactLine1 = [negocioDireccion].filter(Boolean).join('');
+      const contactLine2 = [negocioTelefono, negocioEmail].filter(Boolean).join(' · ');
+      if (contactLine1) headerMetaLines.push(contactLine1);
+      if (contactLine2) headerMetaLines.push(contactLine2);
       headerMetaLines.push(`CUIT / identificación: ${cuitNegocio}`);
-      let headerLineY = headerY + 162;
-      headerMetaLines.slice(0,3).forEach(line => {
-        const maxW = contentWidth - 72;
-        const parts = doc.splitTextToSize(String(line), maxW).slice(0, 2);
-        parts.forEach(part => {
-          centerText(part, centerX, headerLineY, 9.5, 'normal', [203,213,225]);
-          headerLineY += 11;
-        });
-      });
+      drawCenteredLines(headerMetaLines.slice(0,3), centerX, headerY + 162, 9.5, 'normal', [203,213,225], 11);
 
       const badgeY = headerY + headerH + 18;
       const badgeW1 = 170;
@@ -5150,11 +4926,10 @@ function globalSearch(){
       const boxY = badgeY + 48;
       const gap = 14;
       const boxW = (contentWidth - gap) / 2;
-      const boxH = 142;
-      drawInfoBox(startX, boxY, boxW, boxH, 'Locatario', item?.inquilino_nombre || '—', `Documento: ${item?.documento || '—'}`, `${item?.telefono || '—'} · ${item?.email || '—'}`);
-      drawInfoBox(startX + boxW + gap, boxY, boxW, boxH, 'Detalle del cobro', `Unidad ${item?.local_codigo || '—'}`, `Medio de pago: ${item?.medio || '—'}`, `Referencia: ${item?.referencia || '—'}`, { mainSize: 15 });
+      drawInfoBox(startX, boxY, boxW, 118, 'Locatario', item?.inquilino_nombre || '—', `Documento: ${item?.documento || '—'}`, `${item?.telefono || '—'} · ${item?.email || '—'}`);
+      drawInfoBox(startX + boxW + gap, boxY, boxW, 118, 'Detalle del cobro', `Unidad ${item?.local_codigo || '—'}`, `Medio de pago: ${item?.medio || '—'}`, `Referencia: ${item?.referencia || '—'}`);
 
-      const amountY = boxY + boxH + 20;
+      const amountY = boxY + 138;
       const amountGap = 12;
       const amountW = (contentWidth - (amountGap * 2)) / 3;
       drawAmountCard(startX, amountY, amountW, 104, 'Alquiler', alquiler);
@@ -5233,14 +5008,6 @@ function globalSearch(){
       return lines.join('\n');
     }
 
-    function getReciboValueClass(value, variant = 'default'){
-      const size = String(value || '').trim().length;
-      const classes = ['value'];
-      if (variant === 'strong') classes.push('value-strong');
-      if (size >= 28) classes.push('value-long');
-      return classes.join(' ');
-    }
-
     function buildReceiptPrintHtml(item){
       const negocio = escapeHtml(appSettings?.negocio?.nombre || 'Gestión de Alquileres');
       const initials = escapeHtml((appSettings?.negocio?.nombre || 'GA').split(/\s+/).map(part => part[0] || '').join('').slice(0,2).toUpperCase() || 'GA');
@@ -5249,13 +5016,11 @@ function globalSearch(){
       const direccion = escapeHtml(appSettings?.negocio?.direccion || '—');
       const cuit = escapeHtml(appSettings?.negocio?.cuit || '—');
       const numero = escapeHtml(item.numero_recibo || '—');
-      const locatarioRaw = item.inquilino_nombre || '—';
-      const locatario = escapeHtml(locatarioRaw);
+      const locatario = escapeHtml(item.inquilino_nombre || '—');
       const documento = escapeHtml(item.documento || '—');
       const tel = escapeHtml(item.telefono || '—');
       const mail = escapeHtml(item.email || '—');
-      const localRaw = `Unidad ${item.local_codigo || '—'}`;
-      const local = escapeHtml(localRaw);
+      const local = escapeHtml(item.local_codigo || '—');
       const fecha = escapeHtml(formatDateDisplay(item.fecha_pago || item.created_at));
       const medio = escapeHtml(item.medio || '—');
       const referencia = escapeHtml(item.referencia || '—');
@@ -5263,8 +5028,6 @@ function globalSearch(){
       const alquiler = fmtARS.format(Number(item.monto_alquiler || 0));
       const impuesto = fmtARS.format(Number(item.monto_impuesto || 0));
       const total = fmtARS.format(Number(item.monto_total || item.monto || 0));
-      const locatarioClass = getReciboValueClass(locatarioRaw, 'strong');
-      const localClass = getReciboValueClass(localRaw, 'strong');
       return `
         <div class="recibo-sheet" id="reciboSheetPrintable">
           <div class="recibo-sheet-head">
@@ -5285,13 +5048,13 @@ function globalSearch(){
           <div class="recibo-sheet-grid">
             <div class="recibo-sheet-box">
               <div class="label">Locatario</div>
-              <div class="${locatarioClass}">${locatario}</div>
+              <div class="value">${locatario}</div>
               <div class="recibo-sheet-sub">Documento: ${documento}</div>
               <div class="recibo-sheet-sub">${tel} · ${mail}</div>
             </div>
             <div class="recibo-sheet-box">
               <div class="label">Detalle del cobro</div>
-              <div class="${localClass}">${local}</div>
+              <div class="value">Unidad ${local}</div>
               <div class="recibo-sheet-sub">Medio de pago: ${medio}</div>
               <div class="recibo-sheet-sub">Referencia: ${referencia}</div>
             </div>
@@ -5714,7 +5477,7 @@ function globalSearch(){
       $('reciboModalMsg').textContent = '';
     }
 
-    async function openReciboModal(id){
+    function openReciboModal(id){
       const item = getReciboById(id);
       if (!item){
         alert('No se encontró el recibo.');
@@ -5725,7 +5488,6 @@ function globalSearch(){
       $('reciboModalMeta').textContent = `${item.numero_recibo} · ${item.inquilino_nombre} · ${item.local_codigo}`;
       $('reciboPreviewBody').innerHTML = buildReceiptPrintHtml(item);
       $('reciboModalMsg').textContent = '';
-      ensureInternalReciboArchived(item, { silent:true }).catch(() => {});
     }
 
     function printReciboActual(){
@@ -5752,9 +5514,9 @@ function globalSearch(){
               .recibo-sheet-badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
               .recibo-sheet-badge{border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:8px 14px;font-size:12px;font-weight:900;background:rgba(255,255,255,.10);color:#fff}
               .recibo-sheet-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:16px}
-              .recibo-sheet-box{border:1px solid rgba(15,23,42,.10);border-radius:22px;padding:18px 20px;background:#f8fafc;min-height:138px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:6px;overflow:hidden}
-              .recibo-sheet-box .label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.10em;color:#64748b;margin-bottom:6px}
-              .recibo-sheet-box .value{font-size:16px;font-weight:950;line-height:1.28;white-space:normal;overflow-wrap:anywhere;word-break:break-word;max-width:100%;margin:0 auto}.recibo-sheet-box .value.value-strong{font-size:17px}.recibo-sheet-box .value.value-long{font-size:14px;line-height:1.22}
+              .recibo-sheet-box{border:1px solid rgba(15,23,42,.10);border-radius:22px;padding:18px 20px;background:#f8fafc;min-height:118px;text-align:center;display:flex;flex-direction:column;justify-content:center}
+              .recibo-sheet-box .label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.10em;color:#64748b;margin-bottom:10px}
+              .recibo-sheet-box .value{font-size:18px;font-weight:950;line-height:1.35}
               .recibo-amount-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
               .recibo-amount-card{border:1px solid rgba(15,23,42,.10);border-radius:18px;padding:16px;background:#f8fafc;text-align:center}
               .recibo-amount-card .label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#64748b;font-weight:900;margin-bottom:8px}
@@ -5781,14 +5543,13 @@ function globalSearch(){
         .catch(() => { $('reciboModalMsg').textContent = 'No se pudo copiar el texto.'; });
     }
 
-    async function shareReciboByWhatsappText(id){
+    function shareReciboByWhatsappText(id){
       const item = getReciboById(id);
       if (!item) return;
       if (!String(item.telefono || '').trim()){
         alert('Este locatario no tiene teléfono cargado.');
         return;
       }
-      await ensureInternalReciboArchived(item, { silent:true });
       const text = buildReceiptShareText(item);
       const link = buildWhatsappLink(item.telefono, text);
       if (!link){
@@ -5796,7 +5557,7 @@ function globalSearch(){
         return;
       }
       window.open(link, '_blank', 'noopener');
-      if ($('reciboModalMsg')) $('reciboModalMsg').textContent = 'Abrí WhatsApp directo con el texto del recibo. El PDF interno quedó archivado en Documentos.';
+      if ($('reciboModalMsg')) $('reciboModalMsg').textContent = 'Abrí WhatsApp directo con el texto del recibo.';
     }
 
     async function shareReciboByEmail(id){
@@ -5808,7 +5569,6 @@ function globalSearch(){
         return;
       }
 
-      await ensureInternalReciboArchived(item, { silent:true });
       const subject = buildEmailSubject(item);
       const body = buildEmailBody(item);
       const gmailLink = buildGmailComposeLink(email, subject, body);
@@ -5817,7 +5577,7 @@ function globalSearch(){
       try {
         const shared = await tryNativeShareReciboPdf(item, { title: subject, text: body });
         if (shared){
-          $('reciboModalMsg').textContent = 'Se abrió el menú compartir para enviar el PDF por email. También quedó archivado en Documentos.';
+          $('reciboModalMsg').textContent = 'Se abrió el menú compartir para enviar el PDF por email.';
           return;
         }
 
@@ -5826,12 +5586,12 @@ function globalSearch(){
         if (!popup) {
           window.location.href = mailtoLink;
         }
-        $('reciboModalMsg').textContent = 'Te abrí el correo, descargué el PDF y además quedó archivado en Documentos.';
+        $('reciboModalMsg').textContent = 'Te abrí el correo y descargué el PDF para adjuntarlo.';
       } catch (error) {
         console.error(error);
         const popup = window.open(gmailLink, '_blank', 'noopener');
         if (!popup) window.location.href = mailtoLink;
-        $('reciboModalMsg').textContent = 'No pude preparar el PDF automático, pero abrí el correo y el recibo quedó archivado en Documentos.';
+        $('reciboModalMsg').textContent = 'No pude preparar el PDF automático, pero abrí el correo para que lo envíes manualmente.';
       }
     }
 
@@ -5842,7 +5602,6 @@ function globalSearch(){
         alert('Este locatario no tiene teléfono cargado.');
         return;
       }
-      await ensureInternalReciboArchived(item, { silent:true });
       const link = buildWhatsappLink(item.telefono, '');
       if (!link){
         alert('No se pudo armar el enlace de WhatsApp.');
@@ -5855,18 +5614,18 @@ function globalSearch(){
           text: ''
         });
         if (shared){
-          $('reciboModalMsg').textContent = 'Se abrió el menú compartir para enviar solo el PDF por WhatsApp. También quedó archivado en Documentos.';
+          $('reciboModalMsg').textContent = 'Se abrió el menú compartir para enviar solo el PDF por WhatsApp.';
           return;
         }
 
         await downloadReciboPdf(item);
         window.open(link, '_blank', 'noopener');
-        $('reciboModalMsg').textContent = 'Te descargué el PDF, abrí WhatsApp para adjuntarlo manualmente y el recibo quedó archivado en Documentos.';
+        $('reciboModalMsg').textContent = 'Te descargué el PDF y abrí WhatsApp para adjuntarlo manualmente, sin mensaje extra.';
       } catch (error) {
         console.error(error);
         await downloadReciboPdf(item).catch(() => {});
         window.open(link, '_blank', 'noopener');
-        $('reciboModalMsg').textContent = 'Abrí WhatsApp y descargué el PDF para que lo adjuntes manualmente. También quedó archivado en Documentos.';
+        $('reciboModalMsg').textContent = 'Abrí WhatsApp y descargué el PDF para que lo adjuntes manualmente.';
       }
     }
 
@@ -6777,17 +6536,14 @@ function globalSearch(){
         }
       }
 
-      const receiptDocsByPayment = new Map();
+      const reciboDocByPagoId = new Map();
       const looseReceiptDocs = [];
       const contractDocs = [];
       const otherDocs = [];
 
       for (const d of docs){
         if (d.tipo === 'RECIBO' && d.pago_id){
-          const key = String(d.pago_id);
-          const arr = receiptDocsByPayment.get(key) || [];
-          arr.push(d);
-          receiptDocsByPayment.set(key, arr);
+          reciboDocByPagoId.set(String(d.pago_id), d);
         } else if (d.tipo === 'RECIBO'){
           looseReceiptDocs.push(d);
         } else if (d.tipo === 'CONTRATO'){
@@ -6800,43 +6556,21 @@ function globalSearch(){
       const rows = [];
 
       for (const p of pagos){
-        const relatedDocs = [...(receiptDocsByPayment.get(String(p.id)) || [])]
-          .sort((a,b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
-        const primaryDoc = relatedDocs.find(isInternalReciboDoc) || relatedDocs[0] || null;
-        const secondaryDocs = relatedDocs.filter(d => d !== primaryDoc);
-
+        const attached = reciboDocByPagoId.get(String(p.id));
         rows.push({
           rowType: 'RECIBO',
           badgeClass: 'b-ok',
           numero: buildReciboNumero(p),
           contrato_id: p.contrato_id || null,
-          detalle: primaryDoc?.nombre_archivo || 'Pago registrado',
+          detalle: attached?.nombre_archivo || 'Pago registrado',
           fecha: p.fecha_pago || p.created_at || null,
           fecha_hora: p.created_at || p.fecha_pago || null,
-          monto: Number(p.monto || p.monto_total || 0),
+          monto: Number(p.monto || 0),
           medio: p.medio || '—',
           referencia: p.referencia || null,
-          downloadUrl: primaryDoc ? (signedUrlByDocId.get(primaryDoc.id) || null) : null,
-          docId: primaryDoc?.id || null,
-          docPath: primaryDoc?.path || null
-        });
-
-        secondaryDocs.forEach((d, idx) => {
-          rows.push({
-            rowType: 'RECIBO',
-            badgeClass: 'b-ok',
-            numero: `${buildReciboNumero(p)} · ADJ ${idx + 1}`,
-            contrato_id: d.contrato_id || p.contrato_id || null,
-            detalle: d.nombre_archivo,
-            fecha: d.created_at,
-            fecha_hora: d.created_at,
-            monto: null,
-            medio: '—',
-            referencia: isInternalReciboDoc(d) ? 'PDF interno archivado' : 'Adjunto adicional',
-            downloadUrl: signedUrlByDocId.get(d.id) || null,
-            docId: d.id,
-            docPath: d.path || null
-          });
+          downloadUrl: attached ? (signedUrlByDocId.get(attached.id) || null) : null,
+          docId: attached?.id || null,
+          docPath: attached?.path || null
         });
       }
 
@@ -6869,7 +6603,7 @@ function globalSearch(){
           fecha_hora: d.created_at,
           monto: null,
           medio: '—',
-          referencia: isInternalReciboDoc(d) ? 'PDF interno archivado' : 'Adjunto manual',
+          referencia: 'Adjunto manual',
           downloadUrl: signedUrlByDocId.get(d.id) || null,
           docId: d.id,
           docPath: d.path || null
@@ -6981,7 +6715,7 @@ function globalSearch(){
       }
 
       if ($('docsVisibleCount') && tbodyId === 'docsBody'){
-        $('docsVisibleCount').textContent = `${filtered.length}`;
+        $('docsVisibleCount').textContent = `${filtered.length} visibles`;
       }
 
       if (error && !filtered.length){
@@ -7032,28 +6766,32 @@ function globalSearch(){
             <td>
               <div class="docs-record-main">
                 <div class="docs-record-title">${row.numero || '—'}</div>
+                <div class="docs-record-sub">${row.rowType === 'RECIBO' ? 'Comprobante de cobro' : row.rowType === 'CONTRATO' ? 'Documento contractual' : 'Archivo adicional'}</div>
               </div>
             </td>
             <td>
               <div class="docs-record-main">
                 <div class="docs-record-title">${escapeHtml(contractLabel)}</div>
+                <div class="docs-record-sub">${row.contrato_id || 'Sin referencia de contrato'}</div>
               </div>
             </td>
             <td>
               <div class="docs-record-main">
                 <div class="docs-record-title">${escapeHtml(row.detalle || '—')}</div>
-                ${detailExtra || ''}
+                ${detailExtra || `<div class="docs-record-sub">${row.medio || 'Sin medio de pago'}</div>`}
               </div>
             </td>
             <td>
               <div class="docs-record-main">
                 <div class="docs-record-title">${formatDateDisplay(row.fecha_hora || row.fecha)}</div>
+                <div class="docs-record-sub">${formatDateTimeDisplay(row.fecha_hora || row.fecha)}</div>
               </div>
             </td>
             <td><span class="docs-status-pill ${stateClass}">${stateLabel}</span></td>
             <td class="right">
               <div class="docs-record-main" style="align-items:flex-end;">
                 <div class="docs-record-title">${row.monto == null ? '—' : fmtARS.format(Number(row.monto || 0))}</div>
+                <div class="docs-record-sub">${row.medio || '—'}</div>
               </div>
             </td>
             <td class="center"><div class="docs-actions">${actions.join('')}</div></td>
@@ -7622,7 +7360,7 @@ function globalSearch(){
       user = data.session?.user || null;
       toggle(!!user, user);
       if (user){
-        setRoute(getSavedRoute('inicio'));
+        setRoute('inicio');
         await refreshAll();
       }
       sb.auth.onAuthStateChange(async (event, session) => {
@@ -7638,7 +7376,7 @@ function globalSearch(){
         if (user){
           setRememberedEmail(user.email || ($('email')?.value || ''), true);
           try{ localStorage.setItem(LOGIN_REMEMBER_KEY, user.email || ($('email')?.value || '')); } catch (e){}
-          setRoute(getSavedRoute('inicio'));
+          setRoute('inicio');
           await refreshAll();
         }
       });
