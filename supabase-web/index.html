@@ -1588,6 +1588,39 @@
   </style>
 
 
+
+  <style id="topHeaderMinimalStyles">
+    .top.top-minimal{
+      padding:0 !important;
+      background:transparent !important;
+      border:none !important;
+      box-shadow:none !important;
+      margin-bottom:14px;
+    }
+    .top.top-minimal .top-left{
+      flex:0 0 auto;
+      min-width:0;
+      width:auto;
+      gap:0;
+    }
+    .top.top-minimal .top-actions{
+      margin-left:auto;
+    }
+    @media (max-width: 900px){
+      .top.top-minimal{
+        padding:10px !important;
+        background:var(--top-surface) !important;
+        border:1px solid var(--panel-border) !important;
+        box-shadow:var(--panel-shadow) !important;
+      }
+      .top.top-minimal .top-left{
+        flex:1 1 auto;
+        width:100%;
+        gap:10px;
+      }
+    }
+  </style>
+
   <style id="detailInfoStyles">
     .detail-info-section{margin:0 0 18px}
     .detail-info-grid{
@@ -2669,7 +2702,7 @@
     </aside>
 
     <main class="main">
-      <header class="top">
+      <header class="top" id="topHeader">
         <div class="top-left">
           <button class="icon-btn nav-trigger" type="button" onclick="toggleSidebarNav()" aria-label="Abrir menú">☰</button>
           <div class="search" id="topSearchWrap">
@@ -3054,6 +3087,7 @@
     const SETTINGS_KEY = 'ga_settings_v1';
     const RECEIPT_NUMBER_MAP_KEY = 'ga_receipt_number_map_v1';
     const NAV_COLLAPSE_KEY = 'ga_nav_collapsed_v1';
+    const ROUTE_STORAGE_KEY = 'ga_last_route_v1';
     const ACCENT_PALETTES = {
       azul: {
         light:{ info:'#2563eb', infoSoft:'rgba(37,99,235,.10)', infoBorder:'rgba(37,99,235,.24)', logoBg:'rgba(37,99,235,.12)', logoFg:'#1d4ed8', brandA:'rgba(37,99,235,.12)', brandB:'rgba(22,163,74,.10)' },
@@ -3084,6 +3118,22 @@
 
     function saveNavState(){
       try { localStorage.setItem(NAV_COLLAPSE_KEY, navCollapsed ? '1' : '0'); } catch (e){}
+    }
+
+    function saveCurrentRoute(value){
+      try {
+        localStorage.setItem(ROUTE_STORAGE_KEY, String(value || 'inicio'));
+      } catch (e){}
+    }
+
+    function loadCurrentRoute(){
+      try {
+        const saved = localStorage.getItem(ROUTE_STORAGE_KEY);
+        const allowed = new Set(['inicio','activos','documentos','recibos','informes','balance','config']);
+        return allowed.has(saved) ? saved : 'inicio';
+      } catch (e){
+        return 'inicio';
+      }
     }
 
     function applyNavState(){
@@ -3422,6 +3472,7 @@
     function updateTopSearchUI(){
       const input = $('globalSearch');
       const wrap = $('topSearchWrap');
+      const header = $('topHeader');
       if (!input) return;
       const placeholders = {
         inicio: 'Buscar unidad, código o inquilino...',
@@ -3432,8 +3483,10 @@
         balance: 'Buscar en balance...',
         config: 'Ajustes del sistema'
       };
-      const hideTopSearchRoutes = new Set(['documentos','recibos','informes']);
-      if (wrap) wrap.style.display = hideTopSearchRoutes.has(route) ? 'none' : '';
+      const compactTopRoutes = new Set(['documentos','recibos','informes']);
+      const useCompactTop = compactTopRoutes.has(route);
+      if (wrap) wrap.style.display = useCompactTop ? 'none' : '';
+      if (header) header.classList.toggle('top-minimal', useCompactTop);
       input.placeholder = placeholders[route] || 'Buscar...';
     }
 
@@ -3452,6 +3505,7 @@
       Object.values(map).forEach(id => $(id).style.display = 'none');
       if (!map[r]) r = 'inicio';
       route = r;
+      saveCurrentRoute(route);
       $(map[r]).style.display = 'block';
       document.body.classList.toggle('route-config', r === 'config');
       updateTopSearchUI();
@@ -7360,8 +7414,8 @@ function globalSearch(){
       user = data.session?.user || null;
       toggle(!!user, user);
       if (user){
-        setRoute('inicio');
         await refreshAll();
+        setRoute(loadCurrentRoute());
       }
       sb.auth.onAuthStateChange(async (event, session) => {
         if (event === 'PASSWORD_RECOVERY') {
@@ -7376,8 +7430,8 @@ function globalSearch(){
         if (user){
           setRememberedEmail(user.email || ($('email')?.value || ''), true);
           try{ localStorage.setItem(LOGIN_REMEMBER_KEY, user.email || ($('email')?.value || '')); } catch (e){}
-          setRoute('inicio');
           await refreshAll();
+          setRoute(loadCurrentRoute());
         }
       });
 
