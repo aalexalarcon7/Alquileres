@@ -1968,11 +1968,13 @@
       border-radius:22px;
       padding:18px 20px;
       background:#f8fafc;
-      min-height:118px;
+      min-height:138px;
       text-align:center;
       display:flex;
       flex-direction:column;
       justify-content:center;
+      gap:6px;
+      overflow:hidden;
     }
     .recibo-sheet-box .label{
       font-size:11px;
@@ -1980,12 +1982,24 @@
       text-transform:uppercase;
       letter-spacing:.10em;
       color:#64748b;
-      margin-bottom:10px;
+      margin-bottom:6px;
     }
     .recibo-sheet-box .value{
-      font-size:18px;
+      font-size:16px;
       font-weight:950;
-      line-height:1.35;
+      line-height:1.28;
+      white-space:normal;
+      overflow-wrap:anywhere;
+      word-break:break-word;
+      max-width:100%;
+      margin:0 auto;
+    }
+    .recibo-sheet-box .value.value-strong{
+      font-size:17px;
+    }
+    .recibo-sheet-box .value.value-long{
+      font-size:14px;
+      line-height:1.22;
     }
     .recibo-amount-grid{
       display:grid;
@@ -2474,8 +2488,8 @@
     }
     .docs-record-sub{
       color:var(--muted);
-      font-size:12px;
-      line-height:1.4;
+      font-size:11px;
+      line-height:1.3;
       font-weight:600;
     }
     .docs-status-pill{
@@ -4670,7 +4684,7 @@ function globalSearch(){
           <div class="row" style="justify-content:space-between;align-items:end;">
             <div>
               <h2 style="margin:0;">Documentos y comprobantes</h2>
-              <div class="muted">Unificá contratos, recibos y adjuntos en un módulo más claro: buscá rápido, filtrá mejor y revisá el estado de cada archivo sin mezclar tanto documento con cobro.</div>
+              <div class="muted">Archivo central de contratos, recibos y adjuntos.</div>
             </div>
             <div class="row">
               <button class="btn" onclick="loadDocsForSelected()">Actualizar</button>
@@ -4682,27 +4696,27 @@ function globalSearch(){
           <div class="docs-kpi">
             <div class="label">Total documentos</div>
             <div class="value" id="docsResumeTotal">0</div>
-            <div class="sub">Historial consolidado</div>
+            <div class="sub">Archivo</div>
           </div>
           <div class="docs-kpi">
             <div class="label">Contratos</div>
             <div class="value" id="docsResumeContratos">0</div>
-            <div class="sub">Base contractual</div>
+            <div class="sub">Base</div>
           </div>
           <div class="docs-kpi">
             <div class="label">Recibos</div>
             <div class="value" id="docsResumeRecibos">0</div>
-            <div class="sub">Generados por cobro o carga</div>
+            <div class="sub">Cobro</div>
           </div>
           <div class="docs-kpi">
             <div class="label">Otros archivos</div>
             <div class="value" id="docsResumeOtros">0</div>
-            <div class="sub">Adjuntos adicionales</div>
+            <div class="sub">Extra</div>
           </div>
           <div class="docs-kpi">
             <div class="label">Sin adjunto</div>
             <div class="value" id="docsResumeSinAdjunto">0</div>
-            <div class="sub">Movimientos sin archivo</div>
+            <div class="sub">Pendientes</div>
           </div>
         </div>
 
@@ -4711,7 +4725,7 @@ function globalSearch(){
             <div class="row" style="justify-content:space-between;align-items:end;">
               <div>
                 <h3 style="margin:0;">Historial documental</h3>
-                <div class="muted">Leé rápido qué documento es, a qué unidad corresponde, si tiene archivo y qué acciones están disponibles.</div>
+                
               </div>
             </div>
 
@@ -4719,7 +4733,7 @@ function globalSearch(){
               <div class="docs-toolbar-main">
                 <div class="docs-toolbar-field">
                   <label>Buscar</label>
-                  <input id="docsSearch" placeholder="Número, unidad, locatario, detalle o referencia..." oninput="loadDocsForSelected()">
+                  <input id="docsSearch" placeholder="Número, unidad o locatario" oninput="loadDocsForSelected()">
                 </div>
                 <div class="docs-toolbar-field">
                   <label>Contrato / unidad</label>
@@ -4736,7 +4750,7 @@ function globalSearch(){
                 </div>
               </div>
               <div class="docs-toolbar-actions">
-                <span class="docs-count-pill" id="docsVisibleCount">0 visibles</span>
+                <span class="docs-count-pill" id="docsVisibleCount">0</span>
                 <button class="btn" onclick="clearDocsFilters()">Limpiar filtros</button>
               </div>
             </div>
@@ -4765,7 +4779,7 @@ function globalSearch(){
             <div class="row" style="justify-content:space-between;align-items:end;">
               <div>
                 <h3 style="margin:0;">Carga rápida</h3>
-                <div class="muted">Subí contratos, recibos escaneados u otros archivos al contrato seleccionado. Los recibos internos también se archivan automáticamente acá.</div>
+                <div class="muted">Subida manual al contrato seleccionado.</div>
               </div>
             </div>
 
@@ -4773,7 +4787,7 @@ function globalSearch(){
               <div class="docs-side-head">
                 <div>
                   <h4 id="docsCurrentContract">Todos los contratos</h4>
-                  <div class="muted" id="docsCurrentHint">Elegí una unidad específica para habilitar la carga de archivos.</div>
+                  <div class="muted" id="docsCurrentHint">Seleccioná una unidad para cargar.</div>
                 </div>
                 <span class="badge b-info">Gestor</span>
               </div>
@@ -4799,13 +4813,13 @@ function globalSearch(){
 
                 <div class="docs-side-item">
                   <div class="label">Estado de carga</div>
-                  <div class="value" id="docsUploadState">Listo para adjuntar un documento nuevo.</div>
+                  <div class="value" id="docsUploadState">Sin archivo cargado.</div>
                 </div>
               </div>
 
               <div class="docs-uploader-grid">
                 <button class="btn primary" onclick="uploadDocFromDocs()">Subir archivo</button>
-                <button class="btn" onclick="openDocumentosFromDetalle()">Abrir desde detalle actual</button>
+                <button class="btn" onclick="openDocumentosFromDetalle()">Usar detalle actual</button>
               </div>
 
               <div class="toast" id="docsMsg" style="margin-top:12px;"></div>
@@ -5026,28 +5040,30 @@ function globalSearch(){
       const impuesto = fmtARS.format(Number(item?.monto_impuesto || 0));
       const total = fmtARS.format(Number(item?.monto_total || item?.monto || 0));
 
-      const centerText = (value, xCenter, y, size = 12, weight = 'normal', color = [15,23,42]) => {
+      const setFont = (size = 12, weight = 'normal', color = [15,23,42]) => {
         doc.setFont('helvetica', weight);
         doc.setFontSize(size);
         doc.setTextColor(color[0], color[1], color[2]);
+      };
+
+      const centerText = (value, xCenter, y, size = 12, weight = 'normal', color = [15,23,42]) => {
+        setFont(size, weight, color);
         const width = doc.getTextWidth(String(value || ''));
         doc.text(String(value || ''), xCenter - width / 2, y);
       };
 
-      const drawCenteredLines = (lines, xCenter, startY, size = 11, weight = 'normal', color = [71,85,105], lineHeight = 14) => {
-        doc.setFont('helvetica', weight);
-        doc.setFontSize(size);
-        doc.setTextColor(color[0], color[1], color[2]);
-        lines.filter(Boolean).forEach((line, idx) => {
-          const w = doc.getTextWidth(String(line));
-          doc.text(String(line), xCenter - (w / 2), startY + (idx * lineHeight));
+      const drawCenteredWrapped = (value, xCenter, startY, maxWidth, size = 11, weight = 'normal', color = [71,85,105], lineHeight = 14, maxLines = 3) => {
+        setFont(size, weight, color);
+        const lines = doc.splitTextToSize(String(value || ''), maxWidth).slice(0, maxLines);
+        lines.forEach((line, idx) => {
+          const width = doc.getTextWidth(String(line));
+          doc.text(String(line), xCenter - width / 2, startY + (idx * lineHeight));
         });
+        return lines.length;
       };
 
       const drawParagraphCentered = (value, xCenter, startY, maxWidth, size = 10.5, color = [100,116,139], lineHeight = 14) => {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(size);
-        doc.setTextColor(color[0], color[1], color[2]);
+        setFont(size, 'normal', color);
         const lines = doc.splitTextToSize(String(value || ''), maxWidth);
         lines.forEach((line, idx) => {
           const w = doc.getTextWidth(String(line));
@@ -5055,14 +5071,21 @@ function globalSearch(){
         });
       };
 
-      const drawInfoBox = (x, y, w, h, label, main, sub1 = '', sub2 = '') => {
+      const drawInfoBox = (x, y, w, h, label, main, sub1 = '', sub2 = '', opts = {}) => {
+        const maxMainWidth = opts.maxMainWidth || (w - 34);
+        const mainSize = opts.mainSize || (String(main || '').length >= 28 ? 13 : 16);
+        const mainLineHeight = opts.mainLineHeight || (mainSize <= 13 ? 15 : 18);
         doc.setDrawColor(203, 213, 225);
         doc.setFillColor(248, 250, 252);
         doc.roundedRect(x, y, w, h, 18, 18, 'FD');
         centerText(label.toUpperCase(), x + (w/2), y + 24, 10, 'bold', [100,116,139]);
-        centerText(main, x + (w/2), y + 58, 16, 'bold', [15,23,42]);
-        if (sub1) centerText(sub1, x + (w/2), y + 82, 10, 'normal', [71,85,105]);
-        if (sub2) centerText(sub2, x + (w/2), y + 102, 10, 'normal', [71,85,105]);
+        const mainLines = drawCenteredWrapped(main, x + (w/2), y + 54, maxMainWidth, mainSize, 'bold', [15,23,42], mainLineHeight, 3);
+        let cursorY = y + 54 + (mainLines * mainLineHeight) + 8;
+        if (sub1) {
+          const sub1Lines = drawCenteredWrapped(sub1, x + (w/2), cursorY, w - 34, 10, 'normal', [71,85,105], 12, 2);
+          cursorY += sub1Lines * 12 + 6;
+        }
+        if (sub2) drawCenteredWrapped(sub2, x + (w/2), cursorY, w - 34, 10, 'normal', [71,85,105], 12, 2);
       };
 
       const drawAmountCard = (x, y, w, h, label, value, secondary = '', dark = false) => {
@@ -5098,12 +5121,19 @@ function globalSearch(){
       centerText(negocio, centerX, headerY + 146, 12, 'normal', [226,232,240]);
 
       const headerMetaLines = [];
-      const contactLine1 = [negocioDireccion].filter(Boolean).join('');
-      const contactLine2 = [negocioTelefono, negocioEmail].filter(Boolean).join(' · ');
-      if (contactLine1) headerMetaLines.push(contactLine1);
-      if (contactLine2) headerMetaLines.push(contactLine2);
+      if (negocioDireccion) headerMetaLines.push(negocioDireccion);
+      const contactLine = [negocioTelefono, negocioEmail].filter(Boolean).join(' · ');
+      if (contactLine) headerMetaLines.push(contactLine);
       headerMetaLines.push(`CUIT / identificación: ${cuitNegocio}`);
-      drawCenteredLines(headerMetaLines.slice(0,3), centerX, headerY + 162, 9.5, 'normal', [203,213,225], 11);
+      let headerLineY = headerY + 162;
+      headerMetaLines.slice(0,3).forEach(line => {
+        const maxW = contentWidth - 72;
+        const parts = doc.splitTextToSize(String(line), maxW).slice(0, 2);
+        parts.forEach(part => {
+          centerText(part, centerX, headerLineY, 9.5, 'normal', [203,213,225]);
+          headerLineY += 11;
+        });
+      });
 
       const badgeY = headerY + headerH + 18;
       const badgeW1 = 170;
@@ -5120,10 +5150,11 @@ function globalSearch(){
       const boxY = badgeY + 48;
       const gap = 14;
       const boxW = (contentWidth - gap) / 2;
-      drawInfoBox(startX, boxY, boxW, 118, 'Locatario', item?.inquilino_nombre || '—', `Documento: ${item?.documento || '—'}`, `${item?.telefono || '—'} · ${item?.email || '—'}`);
-      drawInfoBox(startX + boxW + gap, boxY, boxW, 118, 'Detalle del cobro', `Unidad ${item?.local_codigo || '—'}`, `Medio de pago: ${item?.medio || '—'}`, `Referencia: ${item?.referencia || '—'}`);
+      const boxH = 142;
+      drawInfoBox(startX, boxY, boxW, boxH, 'Locatario', item?.inquilino_nombre || '—', `Documento: ${item?.documento || '—'}`, `${item?.telefono || '—'} · ${item?.email || '—'}`);
+      drawInfoBox(startX + boxW + gap, boxY, boxW, boxH, 'Detalle del cobro', `Unidad ${item?.local_codigo || '—'}`, `Medio de pago: ${item?.medio || '—'}`, `Referencia: ${item?.referencia || '—'}`, { mainSize: 15 });
 
-      const amountY = boxY + 138;
+      const amountY = boxY + boxH + 20;
       const amountGap = 12;
       const amountW = (contentWidth - (amountGap * 2)) / 3;
       drawAmountCard(startX, amountY, amountW, 104, 'Alquiler', alquiler);
@@ -5202,6 +5233,14 @@ function globalSearch(){
       return lines.join('\n');
     }
 
+    function getReciboValueClass(value, variant = 'default'){
+      const size = String(value || '').trim().length;
+      const classes = ['value'];
+      if (variant === 'strong') classes.push('value-strong');
+      if (size >= 28) classes.push('value-long');
+      return classes.join(' ');
+    }
+
     function buildReceiptPrintHtml(item){
       const negocio = escapeHtml(appSettings?.negocio?.nombre || 'Gestión de Alquileres');
       const initials = escapeHtml((appSettings?.negocio?.nombre || 'GA').split(/\s+/).map(part => part[0] || '').join('').slice(0,2).toUpperCase() || 'GA');
@@ -5210,11 +5249,13 @@ function globalSearch(){
       const direccion = escapeHtml(appSettings?.negocio?.direccion || '—');
       const cuit = escapeHtml(appSettings?.negocio?.cuit || '—');
       const numero = escapeHtml(item.numero_recibo || '—');
-      const locatario = escapeHtml(item.inquilino_nombre || '—');
+      const locatarioRaw = item.inquilino_nombre || '—';
+      const locatario = escapeHtml(locatarioRaw);
       const documento = escapeHtml(item.documento || '—');
       const tel = escapeHtml(item.telefono || '—');
       const mail = escapeHtml(item.email || '—');
-      const local = escapeHtml(item.local_codigo || '—');
+      const localRaw = `Unidad ${item.local_codigo || '—'}`;
+      const local = escapeHtml(localRaw);
       const fecha = escapeHtml(formatDateDisplay(item.fecha_pago || item.created_at));
       const medio = escapeHtml(item.medio || '—');
       const referencia = escapeHtml(item.referencia || '—');
@@ -5222,6 +5263,8 @@ function globalSearch(){
       const alquiler = fmtARS.format(Number(item.monto_alquiler || 0));
       const impuesto = fmtARS.format(Number(item.monto_impuesto || 0));
       const total = fmtARS.format(Number(item.monto_total || item.monto || 0));
+      const locatarioClass = getReciboValueClass(locatarioRaw, 'strong');
+      const localClass = getReciboValueClass(localRaw, 'strong');
       return `
         <div class="recibo-sheet" id="reciboSheetPrintable">
           <div class="recibo-sheet-head">
@@ -5242,13 +5285,13 @@ function globalSearch(){
           <div class="recibo-sheet-grid">
             <div class="recibo-sheet-box">
               <div class="label">Locatario</div>
-              <div class="value">${locatario}</div>
+              <div class="${locatarioClass}">${locatario}</div>
               <div class="recibo-sheet-sub">Documento: ${documento}</div>
               <div class="recibo-sheet-sub">${tel} · ${mail}</div>
             </div>
             <div class="recibo-sheet-box">
               <div class="label">Detalle del cobro</div>
-              <div class="value">Unidad ${local}</div>
+              <div class="${localClass}">${local}</div>
               <div class="recibo-sheet-sub">Medio de pago: ${medio}</div>
               <div class="recibo-sheet-sub">Referencia: ${referencia}</div>
             </div>
@@ -5709,9 +5752,9 @@ function globalSearch(){
               .recibo-sheet-badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
               .recibo-sheet-badge{border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:8px 14px;font-size:12px;font-weight:900;background:rgba(255,255,255,.10);color:#fff}
               .recibo-sheet-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:16px}
-              .recibo-sheet-box{border:1px solid rgba(15,23,42,.10);border-radius:22px;padding:18px 20px;background:#f8fafc;min-height:118px;text-align:center;display:flex;flex-direction:column;justify-content:center}
-              .recibo-sheet-box .label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.10em;color:#64748b;margin-bottom:10px}
-              .recibo-sheet-box .value{font-size:18px;font-weight:950;line-height:1.35}
+              .recibo-sheet-box{border:1px solid rgba(15,23,42,.10);border-radius:22px;padding:18px 20px;background:#f8fafc;min-height:138px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:6px;overflow:hidden}
+              .recibo-sheet-box .label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.10em;color:#64748b;margin-bottom:6px}
+              .recibo-sheet-box .value{font-size:16px;font-weight:950;line-height:1.28;white-space:normal;overflow-wrap:anywhere;word-break:break-word;max-width:100%;margin:0 auto}.recibo-sheet-box .value.value-strong{font-size:17px}.recibo-sheet-box .value.value-long{font-size:14px;line-height:1.22}
               .recibo-amount-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
               .recibo-amount-card{border:1px solid rgba(15,23,42,.10);border-radius:18px;padding:16px;background:#f8fafc;text-align:center}
               .recibo-amount-card .label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#64748b;font-weight:900;margin-bottom:8px}
@@ -6938,7 +6981,7 @@ function globalSearch(){
       }
 
       if ($('docsVisibleCount') && tbodyId === 'docsBody'){
-        $('docsVisibleCount').textContent = `${filtered.length} visibles`;
+        $('docsVisibleCount').textContent = `${filtered.length}`;
       }
 
       if (error && !filtered.length){
@@ -6989,32 +7032,28 @@ function globalSearch(){
             <td>
               <div class="docs-record-main">
                 <div class="docs-record-title">${row.numero || '—'}</div>
-                <div class="docs-record-sub">${row.rowType === 'RECIBO' ? 'Comprobante de cobro' : row.rowType === 'CONTRATO' ? 'Documento contractual' : 'Archivo adicional'}</div>
               </div>
             </td>
             <td>
               <div class="docs-record-main">
                 <div class="docs-record-title">${escapeHtml(contractLabel)}</div>
-                <div class="docs-record-sub">${row.contrato_id || 'Sin referencia de contrato'}</div>
               </div>
             </td>
             <td>
               <div class="docs-record-main">
                 <div class="docs-record-title">${escapeHtml(row.detalle || '—')}</div>
-                ${detailExtra || `<div class="docs-record-sub">${row.medio || 'Sin medio de pago'}</div>`}
+                ${detailExtra || ''}
               </div>
             </td>
             <td>
               <div class="docs-record-main">
                 <div class="docs-record-title">${formatDateDisplay(row.fecha_hora || row.fecha)}</div>
-                <div class="docs-record-sub">${formatDateTimeDisplay(row.fecha_hora || row.fecha)}</div>
               </div>
             </td>
             <td><span class="docs-status-pill ${stateClass}">${stateLabel}</span></td>
             <td class="right">
               <div class="docs-record-main" style="align-items:flex-end;">
                 <div class="docs-record-title">${row.monto == null ? '—' : fmtARS.format(Number(row.monto || 0))}</div>
-                <div class="docs-record-sub">${row.medio || '—'}</div>
               </div>
             </td>
             <td class="center"><div class="docs-actions">${actions.join('')}</div></td>
