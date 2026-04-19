@@ -4604,10 +4604,10 @@ function globalSearch(){
     async function renderDocumentosPage(){
       const el = $('viewDocumentos');
       el.innerHTML = `
-        <div class="card">
-          <div class="row" style="justify-content:space-between;align-items:end;">
+        <div class="card" style="padding:14px 18px;">
+          <div class="row" style="justify-content:space-between;align-items:center;">
             <div>
-              <h2 style="margin:0;">Documentos y comprobantes</h2>
+              <h2 style="margin:0;">Documentos</h2>
             </div>
             <div class="row">
               <button class="btn" onclick="loadDocsForSelected()">Actualizar</button>
@@ -4647,7 +4647,7 @@ function globalSearch(){
           <div class="card">
             <div class="row" style="justify-content:space-between;align-items:end;">
               <div>
-                <h3 style="margin:0;">Historial documental</h3>
+                <h3 style="margin:0;">Historial</h3>
               </div>
             </div>
 
@@ -5860,11 +5860,10 @@ function globalSearch(){
     function renderInformesPage(){
       const el = $('viewInformes');
       el.innerHTML = `
-        <div class="card">
-          <div class="row" style="justify-content:space-between;align-items:end;">
+        <div class="card" style="padding:14px 18px;">
+          <div class="row" style="justify-content:space-between;align-items:center;">
             <div>
-              <h2 style="margin:0;">Informes</h2>
-              <div class="muted">Acá se registran todos los egresos: sueldos, reparaciones, servicios, impuestos y cualquier otro gasto.</div>
+              <h2 style="margin:0;">Gastos</h2>
             </div>
             <div class="row">
                             <button class="btn" onclick="refreshInformesData({ keepSuccessMsg:true })">Recargar</button>
@@ -5901,7 +5900,6 @@ function globalSearch(){
           <div class="row" style="justify-content:space-between;align-items:end;">
             <div>
               <h3 style="margin:0;">Registrar gasto</h3>
-              <div class="muted">Usá este formulario para cargar cualquier egreso, incluyendo sueldos repartidos.</div>
             </div>
             <span class="badge b-info" id="infFormMode">Nuevo gasto</span>
           </div>
@@ -5941,7 +5939,6 @@ function globalSearch(){
           <div class="row" style="justify-content:space-between;">
             <div>
               <h3 style="margin:0;">Historial de gastos</h3>
-              <div class="muted">Todos los egresos cargados, incluidos los sueldos.</div>
             </div>
             <span class="badge b-bad" id="infTotalRows">0 registros</span>
           </div>
