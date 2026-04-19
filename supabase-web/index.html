@@ -2709,9 +2709,7 @@
             <input id="globalSearch" placeholder="Buscar unidad, código o inquilino..." oninput="globalSearch()" />
           </div>
         </div>
-        <div class="top-actions">
-<button class="btn" onclick="refreshAll()">Refrescar</button>
-        </div>
+        <div class="top-actions"></div>
       </header>
 
       <!-- LOGIN -->
@@ -3136,6 +3134,8 @@
       }
     }
 
+    window.addEventListener('beforeunload', () => saveCurrentRoute(route));
+
     function applyNavState(){
       const desktop = window.innerWidth > 1100;
       document.body.classList.toggle('nav-collapsed', desktop && !!navCollapsed);
@@ -3486,7 +3486,10 @@
       const compactTopRoutes = new Set(['documentos','recibos','informes']);
       const useCompactTop = compactTopRoutes.has(route);
       if (wrap) wrap.style.display = useCompactTop ? 'none' : '';
-      if (header) header.classList.toggle('top-minimal', useCompactTop);
+      if (header) {
+        header.classList.toggle('top-minimal', useCompactTop);
+        header.style.display = useCompactTop ? 'none' : '';
+      }
       input.placeholder = placeholders[route] || 'Buscar...';
     }
 
