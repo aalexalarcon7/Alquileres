@@ -2674,7 +2674,7 @@
     </aside>
 
     <main class="main">
-      <header class="top">
+      <header class="top" id="topHeader">
         <div class="top-left">
           <button class="icon-btn nav-trigger" type="button" onclick="toggleSidebarNav()" aria-label="Abrir menú">☰</button>
           <div class="search">
@@ -3059,6 +3059,7 @@
     const SETTINGS_KEY = 'ga_settings_v1';
     const RECEIPT_NUMBER_MAP_KEY = 'ga_receipt_number_map_v1';
     const NAV_COLLAPSE_KEY = 'ga_nav_collapsed_v1';
+    const ROUTE_STORAGE_KEY = 'ga_last_route_v1';
     const ACCENT_PALETTES = {
       azul: {
         light:{ info:'#2563eb', infoSoft:'rgba(37,99,235,.10)', infoBorder:'rgba(37,99,235,.24)', logoBg:'rgba(37,99,235,.12)', logoFg:'#1d4ed8', brandA:'rgba(37,99,235,.12)', brandB:'rgba(22,163,74,.10)' },
@@ -3089,6 +3090,21 @@
 
     function saveNavState(){
       try { localStorage.setItem(NAV_COLLAPSE_KEY, navCollapsed ? '1' : '0'); } catch (e){}
+    }
+
+
+    function saveCurrentRoute(value){
+      try { localStorage.setItem(ROUTE_STORAGE_KEY, String(value || 'inicio')); } catch (e){}
+    }
+
+    function loadCurrentRoute(){
+      try {
+        const saved = localStorage.getItem(ROUTE_STORAGE_KEY);
+        const allowed = new Set(['inicio','activos','documentos','recibos','informes','balance','config']);
+        return allowed.has(saved) ? saved : 'inicio';
+      } catch (e){
+        return 'inicio';
+      }
     }
 
     function applyNavState(){
@@ -3428,6 +3444,7 @@
       const input = $('globalSearch');
       const header = $('topHeader');
       if (!input) return;
+
       const placeholders = {
         inicio: 'Buscar unidad, código o inquilino...',
         activos: 'Buscar unidad, código o inquilino...',
@@ -3437,9 +3454,16 @@
         balance: 'Buscar en balance...',
         config: 'Ajustes del sistema'
       };
-      const hideTopHeader = new Set(['documentos', 'recibos', 'informes']).has(route);
-      document.body.classList.toggle('route-hide-top', hideTopHeader);
-      if (header) header.style.display = hideTopHeader ? 'none' : '';
+
+      const hideHeaderRoutes = new Set(['documentos', 'recibos', 'informes']);
+      const shouldHideHeader = hideHeaderRoutes.has(route);
+
+      document.body.classList.toggle('route-hide-top', shouldHideHeader);
+
+      if (header){
+        header.style.display = shouldHideHeader ? 'none' : 'flex';
+      }
+
       input.placeholder = placeholders[route] || 'Buscar...';
     }
 
@@ -3458,6 +3482,7 @@
       Object.values(map).forEach(id => $(id).style.display = 'none');
       if (!map[r]) r = 'inicio';
       route = r;
+      saveCurrentRoute(route);
       $(map[r]).style.display = 'block';
       document.body.classList.toggle('route-config', r === 'config');
       updateTopSearchUI();
@@ -3604,9 +3629,20 @@
     }
 
 function globalSearch(){
-      const q = ($('globalSearch').value || '').trim();
+      const q = ($('globalSearch')?.value || '').trim();
 
       if (route === 'activos'){
+        renderUnidades();
+        return;
+      }
+
+      if (route === 'inicio'){
+        if (!q){
+          renderInicio();
+          return;
+        }
+        setRoute('activos');
+        if ($('globalSearch')) $('globalSearch').value = q;
         renderUnidades();
         return;
       }
@@ -3616,10 +3652,20 @@ function globalSearch(){
         return;
       }
 
-      if (!q) return;
+      if (route === 'documentos'){
+        loadDocsForSelected();
+        return;
+      }
 
-      setRoute('activos');
-      renderUnidades();
+      if (route === 'informes'){
+        renderInformesTable();
+        return;
+      }
+
+      if (route === 'balance'){
+        renderBalancePage();
+        return;
+      }
     }
 
     function badgeEstado(row){
@@ -7351,7 +7397,7 @@ function globalSearch(){
       user = data.session?.user || null;
       toggle(!!user, user);
       if (user){
-        setRoute('inicio');
+        setRoute(loadCurrentRoute());
         await refreshAll();
       }
       sb.auth.onAuthStateChange(async (event, session) => {
@@ -7367,7 +7413,7 @@ function globalSearch(){
         if (user){
           setRememberedEmail(user.email || ($('email')?.value || ''), true);
           try{ localStorage.setItem(LOGIN_REMEMBER_KEY, user.email || ($('email')?.value || '')); } catch (e){}
-          setRoute('inicio');
+          setRoute(loadCurrentRoute());
           await refreshAll();
         }
       });
