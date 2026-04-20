@@ -1588,39 +1588,6 @@
   </style>
 
 
-
-  <style id="topHeaderMinimalStyles">
-    .top.top-minimal{
-      padding:0 !important;
-      background:transparent !important;
-      border:none !important;
-      box-shadow:none !important;
-      margin-bottom:14px;
-    }
-    .top.top-minimal .top-left{
-      flex:0 0 auto;
-      min-width:0;
-      width:auto;
-      gap:0;
-    }
-    .top.top-minimal .top-actions{
-      margin-left:auto;
-    }
-    @media (max-width: 900px){
-      .top.top-minimal{
-        padding:10px !important;
-        background:var(--top-surface) !important;
-        border:1px solid var(--panel-border) !important;
-        box-shadow:var(--panel-shadow) !important;
-      }
-      .top.top-minimal .top-left{
-        flex:1 1 auto;
-        width:100%;
-        gap:10px;
-      }
-    }
-  </style>
-
   <style id="detailInfoStyles">
     .detail-info-section{margin:0 0 18px}
     .detail-info-grid{
@@ -2689,7 +2656,7 @@
       <nav class="sb-nav">
         <button class="sb-item active" data-route="inicio" onclick="setRoute('inicio')"><span class="sb-item-icon">🏠</span><span class="sb-item-label">Inicio</span></button>
         <button class="sb-item" data-route="activos" onclick="setRoute('activos')"><span class="sb-item-icon">🏢</span><span class="sb-item-label">Activos</span></button>
-        <button class="sb-item" data-route="documentos" onclick="setRoute('documentos')"><span class="sb-item-icon">📎</span><span class="sb-item-label">Documentos</span></button>
+        <button class="sb-item" data-route="documentos" onclick="setRoute('documentos')"><span class="sb-item-icon">📂</span><span class="sb-item-label">Legajos</span></button>
         <button class="sb-item" data-route="recibos" onclick="setRoute('recibos')"><span class="sb-item-icon">🧾</span><span class="sb-item-label">Recibos</span></button>
         <button class="sb-item" data-route="informes" onclick="setRoute('informes')"><span class="sb-item-icon">📊</span><span class="sb-item-label">Informes</span></button>
         <button class="sb-item" data-route="balance" onclick="setRoute('balance')"><span class="sb-item-icon">💰</span><span class="sb-item-label">Balance</span></button>
@@ -2702,14 +2669,16 @@
     </aside>
 
     <main class="main">
-      <header class="top" id="topHeader">
+      <header class="top">
         <div class="top-left">
           <button class="icon-btn nav-trigger" type="button" onclick="toggleSidebarNav()" aria-label="Abrir menú">☰</button>
-          <div class="search" id="topSearchWrap">
+          <div class="search">
             <input id="globalSearch" placeholder="Buscar unidad, código o inquilino..." oninput="globalSearch()" />
           </div>
         </div>
-        <div class="top-actions"></div>
+        <div class="top-actions">
+<button class="btn" onclick="refreshAll()">Refrescar</button>
+        </div>
       </header>
 
       <!-- LOGIN -->
@@ -2782,7 +2751,7 @@
             <div class="row" style="justify-content:space-between;">
               <div>
                 <h2 style="margin:0;">Activos</h2>
-                <div class="muted"></div>
+                <div class="muted">Listado de unidades. Cobrá, revisá deuda y abrí el detalle completo del activo.</div>
               </div>
               <span class="badge b-info" id="unitsCount">0 resultados</span>
             </div>
@@ -2869,7 +2838,7 @@
             <div class="row" style="justify-content:space-between;align-items:end;">
               <div>
                 <h3 style="margin:0;">Documentos</h3>
-                <div class="muted">Contrato, recibos y otros. Los recibos aparecen automáticamente al registrar pagos.</div>
+                <div class="muted">Contrato, anexos y otros archivos administrativos. Los recibos se gestionan desde su módulo.</div>
               </div>
               <button class="btn" onclick="openDocumentosFromDetalle()">Abrir gestor</button>
             </div>
@@ -3085,7 +3054,6 @@
     const SETTINGS_KEY = 'ga_settings_v1';
     const RECEIPT_NUMBER_MAP_KEY = 'ga_receipt_number_map_v1';
     const NAV_COLLAPSE_KEY = 'ga_nav_collapsed_v1';
-    const ROUTE_STORAGE_KEY = 'ga_last_route_v1';
     const ACCENT_PALETTES = {
       azul: {
         light:{ info:'#2563eb', infoSoft:'rgba(37,99,235,.10)', infoBorder:'rgba(37,99,235,.24)', logoBg:'rgba(37,99,235,.12)', logoFg:'#1d4ed8', brandA:'rgba(37,99,235,.12)', brandB:'rgba(22,163,74,.10)' },
@@ -3117,24 +3085,6 @@
     function saveNavState(){
       try { localStorage.setItem(NAV_COLLAPSE_KEY, navCollapsed ? '1' : '0'); } catch (e){}
     }
-
-    function saveCurrentRoute(value){
-      try {
-        localStorage.setItem(ROUTE_STORAGE_KEY, String(value || 'inicio'));
-      } catch (e){}
-    }
-
-    function loadCurrentRoute(){
-      try {
-        const saved = localStorage.getItem(ROUTE_STORAGE_KEY);
-        const allowed = new Set(['inicio','activos','documentos','recibos','informes','balance','config']);
-        return allowed.has(saved) ? saved : 'inicio';
-      } catch (e){
-        return 'inicio';
-      }
-    }
-
-    window.addEventListener('beforeunload', () => saveCurrentRoute(route));
 
     function applyNavState(){
       const desktop = window.innerWidth > 1100;
@@ -3471,25 +3421,16 @@
 
     function updateTopSearchUI(){
       const input = $('globalSearch');
-      const wrap = $('topSearchWrap');
-      const header = $('topHeader');
       if (!input) return;
       const placeholders = {
         inicio: 'Buscar unidad, código o inquilino...',
         activos: 'Buscar unidad, código o inquilino...',
-        documentos: 'Buscar contrato, recibo o archivo...',
+        documentos: 'Buscar contrato o archivo...',
         recibos: 'Buscar recibo, locatario o local...',
         informes: 'Buscar gastos, persona o categoría...',
         balance: 'Buscar en balance...',
         config: 'Ajustes del sistema'
       };
-      const compactTopRoutes = new Set(['documentos','recibos','informes']);
-      const useCompactTop = compactTopRoutes.has(route);
-      if (wrap) wrap.style.display = useCompactTop ? 'none' : '';
-      if (header) {
-        header.classList.toggle('top-minimal', useCompactTop);
-        header.style.display = useCompactTop ? 'none' : '';
-      }
       input.placeholder = placeholders[route] || 'Buscar...';
     }
 
@@ -3508,7 +3449,6 @@
       Object.values(map).forEach(id => $(id).style.display = 'none');
       if (!map[r]) r = 'inicio';
       route = r;
-      saveCurrentRoute(route);
       $(map[r]).style.display = 'block';
       document.body.classList.toggle('route-config', r === 'config');
       updateTopSearchUI();
@@ -4607,7 +4547,7 @@ function globalSearch(){
         <div class="card" style="padding:14px 18px;">
           <div class="row" style="justify-content:space-between;align-items:center;">
             <div>
-              <h2 style="margin:0;">Documentos</h2>
+              <h2 style="margin:0;">Legajos</h2>
             </div>
             <div class="row">
               <button class="btn" onclick="loadDocsForSelected()">Actualizar</button>
@@ -4617,9 +4557,9 @@ function globalSearch(){
 
         <div class="docs-overview">
           <div class="docs-kpi">
-            <div class="label">Total documentos</div>
+            <div class="label">Total legajos</div>
             <div class="value" id="docsResumeTotal">0</div>
-            <div class="sub">Historial consolidado</div>
+            <div class="sub">Archivo general</div>
           </div>
           <div class="docs-kpi">
             <div class="label">Contratos</div>
@@ -4627,19 +4567,19 @@ function globalSearch(){
             <div class="sub">Base contractual</div>
           </div>
           <div class="docs-kpi">
-            <div class="label">Recibos</div>
-            <div class="value" id="docsResumeRecibos">0</div>
-            <div class="sub">Generados por cobro o carga</div>
+            <div class="label">Archivos varios</div>
+            <div class="value" id="docsResumeOtros">0</div>
+            <div class="sub">Anexos y soporte</div>
           </div>
           <div class="docs-kpi">
-            <div class="label">Otros archivos</div>
-            <div class="value" id="docsResumeOtros">0</div>
-            <div class="sub">Adjuntos adicionales</div>
+            <div class="label">Con adjunto</div>
+            <div class="value" id="docsResumeConAdjunto">0</div>
+            <div class="sub">Archivo disponible</div>
           </div>
           <div class="docs-kpi">
             <div class="label">Sin adjunto</div>
             <div class="value" id="docsResumeSinAdjunto">0</div>
-            <div class="sub">Movimientos sin archivo</div>
+            <div class="sub">Pendientes</div>
           </div>
         </div>
 
@@ -4647,7 +4587,7 @@ function globalSearch(){
           <div class="card">
             <div class="row" style="justify-content:space-between;align-items:end;">
               <div>
-                <h3 style="margin:0;">Historial</h3>
+                <h3 style="margin:0;">Historial de legajos</h3>
               </div>
             </div>
 
@@ -4655,7 +4595,7 @@ function globalSearch(){
               <div class="docs-toolbar-main">
                 <div class="docs-toolbar-field">
                   <label>Buscar</label>
-                  <input id="docsSearch" placeholder="Número, unidad, locatario, detalle o referencia..." oninput="loadDocsForSelected()">
+                  <input id="docsSearch" placeholder="Contrato, unidad, locatario o archivo..." oninput="loadDocsForSelected()">
                 </div>
                 <div class="docs-toolbar-field">
                   <label>Contrato / unidad</label>
@@ -4665,9 +4605,8 @@ function globalSearch(){
                   <label>Tipo</label>
                   <select id="docsFiltroTipo" onchange="loadDocsForSelected()">
                     <option value="TODOS">Todos</option>
-                    <option value="RECIBO">Recibos</option>
-                    <option value="CONTRATO">Contratos</option>
-                    <option value="OTRO">Otros</option>
+                    <option value="CONTRATO">Contrato</option>
+                    <option value="OTRO">Anexo / otro</option>
                   </select>
                 </div>
               </div>
@@ -4700,17 +4639,17 @@ function globalSearch(){
           <div class="card">
             <div class="row" style="justify-content:space-between;align-items:end;">
               <div>
-                <h3 style="margin:0;">Carga rápida</h3>
+                <h3 style="margin:0;">Archivo rápido</h3>
               </div>
             </div>
 
             <div class="docs-side-card" style="margin-top:12px;">
               <div class="docs-side-head">
                 <div>
-                  <h4 id="docsCurrentContract">Todos los contratos</h4>
+                  <h4 id="docsCurrentContract">Todos los legajos</h4>
                   <div class="muted" id="docsCurrentHint"></div>
                 </div>
-                <span class="badge b-info">Gestor</span>
+                <span class="badge b-info">Archivo</span>
               </div>
 
               <div class="docs-side-lines">
@@ -4719,8 +4658,7 @@ function globalSearch(){
                   <div class="value">
                     <select id="docsTipo" style="width:100%;">
                       <option value="CONTRATO">CONTRATO</option>
-                      <option value="RECIBO">RECIBO</option>
-                      <option value="OTRO">OTRO</option>
+                      <option value="OTRO">ANEXO / OTRO</option>
                     </select>
                   </div>
                 </div>
@@ -4734,13 +4672,13 @@ function globalSearch(){
 
                 <div class="docs-side-item">
                   <div class="label">Estado de carga</div>
-                  <div class="value" id="docsUploadState">Listo para adjuntar un documento nuevo.</div>
+                  <div class="value" id="docsUploadState">Seleccioná un contrato puntual para cargar documentación.</div>
                 </div>
               </div>
 
               <div class="docs-uploader-grid">
                 <button class="btn primary" onclick="uploadDocFromDocs()">Subir archivo</button>
-                <button class="btn" onclick="openDocumentosFromDetalle()">Abrir desde detalle actual</button>
+                <button class="btn" onclick="goToRecibosFromLegajo()">Ver recibos</button>
               </div>
 
               <div class="toast" id="docsMsg" style="margin-top:12px;"></div>
@@ -5357,6 +5295,7 @@ function globalSearch(){
           <div class="recibos-history-head">
             <div>
               <h2 style="margin:0;">Recibos internos</h2>
+              <div class="muted">Centralizá el historial, encontrá rápido el locatario correcto y compartí cada comprobante desde una interfaz más ordenada.</div>
             </div>
             <div class="row">
               <button class="btn" onclick="renderRecibosPage()">Actualizar</button>
@@ -5392,7 +5331,8 @@ function globalSearch(){
           <div class="card">
             <div class="row" style="justify-content:space-between;align-items:end;">
               <div>
-                <h3 style="margin:0;">Historial de recibos</h3>
+                <h3 style="margin:0;">Historial profesional</h3>
+                <div class="muted">Filtrá por locatario, número de recibo, local o mes y accedé a cada acción desde botones claros.</div>
               </div>
             </div>
 
@@ -5445,7 +5385,7 @@ function globalSearch(){
               <div class="row" style="justify-content:space-between;align-items:end;">
                 <div>
                   <h3 style="margin:0;">Locatario seleccionado</h3>
-                  <div class="muted"></div>
+                  <div class="muted">Un panel más limpio para copiar datos, revisar contacto y disparar el envío correcto.</div>
                 </div>
               </div>
               ${ultimo ? `
@@ -5495,6 +5435,26 @@ function globalSearch(){
               ` : `<div class="toast" style="margin-top:12px;">Apenas registres un cobro, vas a ver el recibo interno acá.</div>`}
             </div>
 
+            <div class="card">
+              <div class="row" style="justify-content:space-between;align-items:end;">
+                <div>
+                  <h3 style="margin:0;">Criterio visual</h3>
+                  <div class="muted">La tabla ahora prioriza lectura rápida: contacto agrupado, acciones en chips y filtros arriba.</div>
+                </div>
+              </div>
+              <div class="recibos-side-card" style="margin-top:12px;">
+                <div class="recibo-contact-lines">
+                  <div class="recibo-contact-item">
+                    <div class="label">Qué mejora</div>
+                    <div class="value">Menos ruido visual, acciones claras y contactos más fáciles de ubicar.</div>
+                  </div>
+                  <div class="recibo-contact-item">
+                    <div class="label">Uso recomendado</div>
+                    <div class="value">Buscá, abrí el recibo y elegí el canal: email, WhatsApp rápido o WhatsApp + PDF.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       `;
@@ -5860,10 +5820,11 @@ function globalSearch(){
     function renderInformesPage(){
       const el = $('viewInformes');
       el.innerHTML = `
-        <div class="card" style="padding:14px 18px;">
-          <div class="row" style="justify-content:space-between;align-items:center;">
+        <div class="card">
+          <div class="row" style="justify-content:space-between;align-items:end;">
             <div>
-              <h2 style="margin:0;">Gastos</h2>
+              <h2 style="margin:0;">Informes</h2>
+              <div class="muted">Acá se registran todos los egresos: sueldos, reparaciones, servicios, impuestos y cualquier otro gasto.</div>
             </div>
             <div class="row">
                             <button class="btn" onclick="refreshInformesData({ keepSuccessMsg:true })">Recargar</button>
@@ -5900,6 +5861,7 @@ function globalSearch(){
           <div class="row" style="justify-content:space-between;align-items:end;">
             <div>
               <h3 style="margin:0;">Registrar gasto</h3>
+              <div class="muted">Usá este formulario para cargar cualquier egreso, incluyendo sueldos repartidos.</div>
             </div>
             <span class="badge b-info" id="infFormMode">Nuevo gasto</span>
           </div>
@@ -5939,6 +5901,7 @@ function globalSearch(){
           <div class="row" style="justify-content:space-between;">
             <div>
               <h3 style="margin:0;">Historial de gastos</h3>
+              <div class="muted">Todos los egresos cargados, incluidos los sueldos.</div>
             </div>
             <span class="badge b-bad" id="infTotalRows">0 registros</span>
           </div>
@@ -6406,7 +6369,7 @@ function globalSearch(){
           <div class="row" style="justify-content:space-between;align-items:end;">
             <div>
               <h2 style="margin:0;">Balance</h2>
-              <div class="muted"></div>
+              <div class="muted">Seguimiento completo del flujo de dinero: recaudación, gastos, ganancia, saldo y proyecciones.</div>
             </div>
             <div class="row">
               <select id="balanceYear" style="width:140px">
@@ -6668,15 +6631,15 @@ function globalSearch(){
 
     function updateDocumentSummary(rows){
       const total = rows.length;
-      const recibos = rows.filter(r => r.rowType === 'RECIBO').length;
       const contratos = rows.filter(r => r.rowType === 'CONTRATO').length;
       const otros = rows.filter(r => r.rowType === 'OTRO').length;
+      const conAdjunto = rows.filter(r => !!r.downloadUrl).length;
       const sinAdjunto = rows.filter(r => !r.downloadUrl).length;
 
       if ($('docsResumeTotal')) $('docsResumeTotal').textContent = String(total);
-      if ($('docsResumeRecibos')) $('docsResumeRecibos').textContent = String(recibos);
       if ($('docsResumeContratos')) $('docsResumeContratos').textContent = String(contratos);
       if ($('docsResumeOtros')) $('docsResumeOtros').textContent = String(otros);
+      if ($('docsResumeConAdjunto')) $('docsResumeConAdjunto').textContent = String(conAdjunto);
       if ($('docsResumeSinAdjunto')) $('docsResumeSinAdjunto').textContent = String(sinAdjunto);
     }
 
@@ -6699,14 +6662,27 @@ function globalSearch(){
       const value = sel?.value || docsContratoId || '__ALL__';
       const label = sel?.selectedOptions?.[0]?.textContent || 'Todos los contratos';
       if (value === '__ALL__'){
-        currentName.textContent = 'Todos los contratos';
+        currentName.textContent = 'Todos los legajos';
         currentHint.textContent = '';
-        uploadState.textContent = 'Para subir un archivo primero seleccioná un contrato puntual.';
+        uploadState.textContent = 'Seleccioná un contrato puntual para cargar documentación.';
       } else {
-        currentName.textContent = label;
-        currentHint.textContent = 'La carga nueva quedará asociada directamente a esta unidad.';
-        uploadState.textContent = 'Listo para adjuntar un documento nuevo a este contrato.';
+        currentName.textContent = `Legajo · ${label}`;
+        currentHint.textContent = '';
+        uploadState.textContent = 'Listo para adjuntar un archivo al legajo de esta unidad.';
       }
+    }
+
+    function goToRecibosFromLegajo(){
+      const contratoId = $('docsContratoSel')?.value || docsContratoId || '__ALL__';
+      if (!contratoId || contratoId === '__ALL__'){
+        setRoute('recibos');
+        return;
+      }
+      const unidad = unidades.find(x => String(x.contrato_id) === String(contratoId));
+      if (unidad?.local_codigo){
+        recibosPageState = { ...recibosPageState, local: String(unidad.local_codigo), query: '', month: '' };
+      }
+      setRoute('recibos');
     }
 
     async function loadDocsListInto(tbodyId, msgId, contratoId, includeContratoCol){
@@ -6719,14 +6695,18 @@ function globalSearch(){
 
       const { rows, error } = await buildCombinedDocumentRows(contratoId);
 
+      const baseRows = tbodyId === 'docsBody'
+        ? rows.filter(r => r.rowType !== 'RECIBO')
+        : rows;
+
       if (tbodyId === 'docsBody'){
-        updateDocumentSummary(rows);
+        updateDocumentSummary(baseRows);
       }
 
       const filtroTipo = tbodyId === 'docsBody' ? ($('docsFiltroTipo')?.value || 'TODOS') : 'TODOS';
       const search = tbodyId === 'docsBody' ? String($('docsSearch')?.value || '').trim().toLowerCase() : '';
 
-      let filtered = filtroTipo === 'TODOS' ? rows : rows.filter(r => r.rowType === filtroTipo);
+      let filtered = filtroTipo === 'TODOS' ? baseRows : baseRows.filter(r => r.rowType === filtroTipo);
 
       if (search){
         filtered = filtered.filter(row => {
@@ -6735,7 +6715,6 @@ function globalSearch(){
             row.numero,
             row.detalle,
             row.referencia,
-            row.medio,
             row.contrato_id ? contratoLabelById(row.contrato_id) : '',
             row.downloadUrl ? 'adjunto disponible' : 'sin adjunto'
           ].join(' ').toLowerCase();
@@ -6754,7 +6733,7 @@ function globalSearch(){
 
       if (!filtered.length){
         if (tbodyId === 'docsBody'){
-          tb.innerHTML = `<tr><td colspan="8"><div class="docs-empty-state">No hay movimientos para mostrar con esos filtros.</div></td></tr>`;
+          tb.innerHTML = `<tr><td colspan="8"><div class="docs-empty-state">No hay legajos para mostrar con esos filtros.</div></td></tr>`;
         } else if (msgEl){
           msgEl.textContent = 'Sin movimientos para mostrar.';
         }
@@ -6935,13 +6914,13 @@ function globalSearch(){
   const file = $('docsFile')?.files?.[0];
 
   if (!contratoId || contratoId === '__ALL__') {
-    $('docsMsg').textContent = 'Elegí un contrato específico para adjuntar un archivo.';
-    if ($('docsUploadState')) $('docsUploadState').textContent = 'Falta elegir una unidad puntual para subir el archivo.';
+    $('docsMsg').textContent = 'Elegí un contrato específico para adjuntar el archivo al legajo.';
+    if ($('docsUploadState')) $('docsUploadState').textContent = 'Falta elegir una unidad puntual para cargar documentación.';
     return;
   }
   if (!file) {
     $('docsMsg').textContent = 'Seleccioná un archivo.';
-    if ($('docsUploadState')) $('docsUploadState').textContent = 'Todavía no hay archivo seleccionado para cargar.';
+    if ($('docsUploadState')) $('docsUploadState').textContent = 'Todavía no hay archivo seleccionado.';
     return;
   }
 
@@ -6950,7 +6929,7 @@ function globalSearch(){
 
   if (ok) {
     $('docsFile').value = '';
-    if ($('docsUploadState')) $('docsUploadState').textContent = `Archivo cargado correctamente como ${tipo}.`;
+    if ($('docsUploadState')) $('docsUploadState').textContent = `Archivo cargado correctamente en el legajo como ${tipo}.`;
     await loadDocsForSelected();
 
     if (selected?.contrato_id === contratoId) {
@@ -7389,8 +7368,8 @@ function globalSearch(){
       user = data.session?.user || null;
       toggle(!!user, user);
       if (user){
+        setRoute('inicio');
         await refreshAll();
-        setRoute(loadCurrentRoute());
       }
       sb.auth.onAuthStateChange(async (event, session) => {
         if (event === 'PASSWORD_RECOVERY') {
@@ -7405,8 +7384,8 @@ function globalSearch(){
         if (user){
           setRememberedEmail(user.email || ($('email')?.value || ''), true);
           try{ localStorage.setItem(LOGIN_REMEMBER_KEY, user.email || ($('email')?.value || '')); } catch (e){}
+          setRoute('inicio');
           await refreshAll();
-          setRoute(loadCurrentRoute());
         }
       });
 
