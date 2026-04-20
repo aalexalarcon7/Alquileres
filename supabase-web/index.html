@@ -2627,6 +2627,11 @@
     }
   </style>
 
+
+  <style id="routeHeaderHideStyles">
+    body.route-hide-top #topHeader{display:none !important;}
+  </style>
+
 </head>
 <body>
 <!-- SPLASH -->
@@ -3432,8 +3437,9 @@
         balance: 'Buscar en balance...',
         config: 'Ajustes del sistema'
       };
-      const hiddenTopRoutes = new Set(['documentos','recibos','informes']);
-      if (header) header.style.display = hiddenTopRoutes.has(route) ? 'none' : '';
+      const hideTopHeader = new Set(['documentos', 'recibos', 'informes']).has(route);
+      document.body.classList.toggle('route-hide-top', hideTopHeader);
+      if (header) header.style.display = hideTopHeader ? 'none' : '';
       input.placeholder = placeholders[route] || 'Buscar...';
     }
 
@@ -5434,13 +5440,7 @@ function globalSearch(){
                 </div>
               ` : `<div class="toast" style="margin-top:12px;">Apenas registres un cobro, vas a ver el recibo interno acá.</div>`}
             </div>
-<div class="recibo-contact-item">
-                    <div class="label">Uso recomendado</div>
-                    <div class="value">Buscá, abrí el recibo y elegí el canal: email, WhatsApp rápido o WhatsApp + PDF.</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+
           </div>
         </div>
       `;
