@@ -3421,6 +3421,7 @@
 
     function updateTopSearchUI(){
       const input = $('globalSearch');
+      const header = $('topHeader');
       if (!input) return;
       const placeholders = {
         inicio: 'Buscar unidad, código o inquilino...',
@@ -3431,6 +3432,8 @@
         balance: 'Buscar en balance...',
         config: 'Ajustes del sistema'
       };
+      const hiddenTopRoutes = new Set(['documentos','recibos','informes']);
+      if (header) header.style.display = hiddenTopRoutes.has(route) ? 'none' : '';
       input.placeholder = placeholders[route] || 'Buscar...';
     }
 
@@ -5295,7 +5298,6 @@ function globalSearch(){
           <div class="recibos-history-head">
             <div>
               <h2 style="margin:0;">Recibos internos</h2>
-              <div class="muted">Centralizá el historial, encontrá rápido el locatario correcto y compartí cada comprobante desde una interfaz más ordenada.</div>
             </div>
             <div class="row">
               <button class="btn" onclick="renderRecibosPage()">Actualizar</button>
@@ -5331,8 +5333,7 @@ function globalSearch(){
           <div class="card">
             <div class="row" style="justify-content:space-between;align-items:end;">
               <div>
-                <h3 style="margin:0;">Historial profesional</h3>
-                <div class="muted">Filtrá por locatario, número de recibo, local o mes y accedé a cada acción desde botones claros.</div>
+                <h3 style="margin:0;">Historial de recibos</h3>
               </div>
             </div>
 
@@ -5385,7 +5386,6 @@ function globalSearch(){
               <div class="row" style="justify-content:space-between;align-items:end;">
                 <div>
                   <h3 style="margin:0;">Locatario seleccionado</h3>
-                  <div class="muted">Un panel más limpio para copiar datos, revisar contacto y disparar el envío correcto.</div>
                 </div>
               </div>
               ${ultimo ? `
@@ -5434,21 +5434,7 @@ function globalSearch(){
                 </div>
               ` : `<div class="toast" style="margin-top:12px;">Apenas registres un cobro, vas a ver el recibo interno acá.</div>`}
             </div>
-
-            <div class="card">
-              <div class="row" style="justify-content:space-between;align-items:end;">
-                <div>
-                  <h3 style="margin:0;">Criterio visual</h3>
-                  <div class="muted">La tabla ahora prioriza lectura rápida: contacto agrupado, acciones en chips y filtros arriba.</div>
-                </div>
-              </div>
-              <div class="recibos-side-card" style="margin-top:12px;">
-                <div class="recibo-contact-lines">
-                  <div class="recibo-contact-item">
-                    <div class="label">Qué mejora</div>
-                    <div class="value">Menos ruido visual, acciones claras y contactos más fáciles de ubicar.</div>
-                  </div>
-                  <div class="recibo-contact-item">
+<div class="recibo-contact-item">
                     <div class="label">Uso recomendado</div>
                     <div class="value">Buscá, abrí el recibo y elegí el canal: email, WhatsApp rápido o WhatsApp + PDF.</div>
                   </div>
@@ -5824,7 +5810,6 @@ function globalSearch(){
           <div class="row" style="justify-content:space-between;align-items:end;">
             <div>
               <h2 style="margin:0;">Informes</h2>
-              <div class="muted">Acá se registran todos los egresos: sueldos, reparaciones, servicios, impuestos y cualquier otro gasto.</div>
             </div>
             <div class="row">
                             <button class="btn" onclick="refreshInformesData({ keepSuccessMsg:true })">Recargar</button>
@@ -5861,7 +5846,6 @@ function globalSearch(){
           <div class="row" style="justify-content:space-between;align-items:end;">
             <div>
               <h3 style="margin:0;">Registrar gasto</h3>
-              <div class="muted">Usá este formulario para cargar cualquier egreso, incluyendo sueldos repartidos.</div>
             </div>
             <span class="badge b-info" id="infFormMode">Nuevo gasto</span>
           </div>
@@ -5901,7 +5885,6 @@ function globalSearch(){
           <div class="row" style="justify-content:space-between;">
             <div>
               <h3 style="margin:0;">Historial de gastos</h3>
-              <div class="muted">Todos los egresos cargados, incluidos los sueldos.</div>
             </div>
             <span class="badge b-bad" id="infTotalRows">0 registros</span>
           </div>
