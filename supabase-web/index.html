@@ -3253,6 +3253,11 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
+
+  <div id="pagoSuccessToast" onclick="this.style.display='none'" style="display:none;position:fixed;top:18px;right:18px;z-index:100000;padding:10px 14px;border-radius:999px;background:var(--ok-soft);border:1px solid var(--ok-border);color:var(--text);font-weight:900;box-shadow:var(--shadow);cursor:pointer;">
+    Pago registrado exitosamente ✅
+  </div>
+
   <!-- MODAL RECIBO INTERNO -->
   <div class="modalBack" id="modalReciboBack">
     <div class="recibo-preview">
@@ -3306,6 +3311,8 @@
     const RECEIPT_NUMBER_MAP_KEY = 'ga_receipt_number_map_v1';
     const NAV_COLLAPSE_KEY = 'ga_nav_collapsed_v1';
     const ROUTE_STORAGE_KEY = 'ga_last_route_v1';
+    const PAYMENT_DESCRIPTION_MAP_KEY = 'ga_payment_description_map_v1';
+
     const ACCENT_PALETTES = {
       azul: {
         light:{ info:'#2563eb', infoSoft:'rgba(37,99,235,.10)', infoBorder:'rgba(37,99,235,.24)', logoBg:'rgba(37,99,235,.12)', logoFg:'#1d4ed8', brandA:'rgba(37,99,235,.12)', brandB:'rgba(22,163,74,.10)' },
@@ -3503,6 +3510,20 @@
     function persistAppSettings(){
       if (!appSettings) return;
       try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(appSettings)); } catch (e){}
+    }
+
+
+    let paymentDescriptionMap = {};
+    function loadPaymentDescriptionMap(){
+      try {
+        paymentDescriptionMap = JSON.parse(localStorage.getItem(PAYMENT_DESCRIPTION_MAP_KEY) || '{}') || {};
+      } catch (e){
+        paymentDescriptionMap = {};
+      }
+    }
+
+    function savePaymentDescriptionMap(){
+      try { localStorage.setItem(PAYMENT_DESCRIPTION_MAP_KEY, JSON.stringify(paymentDescriptionMap)); } catch (e){}
     }
 
     function loadReceiptNumberMap(){
@@ -4395,7 +4416,14 @@ function globalSearch(){
         msgEl.textContent = `Pago registrado exitosamente ✅ | ${reciboNumero} | Total: ${fmtARS.format(totalNum)}`;
 
         reciboActual = generatedRecibo;
-        if (generatedRecibo?.id && !recibosInternosCache.some(item => String(item.id) === String(generatedRecibo.id))) {
+        if (generatedRecibo?.id) {
+          paymentDescriptionMap[String(generatedRecibo.id)] = String(generatedRecibo.descripcion_pago || '').trim();
+          savePaymentDescriptionMap();
+        }
+        const existingReciboIndex = recibosInternosCache.findIndex(item => String(item.id) === String(generatedRecibo.id));
+        if (existingReciboIndex >= 0) {
+          recibosInternosCache[existingReciboIndex] = { ...recibosInternosCache[existingReciboIndex], ...generatedRecibo };
+        } else if (generatedRecibo?.id) {
           recibosInternosCache.unshift(generatedRecibo);
         }
         closePagoModal();
@@ -5402,12 +5430,14 @@ function globalSearch(){
         const inq = meta.inquilinos || {};
         const local = meta.locales || {};
         const montoTotal = Number(item.monto_total ?? item.monto ?? ((Number(item.monto_alquiler || 0) + Number(item.monto_impuesto || 0))));
+        const paymentKey = String(item.id || item.pago_id || '');
         return {
           ...item,
           monto_total: montoTotal,
           monto_alquiler: Number(item.monto_alquiler || (item.monto && !item.monto_impuesto ? item.monto : 0) || 0),
           monto_impuesto: Number(item.monto_impuesto || 0),
           impuesto_porcentaje: Number(item.impuesto_porcentaje || 0),
+          descripcion_pago: String(paymentDescriptionMap[paymentKey] || item.descripcion_pago || '').trim(),
           numero_recibo: buildReciboNumero(item, true),
           inquilino_nombre: inq.nombre || '—',
           telefono: inq.telefono || '',
@@ -5424,6 +5454,7 @@ function globalSearch(){
         if (!key) return;
         mergedMap.set(key, {
           ...item,
+          descripcion_pago: String(item.descripcion_pago || paymentDescriptionMap[key] || '').trim(),
           numero_recibo: item.numero_recibo || buildReciboNumero(item, true)
         });
       });
