@@ -4399,12 +4399,8 @@ function globalSearch(){
           recibosInternosCache.unshift(generatedRecibo);
         }
         closePagoModal();
-        $('modalReciboBack').style.display = 'flex';
-        $('reciboModalMeta').textContent = `${generatedRecibo.numero_recibo} · ${generatedRecibo.inquilino_nombre} · ${generatedRecibo.local_codigo}`;
-        $('reciboPreviewBody').innerHTML = buildReceiptPrintHtml(generatedRecibo);
-        if ($('reciboModalMsg')) $('reciboModalMsg').textContent = '';
         if ($('modalMsg')) $('modalMsg').textContent = 'Pago registrado exitosamente ✅';
-        showPagoSuccessToast('Pago registrado exitosamente ✅');
+        showPagoSuccessToast(`Pago registrado exitosamente ✅ · ${generatedRecibo.numero_recibo}`);
       } catch(e){
         console.error(e);
         msgEl.textContent = 'Error inesperado: ' + String(e?.message || e);
@@ -5422,7 +5418,7 @@ function globalSearch(){
       });
 
       const mergedMap = new Map();
-      [...(Array.isArray(recibosInternosCache) ? recibosInternosCache : []), ...dbRows].forEach(item => {
+      [...dbRows, ...(Array.isArray(recibosInternosCache) ? recibosInternosCache : [])].forEach(item => {
         if (!item) return;
         const key = String(item.id || item.pago_id || item.numero_recibo || '');
         if (!key) return;
