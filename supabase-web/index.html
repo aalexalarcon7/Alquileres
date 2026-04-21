@@ -728,9 +728,23 @@
 
     .sidebar-head{
       display:flex;
-      align-items:center;
+      align-items:flex-start;
       justify-content:space-between;
+      gap:12px;
+    }
+
+    .sidebar-tools{
+      display:flex;
+      align-items:center;
       gap:10px;
+      flex:0 0 auto;
+      margin-top:2px;
+    }
+
+    .theme-toggle-sidebar{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
     }
 
     .sb-brand{min-width:0;flex:1}
@@ -1090,7 +1104,9 @@
     body.nav-collapsed .sb-item-label,
     body.nav-collapsed .sb-footer .btn span{display:none}
 
-    body.nav-collapsed .sidebar-head{justify-content:center;flex-direction:column}
+    body.nav-collapsed .sidebar-head{justify-content:center;flex-direction:column;align-items:center}
+    body.nav-collapsed .sidebar-tools{margin-top:4px;flex-direction:column}
+    body.nav-collapsed .theme-toggle-sidebar{display:none}
     body.nav-collapsed .sb-brand{justify-content:center;flex:0}
     body.nav-collapsed .sb-nav{align-items:center}
     body.nav-collapsed .sb-item{justify-content:center;padding-inline:0;width:56px}
@@ -1112,6 +1128,12 @@
       .shell{grid-template-columns:1fr}
       body.nav-collapsed .shell{grid-template-columns:1fr}
       .nav-trigger{display:inline-flex}
+      .sidebar-head{
+        align-items:center;
+      }
+      .sidebar-tools{
+        margin-top:0;
+      }
       .sidebar{
         position:fixed;
         left:14px;
@@ -1521,6 +1543,9 @@
         min-width:0;
       }
 
+      .sidebar-tools{
+        width:auto;
+      }
       .sidebar{
         left:10px;
         right:10px;
@@ -2654,8 +2679,8 @@
             <div class="sb-subtitle" id="userInfo">—</div>
           </div>
         </div>
-        <div class="row" style="gap:10px;flex-wrap:nowrap;">
-          <button class="icon-btn" type="button" onclick="toggleTheme()" aria-label="Cambiar tema" title="Cambiar tema">
+        <div class="sidebar-tools">
+          <button class="icon-btn theme-toggle-sidebar" type="button" onclick="toggleTheme()" aria-label="Cambiar tema" title="Cambiar tema">
             <span id="themeFabIcon">🌙</span>
           </button>
           <button class="icon-btn sidebar-toggle" id="sidebarToggle" type="button" onclick="toggleSidebarNav()" aria-label="Replegar menú">
