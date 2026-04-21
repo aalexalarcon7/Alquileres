@@ -4166,6 +4166,19 @@ function globalSearch(){
 
         await refreshAll();
 
+        const generatedRecibo = buildReciboPreviewData({
+          pagoId: r?.pago_id,
+          fecha,
+          medio,
+          referencia,
+          reciboNumero,
+          alquilerNum,
+          impuestoNum,
+          impPct,
+          totalNum,
+          contratoId: modalContrato.contrato_id
+        });
+
         if (reciboFile && r?.pago_id){
           msgEl.textContent = `Pago registrado. Subiendo adjunto del ${reciboNumero}...`;
 
@@ -4188,6 +4201,16 @@ function globalSearch(){
         } else {
           msgEl.textContent = `Pago registrado ✅ | ${reciboNumero} | Alquiler: ${fmtARS.format(alquilerNum)} | Impuesto: ${fmtARS.format(impuestoNum)} (${impPct}%) | Total: ${fmtARS.format(totalNum)}`;
         }
+
+        reciboActual = generatedRecibo;
+        if (generatedRecibo?.id && !recibosInternosCache.some(item => String(item.id) === String(generatedRecibo.id))) {
+          recibosInternosCache.unshift(generatedRecibo);
+        }
+        closePagoModal();
+        $('reciboModalBack').style.display = 'flex';
+        $('reciboModalMeta').textContent = `${generatedRecibo.numero_recibo} · ${generatedRecibo.inquilino_nombre} · ${generatedRecibo.local_codigo}`;
+        $('reciboPreviewBody').innerHTML = buildReceiptPrintHtml(generatedRecibo);
+        $('reciboModalMsg').textContent = '';
       } catch(e){
         console.error(e);
         msgEl.textContent = 'Error inesperado: ' + String(e?.message || e);
@@ -5155,7 +5178,6 @@ function globalSearch(){
     }
 
     async function fetchRecibosInternosData(){
-      const query = ($('globalSearch')?.value || '').trim().toLowerCase();
       let pagos = [];
       let pagosError = null;
 
@@ -5206,16 +5228,6 @@ function globalSearch(){
           documento: inq.documento || '',
           local_codigo: local.codigo || '—'
         };
-      }).filter(item => {
-        if (!query) return true;
-        return [
-          item.numero_recibo,
-          item.inquilino_nombre,
-          item.local_codigo,
-          item.telefono,
-          item.email,
-          item.referencia
-        ].some(value => String(value || '').toLowerCase().includes(query));
       });
 
       rows.sort((a,b) => String(b.fecha_pago || b.created_at || '').localeCompare(String(a.fecha_pago || a.created_at || '')));
@@ -5265,6 +5277,32 @@ function globalSearch(){
       recibosPageState.local = $('recibosLocalFilter')?.value || 'TODOS';
       recibosPageState.month = $('recibosMonthFilter')?.value || '';
       renderRecibosPage();
+    }
+
+
+    function buildReciboPreviewData({ pagoId, fecha, medio, referencia, reciboNumero, alquilerNum, impuestoNum, impPct, totalNum, contratoId }){
+      const contrato = contratosActivos.find(item => String(item.id) === String(contratoId)) || {};
+      const inq = contrato.inquilinos || {};
+      const local = contrato.locales || {};
+      return {
+        id: pagoId,
+        pago_id: pagoId,
+        contrato_id: contratoId,
+        fecha_pago: fecha,
+        created_at: `${fecha}T00:00:00`,
+        medio: medio || '—',
+        referencia: referencia || reciboNumero,
+        numero_recibo: reciboNumero,
+        monto_alquiler: Number(alquilerNum || 0),
+        monto_impuesto: Number(impuestoNum || 0),
+        impuesto_porcentaje: Number(impPct || 0),
+        monto_total: Number(totalNum || 0),
+        inquilino_nombre: modalContrato?.inquilino_nombre || inq.nombre || '—',
+        telefono: inq.telefono || '',
+        email: inq.email || '',
+        documento: inq.documento || '',
+        local_codigo: modalContrato?.local_codigo || local.codigo || '—'
+      };
     }
 
     function clearRecibosFilters(){
