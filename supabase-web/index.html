@@ -2800,80 +2800,27 @@
       .section-hero-actions{width:100%;justify-content:stretch;}
       .section-hero-actions > *{width:100%;}
     }
-  
-  <style id="moduleTitleCenterStyles">
-    .module-title-center{
+  </style>
+
+
+
+  <style id="sectionHeroTitleOnlyFix">
+    .section-hero-main > div:last-child:has(.section-hero-title):not(:has(.section-hero-sub)){
       display:flex;
-      justify-content:center;
       align-items:center;
-      text-align:center;
-      margin-bottom:6px;
-    }
-    .module-title-center--recibos{
-      margin-bottom:8px;
-    }
-    .module-title-main{
-      font-size:22px;
-      font-weight:900;
-      letter-spacing:-.02em;
-      color:var(--text);
-    }
-    .module-title-sub{
-      margin-top:6px;
-      font-size:13px;
-      color:var(--muted);
-      line-height:1.45;
-      max-width:760px;
-    }
-    .module-title-head{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      width:100%;
-    }
-    .module-hero-top{
-      display:grid;
-      grid-template-columns:72px 1fr;
-      gap:18px;
-      align-items:center;
-      margin-bottom:16px;
-    }
-    .module-hero-top.no-subtitle{
-      align-items:center;
-    }
-    .module-hero-top.no-subtitle .module-title-head{
-      align-items:flex-start;
-      justify-content:center;
-      text-align:left;
       min-height:72px;
     }
-    .module-hero-top.no-subtitle .module-title-main{
+    .section-hero-main > div:last-child:has(.section-hero-title):not(:has(.section-hero-sub)) .section-hero-title{
       margin:0;
+      display:flex;
+      align-items:center;
     }
-    .recibos-premium-header .module-title-center{
-      margin-bottom:14px;
-    }
-
     @media (max-width: 760px){
-      .module-hero-top{
-        grid-template-columns:1fr;
-        gap:12px;
-      }
-      .module-hero-top.no-subtitle .module-title-head{
-        align-items:center;
-        text-align:center;
+      .section-hero-main > div:last-child:has(.section-hero-title):not(:has(.section-hero-sub)){
         min-height:auto;
-      }
-      .module-title-main{
-        font-size:20px;
       }
     }
   </style>
-
-</style>
-
 
   <style id="routeHeaderHideStyles">
     body.route-hide-top #topHeader{display:none !important;}
@@ -4876,7 +4823,7 @@ function globalSearch(){
                 <div class="section-hero-icon">📂</div>
                 <div>
                   <h2 class="section-hero-title">Legajos</h2>
-                  <div class="section-hero-sub">Gestión y consulta de documentación contractual, archivos administrativos y anexos de cada unidad.</div>
+                  
                 </div>
               </div>
               <div class="section-hero-kpis">
@@ -5654,50 +5601,52 @@ function globalSearch(){
       const localOptions = [...new Set(rows.map(item => String(item.local_codigo || '—')).filter(Boolean))].sort((a,b) => a.localeCompare(b));
 
       el.innerHTML = `
-        <div class="card">
-          <div class="recibos-history-head">
+        <div class="section-hero recibos">
+          <div class="section-hero-grid">
             <div>
-              <h2 style="margin:0;">Recibos internos</h2>
+              <div class="section-hero-main">
+                <div class="section-hero-icon">🧾</div>
+                <div>
+                  <h2 class="section-hero-title">Recibos internos</h2>
+                </div>
+              </div>
+              <div class="section-hero-kpis">
+                <div class="section-mini-stat">
+                  <div class="label">Recibos generados</div>
+                  <div class="value">${summary.total}</div>
+                  <div class="sub">Historial completo</div>
+                </div>
+                <div class="section-mini-stat">
+                  <div class="label">Monto histórico</div>
+                  <div class="value">${fmtARS.format(summary.totalMonto)}</div>
+                  <div class="sub">Suma de todos los recibos</div>
+                </div>
+                <div class="section-mini-stat">
+                  <div class="label">Recibos del mes</div>
+                  <div class="value">${summary.delMesCantidad}</div>
+                  <div class="sub">${fmtARS.format(summary.delMesMonto)}</div>
+                </div>
+                <div class="section-mini-stat">
+                  <div class="label">Último número</div>
+                  <div class="value">${summary.ultimoNumero}</div>
+                  <div class="sub">${ultimo ? `${ultimo.inquilino_nombre} · ${ultimo.local_codigo}` : 'Sin movimientos'}</div>
+                </div>
+              </div>
             </div>
-            <div class="row">
-              <button class="btn" onclick="renderRecibosPage()">Actualizar</button>
+            <div class="section-hero-actions">
+              <button class="btn primary" onclick="renderRecibosPage()">Actualizar</button>
             </div>
           </div>
-
-          <div class="recibos-summary-row">
-            <div class="kpi recibos-kpi">
-              <div class="label">Recibos generados</div>
-              <div class="value">${summary.total}</div>
-              <div class="muted">Historial completo</div>
-            </div>
-            <div class="kpi recibos-kpi">
-              <div class="label">Monto histórico</div>
-              <div class="value">${fmtARS.format(summary.totalMonto)}</div>
-              <div class="muted">Suma de todos los recibos</div>
-            </div>
-            <div class="kpi recibos-kpi">
-              <div class="label">Recibos del mes</div>
-              <div class="value">${summary.delMesCantidad}</div>
-              <div class="muted">${fmtARS.format(summary.delMesMonto)}</div>
-            </div>
-            <div class="kpi recibos-kpi">
-              <div class="label">Último número</div>
-              <div class="value">${summary.ultimoNumero}</div>
-              <div class="muted">${ultimo ? `${ultimo.inquilino_nombre} · ${ultimo.local_codigo}` : 'Sin movimientos'}</div>
-            </div>
-          </div>
-          <div class="toast" id="recibosMsg" style="margin-top:12px;">${[pagosError?.message, contratosError?.message].filter(Boolean).join(' | ')}</div>
+          <div class="toast" id="recibosMsg" style="margin-top:14px;">${[pagosError?.message, contratosError?.message].filter(Boolean).join(' | ')}</div>
         </div>
 
         <div class="recibos-grid">
-          
-<div class="card recibos-premium-header">
-  <div class="module-title-center module-title-center--recibos">
-    <div class="module-title-main">Recibos internos</div>
-  </div>
-
-  <div class="recibos-summary-row" style="margin-top:18px;">
-
+          <div class="card">
+            <div class="row" style="justify-content:space-between;align-items:end;">
+              <div>
+                <h3 style="margin:0;">Historial de recibos</h3>
+              </div>
+            </div>
 
             <div class="recibos-toolbar">
               <div class="recibos-toolbar-main">
@@ -6169,7 +6118,7 @@ function globalSearch(){
                 <div class="section-hero-icon">📊</div>
                 <div>
                   <h2 class="section-hero-title">Informes</h2>
-                  <div class="section-hero-sub">Análisis y control de gastos del período seleccionado para tener una lectura rápida del movimiento operativo.</div>
+                  
                 </div>
               </div>
               <div class="section-hero-toolbar">
@@ -6725,7 +6674,7 @@ function globalSearch(){
                 <div class="section-hero-icon">💰</div>
                 <div>
                   <h2 class="section-hero-title">Balance</h2>
-                  <div class="section-hero-sub">Resumen financiero del período seleccionado con foco en recaudación, gastos, utilidad y evolución mensual.</div>
+                  
                 </div>
               </div>
               <div class="section-hero-toolbar balance">
