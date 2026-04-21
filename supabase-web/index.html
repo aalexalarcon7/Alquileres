@@ -3270,6 +3270,9 @@
         <button class="btn" onclick="closeReciboModal()">Cerrar</button>
       </div>
       <div id="reciboPreviewBody" style="margin-top:14px;"></div>
+      <div id="reciboSuccessBanner" style="display:none;margin-top:12px;padding:12px 14px;border-radius:14px;background:var(--ok-soft);border:1px solid var(--ok-border);font-weight:800;">
+        Pago registrado exitosamente ✅
+      </div>
       <div class="recibo-actions">
         <button class="btn" onclick="copyReciboShareText()">Copiar texto</button>
         <button class="btn" onclick="openReciboEmail()">Email + PDF</button>
@@ -4408,6 +4411,7 @@ function globalSearch(){
         $('reciboModalBack').style.display = 'flex';
         $('reciboModalMeta').textContent = `${generatedRecibo.numero_recibo} · ${generatedRecibo.inquilino_nombre} · ${generatedRecibo.local_codigo}`;
         $('reciboPreviewBody').innerHTML = buildReceiptPrintHtml(generatedRecibo);
+        if ($('reciboSuccessBanner')) $('reciboSuccessBanner').style.display = 'block';
         $('reciboModalMsg').textContent = 'Pago registrado exitosamente ✅';
         if ($('modalMsg')) $('modalMsg').textContent = 'Pago registrado exitosamente ✅';
       } catch(e){
@@ -5290,6 +5294,7 @@ function globalSearch(){
         `Impuesto: ${fmtARS.format(Number(item.monto_impuesto || 0))}${item.impuesto_porcentaje != null ? ` (${Number(item.impuesto_porcentaje || 0).toFixed(2)}%)` : ''}`,
         `Total: ${fmtARS.format(Number(item.monto_total || item.monto || 0))}`,
         `Medio de pago: ${item.medio || '—'}`,
+        item.descripcion_pago ? `Descripción: ${item.descripcion_pago}` : null,
         item.referencia ? `N° recibo / referencia: ${item.referencia}` : null
       ].filter(Boolean);
       return lines.join('\n');
@@ -5364,7 +5369,7 @@ function globalSearch(){
           </div>
 
           <div class="recibo-note">
-            ${item.descripcion_pago ? `<div style="margin-bottom:8px;"><strong>Descripción:</strong> ${escapeHtml(item.descripcion_pago)}</div>` : ''}
+            ${item.descripcion_pago ? `<div style="margin-bottom:8px;"><strong>Descripción del pago:</strong> ${escapeHtml(item.descripcion_pago)}</div>` : ''}
             Comprobante interno no fiscal. Generado para archivo administrativo y entrega al locatario.
           </div>
         </div>
