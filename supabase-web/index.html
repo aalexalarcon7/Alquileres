@@ -2836,6 +2836,16 @@
     }
   </style>
 
+
+  <style id="heroTitleAlignFix">
+    .section-hero-main{
+      align-items:center !important;
+    }
+    .section-hero-title{
+      transform:translateY(5px);
+    }
+  </style>
+
   <style id="routeHeaderHideStyles">
     body.route-hide-top #topHeader{display:none !important;}
   </style>
@@ -2969,7 +2979,7 @@
             <div class="row" style="justify-content:space-between;">
               <div>
                 <h2 style="margin:0;">Activos</h2>
-                <div class="muted"></div>
+                <div class="muted">Listado de unidades. Cobrá, revisá deuda y abrí el detalle completo del activo.</div>
               </div>
               <span class="badge b-info" id="unitsCount">0 resultados</span>
             </div>
@@ -4837,6 +4847,7 @@ function globalSearch(){
                 <div class="section-hero-icon">📂</div>
                 <div>
                   <h2 class="section-hero-title">Legajos</h2>
+                  <div class="section-hero-sub">Gestión y consulta de documentación contractual, archivos administrativos y anexos de cada unidad.</div>
                 </div>
               </div>
               <div class="section-hero-kpis">
@@ -5634,6 +5645,7 @@ function globalSearch(){
                 <div class="section-hero-icon">🧾</div>
                 <div>
                   <h2 class="section-hero-title">Recibos internos</h2>
+                  <div class="section-hero-sub">Resumen general de comprobantes emitidos, volumen cobrado y último recibo generado.</div>
                 </div>
               </div>
 
@@ -6147,6 +6159,7 @@ function globalSearch(){
                 <div class="section-hero-icon">📊</div>
                 <div>
                   <h2 class="section-hero-title">Informes</h2>
+                  <div class="section-hero-sub">Análisis y control de gastos del período seleccionado para tener una lectura rápida del movimiento operativo.</div>
                 </div>
               </div>
               <div class="section-hero-toolbar">
@@ -6702,6 +6715,7 @@ function globalSearch(){
                 <div class="section-hero-icon">💰</div>
                 <div>
                   <h2 class="section-hero-title">Balance</h2>
+                  <div class="section-hero-sub">Resumen financiero del período seleccionado con foco en recaudación, gastos, utilidad y evolución mensual.</div>
                 </div>
               </div>
               <div class="section-hero-toolbar balance">
