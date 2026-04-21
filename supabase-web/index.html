@@ -5607,6 +5607,9 @@ function globalSearch(){
 
     function clearRecibosFilters(){
       recibosPageState = { query:'', local:'TODOS', month:'' };
+      if ($('recibosSearch')) $('recibosSearch').value = '';
+      if ($('recibosLocalFilter')) $('recibosLocalFilter').value = 'TODOS';
+      if ($('recibosMonthFilter')) $('recibosMonthFilter').value = '';
       renderRecibosPage();
     }
 
@@ -5617,7 +5620,7 @@ function globalSearch(){
 
     function renderRecibosHistoryRows(rows){
       if (!rows.length){
-        return `<tr><td colspan="9"><div class="recibos-empty">No hay recibos que coincidan con los filtros aplicados.</div></td></tr>`;
+        return `<tr><td colspan="9"><div class="recibos-empty">No hay recibos visibles con los filtros actuales.</div></td></tr>`;
       }
 
       return rows.map(item => `
@@ -5704,7 +5707,15 @@ function globalSearch(){
       saveReceiptsCache();
 
       const summary = renderRecibosKPIs(rows);
-      const filteredRows = applyRecibosPageFilters(rows);
+      let filteredRows = applyRecibosPageFilters(rows);
+
+      // Si hay recibos pero los filtros dejaron la tabla vacía,
+      // mostramos todo para no "perder" el recibo recién generado.
+      if (!filteredRows.length && rows.length){
+        recibosPageState = { query:'', local:'TODOS', month:'' };
+        filteredRows = [...rows];
+      }
+
       const ultimo = filteredRows[0] || rows[0] || null;
       const localOptions = [...new Set(rows.map(item => String(item.local_codigo || '—')).filter(Boolean))].sort((a,b) => a.localeCompare(b));
 
