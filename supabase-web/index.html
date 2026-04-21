@@ -5525,7 +5525,19 @@ function globalSearch(){
 
       const rows = [...mergedMap.values()];
 
-      rows.sort((a,b) => String(b.fecha_pago || b.created_at || '').localeCompare(String(a.fecha_pago || a.created_at || '')));
+      rows.sort((a,b) => {
+        const timeA = new Date(a.created_at || a.fecha_pago || 0).getTime() || 0;
+        const timeB = new Date(b.created_at || b.fecha_pago || 0).getTime() || 0;
+        if (timeA !== timeB) return timeB - timeA;
+
+        const numA = parseInt(String(a.numero_recibo || '').replace(/\D/g, ''), 10) || 0;
+        const numB = parseInt(String(b.numero_recibo || '').replace(/\D/g, ''), 10) || 0;
+        if (numA !== numB) return numB - numA;
+
+        const keyA = String(a.id || a.pago_id || a.__cache_key || '');
+        const keyB = String(b.id || b.pago_id || b.__cache_key || '');
+        return keyB.localeCompare(keyA);
+      });
       recibosInternosCache = rows;
       saveReceiptsCache();
       saveManualReceipts(rows);
@@ -5587,7 +5599,7 @@ function globalSearch(){
         pago_id: pagoId,
         contrato_id: contratoId,
         fecha_pago: fecha,
-        created_at: `${fecha}T00:00:00`,
+        created_at: new Date().toISOString(),
         medio: medio || '—',
         referencia: referencia || reciboNumero,
         descripcion_pago: String(descripcionPago || '').trim(),
