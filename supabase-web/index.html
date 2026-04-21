@@ -2800,7 +2800,79 @@
       .section-hero-actions{width:100%;justify-content:stretch;}
       .section-hero-actions > *{width:100%;}
     }
+  
+  <style id="moduleTitleCenterStyles">
+    .module-title-center{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      text-align:center;
+      margin-bottom:6px;
+    }
+    .module-title-center--recibos{
+      margin-bottom:8px;
+    }
+    .module-title-main{
+      font-size:22px;
+      font-weight:900;
+      letter-spacing:-.02em;
+      color:var(--text);
+    }
+    .module-title-sub{
+      margin-top:6px;
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.45;
+      max-width:760px;
+    }
+    .module-title-head{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      width:100%;
+    }
+    .module-hero-top{
+      display:grid;
+      grid-template-columns:72px 1fr;
+      gap:18px;
+      align-items:center;
+      margin-bottom:16px;
+    }
+    .module-hero-top.no-subtitle{
+      align-items:center;
+    }
+    .module-hero-top.no-subtitle .module-title-head{
+      align-items:flex-start;
+      justify-content:center;
+      text-align:left;
+      min-height:72px;
+    }
+    .module-hero-top.no-subtitle .module-title-main{
+      margin:0;
+    }
+    .recibos-premium-header .module-title-center{
+      margin-bottom:14px;
+    }
+
+    @media (max-width: 760px){
+      .module-hero-top{
+        grid-template-columns:1fr;
+        gap:12px;
+      }
+      .module-hero-top.no-subtitle .module-title-head{
+        align-items:center;
+        text-align:center;
+        min-height:auto;
+      }
+      .module-title-main{
+        font-size:20px;
+      }
+    }
   </style>
+
+</style>
 
 
   <style id="routeHeaderHideStyles">
@@ -4804,7 +4876,7 @@ function globalSearch(){
                 <div class="section-hero-icon">📂</div>
                 <div>
                   <h2 class="section-hero-title">Legajos</h2>
-                  <div class="section-hero-sub"></div>
+                  <div class="section-hero-sub">Gestión y consulta de documentación contractual, archivos administrativos y anexos de cada unidad.</div>
                 </div>
               </div>
               <div class="section-hero-kpis">
@@ -5618,12 +5690,14 @@ function globalSearch(){
         </div>
 
         <div class="recibos-grid">
-          <div class="card">
-            <div class="row" style="justify-content:space-between;align-items:end;">
-              <div>
-                <h3 style="margin:0;">Historial de recibos</h3>
-              </div>
-            </div>
+          
+<div class="card recibos-premium-header">
+  <div class="module-title-center module-title-center--recibos">
+    <div class="module-title-main">Recibos internos</div>
+  </div>
+
+  <div class="recibos-summary-row" style="margin-top:18px;">
+
 
             <div class="recibos-toolbar">
               <div class="recibos-toolbar-main">
@@ -6095,7 +6169,7 @@ function globalSearch(){
                 <div class="section-hero-icon">📊</div>
                 <div>
                   <h2 class="section-hero-title">Informes</h2>
-                  <div class="section-hero-sub"></div>
+                  <div class="section-hero-sub">Análisis y control de gastos del período seleccionado para tener una lectura rápida del movimiento operativo.</div>
                 </div>
               </div>
               <div class="section-hero-toolbar">
@@ -6651,7 +6725,7 @@ function globalSearch(){
                 <div class="section-hero-icon">💰</div>
                 <div>
                   <h2 class="section-hero-title">Balance</h2>
-                  <div class="section-hero-sub"></div>
+                  <div class="section-hero-sub">Resumen financiero del período seleccionado con foco en recaudación, gastos, utilidad y evolución mensual.</div>
                 </div>
               </div>
               <div class="section-hero-toolbar balance">
