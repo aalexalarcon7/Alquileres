@@ -3321,6 +3321,7 @@
     const NAV_COLLAPSE_KEY = 'ga_nav_collapsed_v1';
     const ROUTE_STORAGE_KEY = 'ga_last_route_v1';
     const PAYMENT_DESCRIPTION_MAP_KEY = 'ga_payment_description_map_v1';
+    const RECEIPTS_CACHE_KEY = 'ga_receipts_cache_v1';
 
     const ACCENT_PALETTES = {
       azul: {
@@ -3522,7 +3523,21 @@
     }
 
 
+    function loadReceiptsCache(){
+      try {
+        const parsed = JSON.parse(localStorage.getItem(RECEIPTS_CACHE_KEY) || '[]');
+        recibosInternosCache = Array.isArray(parsed) ? parsed : [];
+      } catch (e){
+        recibosInternosCache = [];
+      }
+    }
+
+    function saveReceiptsCache(){
+      try { localStorage.setItem(RECEIPTS_CACHE_KEY, JSON.stringify(Array.isArray(recibosInternosCache) ? recibosInternosCache : [])); } catch (e){}
+    }
+
     let paymentDescriptionMap = {};
+
     function loadPaymentDescriptionMap(){
       try {
         paymentDescriptionMap = JSON.parse(localStorage.getItem(PAYMENT_DESCRIPTION_MAP_KEY) || '{}') || {};
@@ -4440,8 +4455,9 @@ function globalSearch(){
         } else {
           recibosInternosCache.unshift(generatedRecibo);
         }
+        saveReceiptsCache();
 
-        recibosPageState = { ...recibosPageState, query:'' };
+        recibosPageState = { query:'', local:'TODOS', month:'' };
 
         closePagoModal();
         if (route === 'recibos') {
@@ -5471,19 +5487,23 @@ function globalSearch(){
       const mergedMap = new Map();
       [...dbRows, ...(Array.isArray(recibosInternosCache) ? recibosInternosCache : [])].forEach(item => {
         if (!item) return;
-        const key = String(item.id || item.pago_id || item.numero_recibo || '');
+        const key = String(item.id || item.pago_id || item.numero_recibo || item.__cache_key || '');
         if (!key) return;
+        const previous = mergedMap.get(key) || {};
         mergedMap.set(key, {
+          ...previous,
           ...item,
-          descripcion_pago: String(item.descripcion_pago || paymentDescriptionMap[key] || paymentDescriptionMap[item.numero_recibo || ''] || '').trim(),
+          descripcion_pago: String(item.descripcion_pago || previous.descripcion_pago || paymentDescriptionMap[key] || paymentDescriptionMap[item.numero_recibo || ''] || '').trim(),
           __cache_key: key,
-          numero_recibo: item.numero_recibo || buildReciboNumero(item, true)
+          numero_recibo: item.numero_recibo || previous.numero_recibo || buildReciboNumero(item, true)
         });
       });
 
       const rows = [...mergedMap.values()];
 
       rows.sort((a,b) => String(b.fecha_pago || b.created_at || '').localeCompare(String(a.fecha_pago || a.created_at || '')));
+      recibosInternosCache = rows;
+      saveReceiptsCache();
 
       return { rows, pagosError, contratosError };
     }
@@ -5655,6 +5675,7 @@ function globalSearch(){
 
       const { rows, pagosError, contratosError } = await fetchRecibosInternosData();
       recibosInternosCache = rows;
+      saveReceiptsCache();
 
       const summary = renderRecibosKPIs(rows);
       const filteredRows = applyRecibosPageFilters(rows);
@@ -7774,6 +7795,7 @@ function globalSearch(){
       loadAppSettings();
       loadReceiptNumberMap();
       loadPaymentDescriptionMap();
+      loadReceiptsCache();
       applyAppSettings();
       updateTopSearchUI();
       loadRememberedEmail();
