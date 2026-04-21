@@ -3322,6 +3322,7 @@
     const ROUTE_STORAGE_KEY = 'ga_last_route_v1';
     const PAYMENT_DESCRIPTION_MAP_KEY = 'ga_payment_description_map_v1';
     const RECEIPTS_CACHE_KEY = 'ga_receipts_cache_v1';
+    const MANUAL_RECEIPTS_KEY = 'ga_manual_receipts_v1';
 
     const ACCENT_PALETTES = {
       azul: {
@@ -3534,6 +3535,20 @@
 
     function saveReceiptsCache(){
       try { localStorage.setItem(RECEIPTS_CACHE_KEY, JSON.stringify(Array.isArray(recibosInternosCache) ? recibosInternosCache : [])); } catch (e){}
+    }
+
+
+    function loadManualReceipts(){
+      try {
+        const parsed = JSON.parse(localStorage.getItem(MANUAL_RECEIPTS_KEY) || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e){
+        return [];
+      }
+    }
+
+    function saveManualReceipts(rows){
+      try { localStorage.setItem(MANUAL_RECEIPTS_KEY, JSON.stringify(Array.isArray(rows) ? rows : [])); } catch (e){}
     }
 
     let paymentDescriptionMap = {};
@@ -4455,6 +4470,15 @@ function globalSearch(){
         } else {
           recibosInternosCache.unshift(generatedRecibo);
         }
+
+        const manualReceipts = loadManualReceipts();
+        const existingManualIndex = manualReceipts.findIndex(item => getReciboKey(item) === generatedReciboKey);
+        if (existingManualIndex >= 0) {
+          manualReceipts[existingManualIndex] = { ...manualReceipts[existingManualIndex], ...generatedRecibo };
+        } else {
+          manualReceipts.unshift(generatedRecibo);
+        }
+        saveManualReceipts(manualReceipts);
         saveReceiptsCache();
 
         recibosPageState = { query:'', local:'TODOS', month:'' };
@@ -5484,8 +5508,9 @@ function globalSearch(){
         };
       });
 
+      const manualReceipts = loadManualReceipts();
       const mergedMap = new Map();
-      [...dbRows, ...(Array.isArray(recibosInternosCache) ? recibosInternosCache : [])].forEach(item => {
+      [...dbRows, ...(Array.isArray(recibosInternosCache) ? recibosInternosCache : []), ...(Array.isArray(manualReceipts) ? manualReceipts : [])].forEach(item => {
         if (!item) return;
         const key = String(item.id || item.pago_id || item.numero_recibo || item.__cache_key || '');
         if (!key) return;
@@ -5504,6 +5529,7 @@ function globalSearch(){
       rows.sort((a,b) => String(b.fecha_pago || b.created_at || '').localeCompare(String(a.fecha_pago || a.created_at || '')));
       recibosInternosCache = rows;
       saveReceiptsCache();
+      saveManualReceipts(rows);
 
       return { rows, pagosError, contratosError };
     }
