@@ -2653,6 +2653,156 @@
   </style>
 
 
+
+  <style id="professionalSectionHeaderStyles">
+    .section-hero{
+      position:relative;
+      overflow:hidden;
+      padding:22px 24px;
+      border-radius:28px;
+      border:1px solid var(--border);
+      background:linear-gradient(135deg, rgba(255,255,255,.92), rgba(248,250,252,.88));
+      box-shadow:var(--panel-shadow);
+      margin-bottom:14px;
+    }
+    [data-theme="dark"] .section-hero{
+      background:linear-gradient(135deg, rgba(15,23,36,.94), rgba(17,25,39,.90));
+    }
+    .section-hero::before{
+      content:"";
+      position:absolute;
+      inset:-20% auto auto 55%;
+      width:420px;
+      height:220px;
+      background:radial-gradient(circle at center, rgba(37,99,235,.10), transparent 68%);
+      pointer-events:none;
+      opacity:.9;
+    }
+    .section-hero.docs::before{background:radial-gradient(circle at center, rgba(37,99,235,.10), transparent 68%);}
+    .section-hero.informes::before{background:radial-gradient(circle at center, rgba(96,165,250,.14), transparent 68%);}
+    .section-hero.balance::before{background:radial-gradient(circle at center, rgba(34,197,94,.12), transparent 68%);}
+    .section-hero-grid{
+      position:relative;
+      z-index:1;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:18px;
+      align-items:center;
+    }
+    .section-hero-main{
+      display:grid;
+      grid-template-columns:auto minmax(0,1fr);
+      gap:16px;
+      align-items:start;
+    }
+    .section-hero-icon{
+      width:74px;
+      height:74px;
+      border-radius:22px;
+      border:1px solid var(--border);
+      display:grid;
+      place-items:center;
+      font-size:34px;
+      background:rgba(255,255,255,.62);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+    }
+    [data-theme="dark"] .section-hero-icon{
+      background:rgba(255,255,255,.05);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .section-hero-title{
+      margin:0;
+      font-size:22px;
+      letter-spacing:-.03em;
+    }
+    .section-hero-sub{
+      margin:8px 0 0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.5;
+      max-width:720px;
+    }
+    .section-hero-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    .section-hero-actions > *{
+      min-height:48px;
+    }
+    .section-hero-actions .btn,
+    .section-hero-actions input,
+    .section-hero-actions select{
+      margin:0;
+    }
+    .section-hero-kpis{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,180px));
+      gap:10px;
+      margin-top:16px;
+    }
+    .section-mini-stat{
+      padding:14px 16px;
+      border-radius:18px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.58);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+    }
+    [data-theme="dark"] .section-mini-stat{
+      background:rgba(255,255,255,.04);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .section-mini-stat .label{
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--muted);
+      margin-bottom:8px;
+    }
+    .section-mini-stat .value{
+      font-size:24px;
+      font-weight:950;
+      line-height:1;
+    }
+    .section-mini-stat .sub{
+      margin-top:6px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .section-hero-toolbar{
+      display:grid;
+      grid-template-columns:minmax(220px,1.5fr) repeat(2,minmax(170px,.7fr)) auto;
+      gap:12px;
+      margin-top:18px;
+      align-items:center;
+    }
+    .section-hero-toolbar.balance{
+      grid-template-columns:minmax(240px,1.6fr) 160px auto;
+    }
+    .section-hero-toolbar .btn{
+      width:auto;
+    }
+    @media (max-width: 1100px){
+      .section-hero-grid{grid-template-columns:1fr;}
+      .section-hero-actions{justify-content:flex-start;}
+      .section-hero-kpis{grid-template-columns:repeat(3,minmax(0,1fr));}
+    }
+    @media (max-width: 760px){
+      .section-hero{padding:18px;}
+      .section-hero-main{grid-template-columns:1fr;}
+      .section-hero-icon{width:62px;height:62px;border-radius:18px;font-size:28px;}
+      .section-hero-kpis{grid-template-columns:1fr;}
+      .section-hero-toolbar,
+      .section-hero-toolbar.balance{grid-template-columns:1fr;}
+      .section-hero-actions{width:100%;justify-content:stretch;}
+      .section-hero-actions > *{width:100%;}
+    }
+  </style>
+
+
   <style id="routeHeaderHideStyles">
     body.route-hide-top #topHeader{display:none !important;}
   </style>
@@ -3081,6 +3231,7 @@
     let recibosInternosCache = [];
     let reciboActual = null;
     let recibosPageState = { query:'', local:'TODOS', month:'' };
+    let balancePageState = { query:'' };
     let proximoVencimientoMap = {};
     const VENCE_PRONTO_DIAS = 7;
 
@@ -4646,13 +4797,36 @@ function globalSearch(){
     async function renderDocumentosPage(){
       const el = $('viewDocumentos');
       el.innerHTML = `
-        <div class="card" style="padding:14px 18px;">
-          <div class="row" style="justify-content:space-between;align-items:center;">
+        <div class="section-hero docs">
+          <div class="section-hero-grid">
             <div>
-              <h2 style="margin:0;">Legajos</h2>
+              <div class="section-hero-main">
+                <div class="section-hero-icon">📂</div>
+                <div>
+                  <h2 class="section-hero-title">Legajos</h2>
+                  <div class="section-hero-sub">Gestión y consulta de documentación contractual, archivos administrativos y anexos de cada unidad.</div>
+                </div>
+              </div>
+              <div class="section-hero-kpis">
+                <div class="section-mini-stat">
+                  <div class="label">Total legajos</div>
+                  <div class="value" id="docsHeroTotal">0</div>
+                  <div class="sub">Archivo general</div>
+                </div>
+                <div class="section-mini-stat">
+                  <div class="label">Contratos</div>
+                  <div class="value" id="docsHeroContratos">0</div>
+                  <div class="sub">Base contractual</div>
+                </div>
+                <div class="section-mini-stat">
+                  <div class="label">Adjuntos</div>
+                  <div class="value" id="docsHeroAdjuntos">0</div>
+                  <div class="sub">Documentos cargados</div>
+                </div>
+              </div>
             </div>
-            <div class="row">
-              <button class="btn" onclick="loadDocsForSelected()">Actualizar</button>
+            <div class="section-hero-actions">
+              <button class="btn primary" onclick="loadDocsForSelected()">Actualizar</button>
             </div>
           </div>
         </div>
@@ -5914,31 +6088,39 @@ function globalSearch(){
     function renderInformesPage(){
       const el = $('viewInformes');
       el.innerHTML = `
-        <div class="card">
-          <div class="row" style="justify-content:space-between;align-items:end;">
+        <div class="section-hero informes">
+          <div class="section-hero-grid">
             <div>
-              <h2 style="margin:0;">Informes</h2>
+              <div class="section-hero-main">
+                <div class="section-hero-icon">📊</div>
+                <div>
+                  <h2 class="section-hero-title">Informes</h2>
+                  <div class="section-hero-sub">Análisis y control de gastos del período seleccionado para tener una lectura rápida del movimiento operativo.</div>
+                </div>
+              </div>
+              <div class="section-hero-toolbar">
+                <button class="btn" onclick="refreshInformesData({ keepSuccessMsg:true })">Recargar</button>
+                <input id="infSearch" placeholder="Buscar gasto, persona, número o categoría..." oninput="renderInformesTable()">
+                <select id="infCategoria" onchange="renderInformesTable()">
+                  <option value="TODOS">Todas las categorías</option>
+                  <option value="SUELDO">Sueldos</option>
+                  <option value="MANTENIMIENTO">Mantenimiento</option>
+                  <option value="REPARACION">Reparación</option>
+                  <option value="SERVICIO">Servicios</option>
+                  <option value="IMPUESTO">Impuestos</option>
+                  <option value="LIMPIEZA">Limpieza</option>
+                  <option value="INSUMO">Insumos</option>
+                  <option value="OTRO">Otro</option>
+                </select>
+                <input id="infMes" type="month" onchange="renderInformesTable()">
+                <button class="btn" onclick="resetInformesFilters()">Limpiar</button>
+              </div>
             </div>
-            <div class="row">
-                            <button class="btn" onclick="refreshInformesData({ keepSuccessMsg:true })">Recargar</button>
+            <div class="section-hero-actions">
               <button class="btn" id="infImportLocalBtn" onclick="importLegacyGastos()" style="display:none;">Importar datos locales</button>
-              <input id="infSearch" placeholder="Buscar gasto, persona, número o categoría..." style="width:320px" oninput="renderInformesTable()">
-              <select id="infCategoria" style="width:190px" onchange="renderInformesTable()">
-                <option value="TODOS">Todas las categorías</option>
-                <option value="SUELDO">Sueldos</option>
-                <option value="MANTENIMIENTO">Mantenimiento</option>
-                <option value="REPARACION">Reparación</option>
-                <option value="SERVICIO">Servicios</option>
-                <option value="IMPUESTO">Impuestos</option>
-                <option value="LIMPIEZA">Limpieza</option>
-                <option value="INSUMO">Insumos</option>
-                <option value="OTRO">Otro</option>
-              </select>
-              <input id="infMes" type="month" style="width:170px" onchange="renderInformesTable()">
-              <button class="btn" onclick="resetInformesFilters()">Limpiar</button>
             </div>
           </div>
-          <div class="toast" id="infSetupBox" style="display:none;margin-top:12px;"></div>
+          <div class="toast" id="infSetupBox" style="display:none;margin-top:14px;"></div>
         </div>
 
         <div class="card">
@@ -6445,31 +6627,43 @@ function globalSearch(){
       });
     }
 
+    function handleBalanceSearchInput(){
+      balancePageState.query = $('balanceSearch')?.value || '';
+      renderBalancePage();
+    }
+
     async function renderBalancePage(){
       const el = $('viewBalance');
       if (!el) return;
 
       const currentYear = new Date().getFullYear();
+      balancePageState.query = $('balanceSearch')?.value || balancePageState.query || '';
       const selectedYear = Number($('balanceYear')?.value || currentYear);
       const yearOptions = [currentYear - 1, currentYear, currentYear + 1]
         .map(year => `<option value="${year}">${year}</option>`)
         .join('');
 
       el.innerHTML = `
-        <div class="card">
-          <div class="row" style="justify-content:space-between;align-items:end;">
+        <div class="section-hero balance">
+          <div class="section-hero-grid">
             <div>
-              <h2 style="margin:0;">Balance</h2>
-              <div class="muted"></div>
-            </div>
-            <div class="row">
-              <select id="balanceYear" style="width:140px">
-                ${yearOptions}
-              </select>
-              <button class="btn" onclick="renderBalancePage()">Actualizar</button>
+              <div class="section-hero-main">
+                <div class="section-hero-icon">💰</div>
+                <div>
+                  <h2 class="section-hero-title">Balance</h2>
+                  <div class="section-hero-sub">Resumen financiero del período seleccionado con foco en recaudación, gastos, utilidad y evolución mensual.</div>
+                </div>
+              </div>
+              <div class="section-hero-toolbar balance">
+                <input id="balanceSearch" placeholder="Buscar en balance..." value="${escapeHtml(balancePageState.query || '')}" oninput="handleBalanceSearchInput()">
+                <select id="balanceYear" style="width:140px">
+                  ${yearOptions}
+                </select>
+                <button class="btn primary" onclick="renderBalancePage()">Actualizar</button>
+              </div>
             </div>
           </div>
-          <div class="toast" id="balanceMsg" style="margin-top:12px;"></div>
+          <div class="toast" id="balanceMsg" style="margin-top:14px;"></div>
         </div>
 
         <div class="card">
@@ -6552,7 +6746,11 @@ function globalSearch(){
 
       const year = Number(yearInput?.value || currentYear);
       const { pagos, gastos, pagosError, gastosError } = await fetchBalanceData(year);
-      const { rows, summary } = buildBalanceYearSummary(year, pagos, gastos);
+      let { rows, summary } = buildBalanceYearSummary(year, pagos, gastos);
+      const balanceQuery = String(balancePageState.query || '').trim().toLowerCase();
+      if (balanceQuery){
+        rows = rows.filter(row => String(row.mes || '').toLowerCase().includes(balanceQuery));
+      }
 
       if ($('balKpiRecaudacion')) $('balKpiRecaudacion').textContent = fmtARS.format(summary.recMesActual);
       if ($('balKpiGastos')) $('balKpiGastos').textContent = fmtARS.format(summary.gastosActual);
@@ -6729,8 +6927,10 @@ function globalSearch(){
 
       if ($('docsResumeTotal')) $('docsResumeTotal').textContent = String(total);
       if ($('docsResumeContratos')) $('docsResumeContratos').textContent = String(contratos);
+      if ($('docsHeroContratos')) $('docsHeroContratos').textContent = String(contratos);
       if ($('docsResumeOtros')) $('docsResumeOtros').textContent = String(otros);
       if ($('docsResumeConAdjunto')) $('docsResumeConAdjunto').textContent = String(conAdjunto);
+      if ($('docsHeroAdjuntos')) $('docsHeroAdjuntos').textContent = String(conAdjunto);
       if ($('docsResumeSinAdjunto')) $('docsResumeSinAdjunto').textContent = String(sinAdjunto);
     }
 
