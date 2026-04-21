@@ -4415,18 +4415,29 @@ function globalSearch(){
 
         msgEl.textContent = `Pago registrado exitosamente ✅ | ${reciboNumero} | Total: ${fmtARS.format(totalNum)}`;
 
+        const generatedReciboKey = getReciboKey(generatedRecibo) || String(generatedRecibo.numero_recibo || `tmp-${Date.now()}`);
+        generatedRecibo.__cache_key = generatedReciboKey;
         reciboActual = generatedRecibo;
-        if (generatedRecibo?.id) {
-          paymentDescriptionMap[String(generatedRecibo.id)] = String(generatedRecibo.descripcion_pago || '').trim();
-          savePaymentDescriptionMap();
+
+        paymentDescriptionMap[generatedReciboKey] = String(generatedRecibo.descripcion_pago || '').trim();
+        if (generatedRecibo.numero_recibo) {
+          paymentDescriptionMap[String(generatedRecibo.numero_recibo)] = String(generatedRecibo.descripcion_pago || '').trim();
         }
-        const existingReciboIndex = recibosInternosCache.findIndex(item => String(item.id) === String(generatedRecibo.id));
+        savePaymentDescriptionMap();
+
+        const existingReciboIndex = recibosInternosCache.findIndex(item => getReciboKey(item) === generatedReciboKey);
         if (existingReciboIndex >= 0) {
           recibosInternosCache[existingReciboIndex] = { ...recibosInternosCache[existingReciboIndex], ...generatedRecibo };
-        } else if (generatedRecibo?.id) {
+        } else {
           recibosInternosCache.unshift(generatedRecibo);
         }
+
+        recibosPageState = { ...recibosPageState, query:'' };
+
         closePagoModal();
+        if (route === 'recibos') {
+          await renderRecibosPage();
+        }
         if ($('modalMsg')) $('modalMsg').textContent = 'Pago registrado exitosamente ✅';
         showPagoSuccessToast(`Pago registrado exitosamente ✅ · ${generatedRecibo.numero_recibo}`);
       } catch(e){
@@ -5437,7 +5448,8 @@ function globalSearch(){
           monto_alquiler: Number(item.monto_alquiler || (item.monto && !item.monto_impuesto ? item.monto : 0) || 0),
           monto_impuesto: Number(item.monto_impuesto || 0),
           impuesto_porcentaje: Number(item.impuesto_porcentaje || 0),
-          descripcion_pago: String(paymentDescriptionMap[paymentKey] || item.descripcion_pago || '').trim(),
+          descripcion_pago: String(paymentDescriptionMap[paymentKey] || paymentDescriptionMap[buildReciboNumero(item, true)] || item.descripcion_pago || '').trim(),
+          __cache_key: paymentKey || buildReciboNumero(item, true),
           numero_recibo: buildReciboNumero(item, true),
           inquilino_nombre: inq.nombre || '—',
           telefono: inq.telefono || '',
@@ -5454,7 +5466,8 @@ function globalSearch(){
         if (!key) return;
         mergedMap.set(key, {
           ...item,
-          descripcion_pago: String(item.descripcion_pago || paymentDescriptionMap[key] || '').trim(),
+          descripcion_pago: String(item.descripcion_pago || paymentDescriptionMap[key] || paymentDescriptionMap[item.numero_recibo || ''] || '').trim(),
+          __cache_key: key,
           numero_recibo: item.numero_recibo || buildReciboNumero(item, true)
         });
       });
@@ -5592,26 +5605,26 @@ function globalSearch(){
           <td class="center">
             <div class="recibos-actions">
               <div class="recibos-action-panel">
-                <button class="recibos-primary-action" onclick="openReciboModal('${item.id}')">Ver recibo</button>
+                <button class="recibos-primary-action" onclick="openReciboModal('${getReciboKey(item)}')">Ver recibo</button>
                 <details class="recibos-share-menu">
                   <summary class="recibos-share-summary">Compartir</summary>
                   <div class="recibos-share-dropdown">
                     <div class="recibos-share-label">Canales disponibles</div>
-                    <button class="recibos-share-action email" onclick="event.preventDefault(); event.stopPropagation(); closeShareMenu(this); shareReciboByEmail('${item.id}')">
+                    <button class="recibos-share-action email" onclick="event.preventDefault(); event.stopPropagation(); closeShareMenu(this); shareReciboByEmail('${getReciboKey(item)}')">
                       <span class="icon">✉</span>
                       <span class="meta">
                         <span class="title">Email</span>
                         <span class="sub">Abrir envío por correo</span>
                       </span>
                     </button>
-                    <button class="recibos-share-action whatsapp" onclick="event.preventDefault(); event.stopPropagation(); closeShareMenu(this); shareReciboByWhatsappText('${item.id}')">
+                    <button class="recibos-share-action whatsapp" onclick="event.preventDefault(); event.stopPropagation(); closeShareMenu(this); shareReciboByWhatsappText('${getReciboKey(item)}')">
                       <span class="icon">WA</span>
                       <span class="meta">
                         <span class="title">WhatsApp rápido</span>
                         <span class="sub">Mensaje listo para enviar</span>
                       </span>
                     </button>
-                    <button class="recibos-share-action pdf" onclick="event.preventDefault(); event.stopPropagation(); closeShareMenu(this); shareReciboByWhatsappPdf('${item.id}')">
+                    <button class="recibos-share-action pdf" onclick="event.preventDefault(); event.stopPropagation(); closeShareMenu(this); shareReciboByWhatsappPdf('${getReciboKey(item)}')">
                       <span class="icon">PDF</span>
                       <span class="meta">
                         <span class="title">WhatsApp + PDF</span>
@@ -5793,8 +5806,13 @@ function globalSearch(){
       `;
     }
 
+
+    function getReciboKey(item){
+      return String(item?.id || item?.pago_id || item?.numero_recibo || item?.__cache_key || '');
+    }
+
     function getReciboById(id){
-      return recibosInternosCache.find(item => String(item.id) === String(id)) || null;
+      return recibosInternosCache.find(item => getReciboKey(item) === String(id)) || null;
     }
 
 
@@ -7722,6 +7740,7 @@ function globalSearch(){
       loadNavState();
       loadAppSettings();
       loadReceiptNumberMap();
+      loadPaymentDescriptionMap();
       applyAppSettings();
       updateTopSearchUI();
       loadRememberedEmail();
