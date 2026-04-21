@@ -2654,9 +2654,14 @@
             <div class="sb-subtitle" id="userInfo">—</div>
           </div>
         </div>
-        <button class="icon-btn sidebar-toggle" id="sidebarToggle" type="button" onclick="toggleSidebarNav()" aria-label="Replegar menú">
-          <span id="sidebarToggleIcon">⟨</span>
-        </button>
+        <div class="row" style="gap:10px;flex-wrap:nowrap;">
+          <button class="icon-btn" type="button" onclick="toggleTheme()" aria-label="Cambiar tema" title="Cambiar tema">
+            <span id="themeFabIcon">🌙</span>
+          </button>
+          <button class="icon-btn sidebar-toggle" id="sidebarToggle" type="button" onclick="toggleSidebarNav()" aria-label="Replegar menú">
+            <span id="sidebarToggleIcon">⟨</span>
+          </button>
+        </div>
       </div>
       <nav class="sb-nav">
         <button class="sb-item active" data-route="inicio" onclick="setRoute('inicio')"><span class="sb-item-icon">🏠</span><span class="sb-item-label">Inicio</span></button>
@@ -2682,10 +2687,6 @@
           </div>
         </div>
         <div class="top-actions">
-          <button class="btn" onclick="toggleTheme()">
-            <span id="themeFabIcon">🌙</span>
-            <span id="themeFabLabel">Modo oscuro</span>
-          </button>
           <button class="btn" onclick="refreshAll()">Refrescar</button>
         </div>
       </header>
