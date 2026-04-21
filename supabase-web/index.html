@@ -3634,7 +3634,7 @@
         balance: 'Buscar en balance...'
       };
 
-      const hideHeaderRoutes = new Set(['documentos', 'recibos', 'informes']);
+      const hideHeaderRoutes = new Set(['documentos', 'recibos', 'informes', 'balance']);
       const shouldHideHeader = hideHeaderRoutes.has(route);
 
       document.body.classList.toggle('route-hide-top', shouldHideHeader);
