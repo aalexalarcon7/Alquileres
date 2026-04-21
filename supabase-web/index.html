@@ -3179,9 +3179,9 @@
 
       
       <div class="row" style="margin-top:10px;">
-        <input id="mRecibo" type="file" style="width:100%;" />
+        <textarea id="mDescripcion" style="width:100%;min-height:90px;" placeholder="Descripción del pago (opcional)"></textarea>
       </div>
-      <div class="muted" style="margin-top:6px;">Opcional: adjuntar recibo al pago (PDF o imagen).</div>
+      <div class="muted" style="margin-top:6px;">Opcional: agregá una descripción o aclaración del pago.</div>
 
       <div class="toast" id="modalMsg"></div>
     </div>
@@ -4292,7 +4292,7 @@ function globalSearch(){
       if ($('mReferencia')) $('mReferencia').value = nextReciboPreview();
       populatePaymentMethodSelect('mMedio');
       $('modalMsg').textContent = '';
-      if ($('mRecibo')) $('mRecibo').value = '';
+      if ($('mDescripcion')) $('mDescripcion').value = '';
       recalcularCobroModal();
     }
 
@@ -4310,7 +4310,7 @@ function globalSearch(){
         const fecha = $('mFecha').value;
         const medio = $('mMedio').value;
         const referencia = String($('mReferencia')?.value || '').trim();
-        const reciboFile = $('mRecibo')?.files?.[0];
+        const descripcionPago = String($('mDescripcion')?.value || '').trim();
 
         const alquilerStr = parseMoneyToDecimalString($('mAlquiler')?.value || '');
         const impPct = parsePercentInput($('mImpPct')?.value || 0);
@@ -4335,11 +4335,6 @@ function globalSearch(){
 
         if (Number(montoTotal) <= 0){
           msgEl.textContent = 'El total a cobrar debe ser mayor a 0.';
-          return;
-        }
-
-        if (appSettings?.documentos?.exigeAdjuntoRecibo && !reciboFile){
-          msgEl.textContent = 'Adjuntá el recibo antes de guardar.';
           return;
         }
 
@@ -4386,31 +4381,11 @@ function globalSearch(){
           impuestoNum,
           impPct,
           totalNum,
-          contratoId: modalContrato.contrato_id
+          contratoId: modalContrato.contrato_id,
+          descripcionPago
         });
 
-        if (reciboFile && r?.pago_id){
-          msgEl.textContent = `Pago registrado. Subiendo adjunto del ${reciboNumero}...`;
-
-          const ok = await uploadDocCore(
-            { contratoId: modalContrato.contrato_id, tipo: 'RECIBO', file: reciboFile, pagoId: r.pago_id },
-            null
-          );
-
-          if (ok){
-            msgEl.textContent = `Pago OK | ${reciboNumero} | Alquiler: ${fmtARS.format(alquilerNum)} | Impuesto: ${fmtARS.format(impuestoNum)} (${impPct}%) | Total: ${fmtARS.format(totalNum)} ✅`;
-            $('mRecibo').value = '';
-
-            if (selected?.contrato_id === modalContrato.contrato_id){
-              await loadDetalleDocs();
-            }
-          } else {
-            const extra = window.__lastDocError ? ` (${window.__lastDocError})` : '';
-            msgEl.textContent = `Pago OK | ${reciboNumero} | Total: ${fmtARS.format(totalNum)}, pero NO se pudo subir el archivo.` + extra;
-          }
-        } else {
-          msgEl.textContent = `Pago registrado ✅ | ${reciboNumero} | Alquiler: ${fmtARS.format(alquilerNum)} | Impuesto: ${fmtARS.format(impuestoNum)} (${impPct}%) | Total: ${fmtARS.format(totalNum)}`;
-        }
+        msgEl.textContent = `Pago registrado exitosamente ✅ | ${reciboNumero} | Total: ${fmtARS.format(totalNum)}`;
 
         reciboActual = generatedRecibo;
         if (generatedRecibo?.id && !recibosInternosCache.some(item => String(item.id) === String(generatedRecibo.id))) {
@@ -4420,7 +4395,7 @@ function globalSearch(){
         $('reciboModalBack').style.display = 'flex';
         $('reciboModalMeta').textContent = `${generatedRecibo.numero_recibo} · ${generatedRecibo.inquilino_nombre} · ${generatedRecibo.local_codigo}`;
         $('reciboPreviewBody').innerHTML = buildReceiptPrintHtml(generatedRecibo);
-        $('reciboModalMsg').textContent = '';
+        $('reciboModalMsg').textContent = 'Pago registrado exitosamente ✅';
       } catch(e){
         console.error(e);
         msgEl.textContent = 'Error inesperado: ' + String(e?.message || e);
@@ -5375,6 +5350,7 @@ function globalSearch(){
           </div>
 
           <div class="recibo-note">
+            ${item.descripcion_pago ? `<div style="margin-bottom:8px;"><strong>Descripción:</strong> ${escapeHtml(item.descripcion_pago)}</div>` : ''}
             Comprobante interno no fiscal. Generado para archivo administrativo y entrega al locatario.
           </div>
         </div>
