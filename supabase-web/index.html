@@ -5417,7 +5417,7 @@ function globalSearch(){
       }
 
       const metaMap = new Map((contratosMeta || []).map(item => [String(item.id), item]));
-      const rows = (pagos || []).map(item => {
+      const dbRows = (pagos || []).map(item => {
         const meta = metaMap.get(String(item.contrato_id || '')) || {};
         const inq = meta.inquilinos || {};
         const local = meta.locales || {};
@@ -5436,6 +5436,19 @@ function globalSearch(){
           local_codigo: local.codigo || '—'
         };
       });
+
+      const mergedMap = new Map();
+      [...(Array.isArray(recibosInternosCache) ? recibosInternosCache : []), ...dbRows].forEach(item => {
+        if (!item) return;
+        const key = String(item.id || item.pago_id || item.numero_recibo || '');
+        if (!key) return;
+        mergedMap.set(key, {
+          ...item,
+          numero_recibo: item.numero_recibo || buildReciboNumero(item, true)
+        });
+      });
+
+      const rows = [...mergedMap.values()];
 
       rows.sort((a,b) => String(b.fecha_pago || b.created_at || '').localeCompare(String(a.fecha_pago || a.created_at || '')));
 
