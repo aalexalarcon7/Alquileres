@@ -2846,6 +2846,22 @@
     }
   </style>
 
+
+  <style id="heroNoSubtitleAlignFix">
+    .section-hero-main{
+      align-items:center !important;
+    }
+    .section-hero-main > div:last-child{
+      display:flex;
+      align-items:center;
+      min-height:72px;
+    }
+    .section-hero-title{
+      margin:0;
+      transform:translateY(5px);
+    }
+  </style>
+
   <style id="routeHeaderHideStyles">
     body.route-hide-top #topHeader{display:none !important;}
   </style>
@@ -4847,7 +4863,6 @@ function globalSearch(){
                 <div class="section-hero-icon">📂</div>
                 <div>
                   <h2 class="section-hero-title">Legajos</h2>
-                  <div class="section-hero-sub">Gestión y consulta de documentación contractual, archivos administrativos y anexos de cada unidad.</div>
                 </div>
               </div>
               <div class="section-hero-kpis">
@@ -5645,7 +5660,6 @@ function globalSearch(){
                 <div class="section-hero-icon">🧾</div>
                 <div>
                   <h2 class="section-hero-title">Recibos internos</h2>
-                  <div class="section-hero-sub">Resumen general de comprobantes emitidos, volumen cobrado y último recibo generado.</div>
                 </div>
               </div>
 
@@ -6159,7 +6173,6 @@ function globalSearch(){
                 <div class="section-hero-icon">📊</div>
                 <div>
                   <h2 class="section-hero-title">Informes</h2>
-                  <div class="section-hero-sub">Análisis y control de gastos del período seleccionado para tener una lectura rápida del movimiento operativo.</div>
                 </div>
               </div>
               <div class="section-hero-toolbar">
@@ -6715,7 +6728,6 @@ function globalSearch(){
                 <div class="section-hero-icon">💰</div>
                 <div>
                   <h2 class="section-hero-title">Balance</h2>
-                  <div class="section-hero-sub">Resumen financiero del período seleccionado con foco en recaudación, gastos, utilidad y evolución mensual.</div>
                 </div>
               </div>
               <div class="section-hero-toolbar balance">
