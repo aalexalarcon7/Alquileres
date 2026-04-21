@@ -2681,6 +2681,7 @@
     .section-hero.docs::before{background:radial-gradient(circle at center, rgba(37,99,235,.10), transparent 68%);}
     .section-hero.informes::before{background:radial-gradient(circle at center, rgba(96,165,250,.14), transparent 68%);}
     .section-hero.balance::before{background:radial-gradient(circle at center, rgba(34,197,94,.12), transparent 68%);}
+    .section-hero.recibos::before{background:radial-gradient(circle at center, rgba(124,58,237,.10), transparent 68%);}
     .section-hero-grid{
       position:relative;
       z-index:1;
@@ -2804,20 +2805,33 @@
 
 
 
-  <style id="sectionHeroTitleOnlyFix">
-    .section-hero-main > div:last-child:has(.section-hero-title):not(:has(.section-hero-sub)){
-      display:flex;
-      align-items:center;
-      min-height:72px;
-    }
-    .section-hero-main > div:last-child:has(.section-hero-title):not(:has(.section-hero-sub)) .section-hero-title{
-      margin:0;
-      display:flex;
+  <style id="recibosHeroFixStyles">
+    .recibos-hero-grid{
       align-items:center;
     }
+    .recibos-hero-kpis{
+      grid-template-columns:repeat(4,minmax(0,1fr));
+    }
+    .recibos-hero-kpis .section-mini-stat{
+      min-width:0;
+    }
+    .recibos-hero-kpis .section-mini-stat .value{
+      overflow-wrap:anywhere;
+      word-break:break-word;
+    }
+    .recibos-hero-actions{
+      align-self:center;
+    }
+
+    @media (max-width: 1200px){
+      .recibos-hero-kpis{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+    }
+
     @media (max-width: 760px){
-      .section-hero-main > div:last-child:has(.section-hero-title):not(:has(.section-hero-sub)){
-        min-height:auto;
+      .recibos-hero-kpis{
+        grid-template-columns:1fr;
       }
     }
   </style>
@@ -4823,7 +4837,7 @@ function globalSearch(){
                 <div class="section-hero-icon">📂</div>
                 <div>
                   <h2 class="section-hero-title">Legajos</h2>
-                  
+                  <div class="section-hero-sub">Gestión y consulta de documentación contractual, archivos administrativos y anexos de cada unidad.</div>
                 </div>
               </div>
               <div class="section-hero-kpis">
@@ -5602,15 +5616,17 @@ function globalSearch(){
 
       el.innerHTML = `
         <div class="section-hero recibos">
-          <div class="section-hero-grid">
+          <div class="section-hero-grid recibos-hero-grid">
             <div>
               <div class="section-hero-main">
                 <div class="section-hero-icon">🧾</div>
                 <div>
                   <h2 class="section-hero-title">Recibos internos</h2>
+                  <div class="section-hero-sub">Resumen general de comprobantes emitidos, volumen cobrado y último recibo generado.</div>
                 </div>
               </div>
-              <div class="section-hero-kpis">
+
+              <div class="section-hero-kpis recibos-hero-kpis">
                 <div class="section-mini-stat">
                   <div class="label">Recibos generados</div>
                   <div class="value">${summary.total}</div>
@@ -5619,7 +5635,7 @@ function globalSearch(){
                 <div class="section-mini-stat">
                   <div class="label">Monto histórico</div>
                   <div class="value">${fmtARS.format(summary.totalMonto)}</div>
-                  <div class="sub">Suma de todos los recibos</div>
+                  <div class="sub">Suma total registrada</div>
                 </div>
                 <div class="section-mini-stat">
                   <div class="label">Recibos del mes</div>
@@ -5633,10 +5649,12 @@ function globalSearch(){
                 </div>
               </div>
             </div>
-            <div class="section-hero-actions">
+
+            <div class="section-hero-actions recibos-hero-actions">
               <button class="btn primary" onclick="renderRecibosPage()">Actualizar</button>
             </div>
           </div>
+
           <div class="toast" id="recibosMsg" style="margin-top:14px;">${[pagosError?.message, contratosError?.message].filter(Boolean).join(' | ')}</div>
         </div>
 
@@ -6118,7 +6136,7 @@ function globalSearch(){
                 <div class="section-hero-icon">📊</div>
                 <div>
                   <h2 class="section-hero-title">Informes</h2>
-                  
+                  <div class="section-hero-sub">Análisis y control de gastos del período seleccionado para tener una lectura rápida del movimiento operativo.</div>
                 </div>
               </div>
               <div class="section-hero-toolbar">
@@ -6674,7 +6692,7 @@ function globalSearch(){
                 <div class="section-hero-icon">💰</div>
                 <div>
                   <h2 class="section-hero-title">Balance</h2>
-                  
+                  <div class="section-hero-sub">Resumen financiero del período seleccionado con foco en recaudación, gastos, utilidad y evolución mensual.</div>
                 </div>
               </div>
               <div class="section-hero-toolbar balance">
