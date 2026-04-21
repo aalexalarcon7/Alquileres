@@ -4408,7 +4408,7 @@ function globalSearch(){
           recibosInternosCache.unshift(generatedRecibo);
         }
         closePagoModal();
-        $('reciboModalBack').style.display = 'flex';
+        $('modalReciboBack').style.display = 'flex';
         $('reciboModalMeta').textContent = `${generatedRecibo.numero_recibo} · ${generatedRecibo.inquilino_nombre} · ${generatedRecibo.local_codigo}`;
         $('reciboPreviewBody').innerHTML = buildReceiptPrintHtml(generatedRecibo);
         if ($('reciboSuccessBanner')) $('reciboSuccessBanner').style.display = 'block';
@@ -5492,7 +5492,7 @@ function globalSearch(){
     }
 
 
-    function buildReciboPreviewData({ pagoId, fecha, medio, referencia, reciboNumero, alquilerNum, impuestoNum, impPct, totalNum, contratoId }){
+    function buildReciboPreviewData({ pagoId, fecha, medio, referencia, reciboNumero, alquilerNum, impuestoNum, impPct, totalNum, contratoId, descripcionPago }){
       const contrato = contratosActivos.find(item => String(item.id) === String(contratoId)) || {};
       const inq = contrato.inquilinos || {};
       const local = contrato.locales || {};
@@ -5504,6 +5504,7 @@ function globalSearch(){
         created_at: `${fecha}T00:00:00`,
         medio: medio || '—',
         referencia: referencia || reciboNumero,
+        descripcion_pago: String(descripcionPago || '').trim(),
         numero_recibo: reciboNumero,
         monto_alquiler: Number(alquilerNum || 0),
         monto_impuesto: Number(impuestoNum || 0),
@@ -5779,6 +5780,7 @@ function globalSearch(){
 
     function closeReciboModal(){
       $('modalReciboBack').style.display = 'none';
+      if ($('reciboSuccessBanner')) $('reciboSuccessBanner').style.display = 'none';
       $('reciboModalMsg').textContent = '';
     }
 
@@ -5792,6 +5794,7 @@ function globalSearch(){
       $('modalReciboBack').style.display = 'flex';
       $('reciboModalMeta').textContent = `${item.numero_recibo} · ${item.inquilino_nombre} · ${item.local_codigo}`;
       $('reciboPreviewBody').innerHTML = buildReceiptPrintHtml(item);
+      if ($('reciboSuccessBanner')) $('reciboSuccessBanner').style.display = 'none';
       $('reciboModalMsg').textContent = '';
     }
 
