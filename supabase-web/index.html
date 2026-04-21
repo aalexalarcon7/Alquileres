@@ -3263,9 +3263,6 @@
         </div>
         <button class="btn" onclick="closeReciboModal()">Cerrar</button>
       </div>
-      <div id="reciboSuccessBanner" style="display:none;margin-top:14px;margin-bottom:14px;padding:12px 14px;border-radius:14px;background:var(--ok-soft);border:1px solid var(--ok-border);color:var(--text);font-weight:900;">
-        Pago registrado exitosamente ✅
-      </div>
       <div id="reciboPreviewBody" style="margin-top:14px;"></div>
       <div class="recibo-actions">
         <button class="btn" onclick="copyReciboShareText()">Copiar texto</button>
@@ -4405,12 +4402,9 @@ function globalSearch(){
         $('modalReciboBack').style.display = 'flex';
         $('reciboModalMeta').textContent = `${generatedRecibo.numero_recibo} · ${generatedRecibo.inquilino_nombre} · ${generatedRecibo.local_codigo}`;
         $('reciboPreviewBody').innerHTML = buildReceiptPrintHtml(generatedRecibo);
-        if ($('reciboSuccessBanner')) {
-          $('reciboSuccessBanner').textContent = 'Pago registrado exitosamente ✅';
-          $('reciboSuccessBanner').style.display = 'block';
-        }
         if ($('reciboModalMsg')) $('reciboModalMsg').textContent = '';
         if ($('modalMsg')) $('modalMsg').textContent = 'Pago registrado exitosamente ✅';
+        showPagoSuccessToast('Pago registrado exitosamente ✅');
       } catch(e){
         console.error(e);
         msgEl.textContent = 'Error inesperado: ' + String(e?.message || e);
@@ -5776,12 +5770,21 @@ function globalSearch(){
       return recibosInternosCache.find(item => String(item.id) === String(id)) || null;
     }
 
+
+    let pagoSuccessToastTimer = null;
+    function showPagoSuccessToast(message = 'Pago registrado exitosamente ✅'){
+      const el = $('pagoSuccessToast');
+      if (!el) return;
+      el.textContent = message;
+      el.style.display = 'block';
+      clearTimeout(pagoSuccessToastTimer);
+      pagoSuccessToastTimer = setTimeout(() => {
+        el.style.display = 'none';
+      }, 2600);
+    }
+
     function closeReciboModal(){
       $('modalReciboBack').style.display = 'none';
-      if ($('reciboSuccessBanner')) {
-        $('reciboSuccessBanner').style.display = 'none';
-        $('reciboSuccessBanner').textContent = 'Pago registrado exitosamente ✅';
-      }
       if ($('reciboModalMsg')) $('reciboModalMsg').textContent = '';
     }
 
@@ -5795,7 +5798,6 @@ function globalSearch(){
       $('modalReciboBack').style.display = 'flex';
       $('reciboModalMeta').textContent = `${item.numero_recibo} · ${item.inquilino_nombre} · ${item.local_codigo}`;
       $('reciboPreviewBody').innerHTML = buildReceiptPrintHtml(item);
-      if ($('reciboSuccessBanner')) $('reciboSuccessBanner').style.display = 'none';
       if ($('reciboModalMsg')) $('reciboModalMsg').textContent = '';
     }
 
