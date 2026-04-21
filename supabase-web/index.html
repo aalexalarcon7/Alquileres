@@ -2862,6 +2862,19 @@
     }
   </style>
 
+
+  <style id="successMessageStyles">
+    #reciboModalMsg{
+      margin-top:12px;
+      padding:12px 14px;
+      border-radius:14px;
+      background:var(--ok-soft);
+      border:1px solid var(--ok-border);
+      color:var(--text);
+      font-weight:800;
+    }
+  </style>
+
   <style id="routeHeaderHideStyles">
     body.route-hide-top #topHeader{display:none !important;}
   </style>
@@ -4396,6 +4409,7 @@ function globalSearch(){
         $('reciboModalMeta').textContent = `${generatedRecibo.numero_recibo} · ${generatedRecibo.inquilino_nombre} · ${generatedRecibo.local_codigo}`;
         $('reciboPreviewBody').innerHTML = buildReceiptPrintHtml(generatedRecibo);
         $('reciboModalMsg').textContent = 'Pago registrado exitosamente ✅';
+        if ($('modalMsg')) $('modalMsg').textContent = 'Pago registrado exitosamente ✅';
       } catch(e){
         console.error(e);
         msgEl.textContent = 'Error inesperado: ' + String(e?.message || e);
